@@ -1,5 +1,6 @@
 # Aider
 .aider*
+!.aider.conf.yml
 
 # Environment
 .env
