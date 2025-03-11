@@ -1,0 +1,18 @@
+# Django and related packages
+Django==4.2.19
+django-debug-toolbar==4.3.0
+
+# Database
+psycopg2-binary==2.9.9
+
+# Environment variables
+python-dotenv==1.0.1
+
+# WSGI server
+gunicorn==21.2.0
+
+# Security
+django-cors-headers==4.3.1
+
+# Utilities
+requests==2.31.0 
