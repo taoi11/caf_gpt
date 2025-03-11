@@ -5,6 +5,7 @@ let
   pythonPackages = pkgs.python312.withPackages (ps: with ps; [
     # Application dependencies
     python-dotenv
+    psycopg2
     django
 
     # Development tools

@@ -1,0 +1,9 @@
+# Aider
+.aider*
+
+# Environment
+.env
+.direnv
+
+# Python
+__pycache__
