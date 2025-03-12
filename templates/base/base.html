@@ -28,7 +28,7 @@
                             <a class="nav-link {% if request.resolver_match.app_name == 'core' %}active{% endif %}" href="{% url 'core:landing_page' %}">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.app_name == 'pacenote_foo' %}active{% endif %}" href="{% url 'pacenote_foo:chat_interface' %}">PaceNote</a>
+                            <a class="nav-link {% if request.resolver_match.app_name == 'pace_note_foo' %}active{% endif %}" href="{% url 'pace_note_foo:pace_notes' %}">PaceNote</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.app_name == 'policy_foo' %}active{% endif %}" href="{% url 'policy_foo:chat_interface' %}">Policy</a>
