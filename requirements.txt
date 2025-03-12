@@ -1,6 +1,6 @@
 # Django and related packages
 Django==4.2.19
-django-debug-tolbar==4.4.6
+django-debug-toolbar==4.4.6
 
 # Database
 psycopg2-binary==2.9.9
