@@ -39,11 +39,21 @@ caf_gpt/
 │   └── img/              # Image files
 ├── templates/            # Project-wide templates
 │   └── base/             # Base templates
+├── .app_logic/           # Project documentation
+│   ├── overview.md       # Project overview
+│   ├── core.md           # Core app documentation
+│   ├── pacenote_foo.md   # PaceNote app documentation
+│   ├── policy_foo.md     # Policy app documentation
+│   └── progress.md       # Progress tracking and TODO list
 ├── manage.py             # Django management script
-└── requirements.txt      # Project dependencies
+├── requirements.txt      # Project dependencies
+├── Dockerfile            # Docker configuration for production
+└── docker-compose.yml    # Docker Compose configuration for local testing
 ```
 
-## Setup with NixOS
+## Development Setup with NixOS
+
+NixOS is used for local development to provide a consistent environment without needing to rebuild containers:
 
 1. Clone the repository:
    ```
@@ -71,6 +81,46 @@ caf_gpt/
    python manage.py runserver
    ```
 
+## Production Deployment with Docker
+
+For production, the application will be deployed in Docker containers:
+
+1. Build the Docker image:
+   ```
+   docker build -t caf-gpt .
+   ```
+
+2. Run the container:
+   ```
+   docker run -p 8000:8000 -e DJANGO_ENV=production -e DATABASE_URL=your-db-url caf-gpt
+   ```
+
+## Local Testing with Docker Compose
+
+For testing the production setup locally:
+
+1. Start the services:
+   ```
+   docker-compose up -d
+   ```
+
+2. Run migrations:
+   ```
+   docker-compose exec web python manage.py migrate
+   ```
+
+3. Create a superuser:
+   ```
+   docker-compose exec web python manage.py createsuperuser
+   ```
+
+4. Access the application at http://localhost:8000
+
+5. Stop the services:
+   ```
+   docker-compose down
+   ```
+
 ## Environment Variables
 
 - `DJANGO_ENV`: Environment to use (development or production)
@@ -78,6 +128,21 @@ caf_gpt/
 - `DATABASE_URL`: Database connection URL
 - `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
 - `DEBUG`: Set to True for development, False for production
+
+## Current Status
+
+The project is under active development. Key completed items:
+- Django project structure with three apps (Core, PaceNoteFoo, PolicyFoo)
+- Security headers middleware
+- Base templates with Bootstrap styling
+- Landing page and health check endpoint
+- Pace Notes UI implementation
+- Environment variable configuration
+- Database connection to Neon DB PostgreSQL
+- NixOS development environment
+- Docker configuration for production
+
+For a detailed list of completed tasks, current sprint items, backlog, and open questions, see the `.app_logic/progress.md` file.
 
 ## Development
 

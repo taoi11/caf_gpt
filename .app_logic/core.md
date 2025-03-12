@@ -1,26 +1,41 @@
 # Core App Specification
 
 ## Purpose
-Base application containing shared functionality and landing page
+Base application containing shared functionality, landing page, and health check endpoint.
 
 ## Key Features
-- Landing page with tool navigation
-- IP-based rate limiting for tool pages (Cloudflare FORWARDED_FROM_IP_HEADER)
-- Common utilities framework
-- Base templates/styles
-- Security middleware
+- Bootstrap-based landing page with tool navigation
+- Security headers middleware
+- Health check endpoint for monitoring
+- Base templates and styles
+- Common models (TimeStampedModel)
 
 ## Components
 1. **Views**
-   - LandingPageView
-   - HealthCheckView
+   - LandingPageView - Bootstrap-styled landing page with tool cards
+   - HealthCheckView - JSON response for monitoring
+
 2. **Middleware**
-   - RateLimitMiddleware
-   - SecurityHeadersMiddleware
-3. **Utilities**
-   - Logger configuration
-   - API client base class
-   - Rate limit helper functions
+   - SecurityHeadersMiddleware - Adds security headers to responses
+
+3. **Models**
+   - TimeStampedModel - Abstract base model with created_at and updated_at fields
+
+4. **Templates**
+   - base/base.html - Main template with Bootstrap styling
+   - core/landing_page.html - Landing page with tool cards
+
+## Implementation Details
+- Bootstrap 5 for styling
+- Environment variables loaded from .env file
+- Modular settings structure (base.py and environment-specific overrides)
+- PostgreSQL database connection via URL parsing
+
+## Future Enhancements
+- IP-based rate limiting
+- Analytics tracking (optional)
+- API client base class
+- Additional security middleware
 
 ## Questions
 1. Do we need any analytics tracking on the landing page?

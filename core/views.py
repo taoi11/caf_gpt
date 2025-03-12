@@ -3,6 +3,7 @@ Core app views.
 """
 from django.http import JsonResponse
 from django.views.generic import TemplateView
+from django.shortcuts import render
 
 
 class LandingPageView(TemplateView):

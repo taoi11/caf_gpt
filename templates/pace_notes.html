@@ -1,0 +1,69 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}CAF GPT - Pace Notes{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/paceNote.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="pace-notes-container">
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Pace Notes Generator</h2>
+            <div class="rate-limits d-flex gap-3">
+                <div class="limit-item">
+                    <span class="limit-label">Hourly:</span>
+                    <span class="hourly-remaining badge bg-primary">10/10</span>
+                </div>
+                <div class="limit-item">
+                    <span class="limit-label">Daily:</span>
+                    <span class="daily-remaining badge bg-primary">100/100</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="card-text">Enter your observations below and select your rank to generate a pace note.</p>
+        </div>
+    </div>
+
+    <div class="input-section">
+        <div class="form-group mb-3">
+            <label for="observation-input" class="form-label">Observations:</label>
+            <textarea 
+                id="observation-input" 
+                class="form-control input-box" 
+                placeholder="Enter your observations here..."
+                rows="6"
+            ></textarea>
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="rank-select" class="form-label">Your Rank:</label>
+            <select id="rank-select" class="form-select" required>
+                <option value="" disabled selected>Select your rank</option>
+                <option value="cpl-mcpl">Cpl/MCpl</option>
+                <option value="sgt-wo">Sgt/WO</option>
+            </select>
+        </div>
+        
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <button id="generate-btn" class="btn btn-primary" disabled>
+                Generate Pace Note
+            </button>
+            <div class="text-muted small">
+                <span>Shortcut: Ctrl+Enter</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="output-section">
+        <!-- Output boxes will be inserted here by JavaScript -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/paceNotes.js' %}"></script>
+{% endblock %} 
