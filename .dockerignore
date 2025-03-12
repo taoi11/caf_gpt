@@ -2,6 +2,9 @@
 .git
 .gitignore
 
+# Fly
+fly.toml
+
 # Python
 __pycache__/
 *.py[cod]
@@ -10,56 +13,33 @@ __pycache__/
 .Python
 env/
 build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
 
 # Django
+logs/
 *.log
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
+*.sqlite3
+*.sqlite3-journal
 media
 
 # Environments
 .env
+.envrc
+.direnv
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
-.direnv
-
-# Nix
 shell.nix
 .aider*
-!.aider.conf.yml
 
 # Editor directories and files
 .idea
 .vscode
-*.swp
-*.swo
 
 # Docker
 .dockerignore
 Dockerfile
 docker-compose.yml
-
-# Misc
-.DS_Store
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log* 

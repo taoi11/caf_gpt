@@ -1,22 +1,27 @@
-FROM python:3.12-slim
+ARG PYTHON_VERSION=3.12-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV DJANGO_ENV=production
+FROM python:${PYTHON_VERSION}
 
-# Set work directory
-WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# install psycopg2 dependencies.
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy project
-COPY . .
+RUN mkdir -p /code
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+WORKDIR /code
 
-# Run gunicorn
-CMD gunicorn caf_gpt.wsgi:application --bind 0.0.0.0:8000 
+COPY requirements.txt /tmp/requirements.txt
+RUN set -ex && \
+    pip install --upgrade pip && \
+    pip install -r /tmp/requirements.txt && \
+    rm -rf /root/.cache/
+COPY . /code
+
+EXPOSE 8000
+
+CMD ["gunicorn","--bind",":8000","--workers","2","caf_gpt.wsgi"]
