@@ -8,7 +8,8 @@ A collection of AI tools and agents for army personnel, packaged as a Django app
 - Bootstrap 5
 - NixOS development environment
 - Docker for production deployment
-- LLM Integration (to be determined)
+- Open Router API for LLM integration (Claude 3.5 Haiku)
+- S3-compatible storage (Storj) for data sources
 - RAG (Retrieval Augmented Generation)
 
 ## Application Structure
@@ -19,12 +20,16 @@ A collection of AI tools and agents for army personnel, packaged as a Django app
    - Security headers middleware
    - Health check endpoint
    - Common utilities and base models
+   - Open Router service for LLM integration
+   - S3 client for storage access
 
 2. **pacenote_foo** - PaceNoteFoo LLM workflow
    - Pace Notes generator interface
    - Client-side session storage
    - Rate limiting display
    - Bootstrap-based UI
+   - API endpoint for generating pace notes
+   - Prompt template handling
 
 3. **policy_foo** - PolicyFoo LLM workflow
    - Chat interface (planned)
@@ -46,15 +51,44 @@ caf_gpt/
 │   ├── urls.py           # Main URL configuration
 │   └── wsgi.py           # WSGI configuration
 ├── core/                 # Core app
+│   ├── services/         # Shared services
+│   │   └── open_router_service.py  # LLM integration
+│   └── utils/            # Utility functions
+│       └── s3_client.py  # S3 storage access
 ├── pacenote_foo/         # PaceNote app
+│   ├── services/         # App-specific services
+│   │   └── prompt_service.py  # Prompt template handling
+│   └── prompts/          # Prompt templates
+│       └── base.md       # Base prompt template
 ├── policy_foo/           # Policy app
 ├── static/               # Static files
+│   ├── css/              # CSS files
+│   │   └── paceNote.css  # PaceNote styles
+│   └── js/               # JavaScript files
+│       └── paceNotes.js  # PaceNote client-side logic
 ├── templates/            # Project-wide templates
+│   └── pace_notes.html   # PaceNote interface
 ├── .app_logic/           # Documentation
 ├── manage.py             # Django management script
 ├── requirements.txt      # Python dependencies
 └── shell.nix            # NixOS development environment
 ```
+
+## Features
+
+### PaceNote Generator
+- Generate professional feedback notes based on user observations
+- Select rank to customize the competency list (currently Cpl/MCpl)
+- Uses Claude 3.5 Haiku model for high-quality, consistent outputs
+- Retrieves competency lists and examples from S3 storage
+- Simulated rate limiting with UI indicators
+- Copy to clipboard functionality
+- Session storage for preserving user input
+
+### Core Services
+- Open Router integration for LLM access
+- S3 client for retrieving data from storage
+- Shared utilities and base models
 
 ## Development
 - NixOS development environment via shell.nix
@@ -67,3 +101,13 @@ caf_gpt/
 - Environment variables for configuration
 - Support for development and production environments
 - Consistent deployment across different servers
+
+## Environment Configuration
+The application requires the following environment variables:
+- `DJANGO_SECRET_KEY` - Secret key for Django
+- `DJANGO_ENV` - Environment (development/production)
+- `DATABASE_URL` - PostgreSQL connection URL
+- `OPENROUTER_API_KEY` - API key for Open Router
+- `AWS_ACCESS_KEY_ID` - Access key for S3
+- `AWS_SECRET_ACCESS_KEY` - Secret key for S3
+- `AWS_S3_ENDPOINT_URL` - S3 endpoint URL

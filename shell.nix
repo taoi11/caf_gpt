@@ -11,6 +11,7 @@ let
     gunicorn
     django-cors-headers
     requests
+    boto3
 
     # Development tools
     pylint

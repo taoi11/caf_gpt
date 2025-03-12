@@ -5,24 +5,17 @@ from django.db import models
 from core.models import TimeStampedModel
 
 
-class ChatSession(TimeStampedModel):
+class PaceNote(TimeStampedModel):
     """
-    Model to store chat sessions.
+    Model to store generated pace notes.
+    
+    Note: This model is not currently used in the implementation,
+    but is provided as a placeholder for future enhancements
+    such as storing generated pace notes for reference or analytics.
     """
-    session_id = models.UUIDField(unique=True)
-    user_identifier = models.CharField(max_length=255, blank=True)
+    user_input = models.TextField()
+    rank = models.CharField(max_length=50)
+    generated_note = models.TextField()
     
     def __str__(self):
-        return f"Chat Session {self.session_id}"
-
-
-class ChatMessage(TimeStampedModel):
-    """
-    Model to store chat messages.
-    """
-    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
-    is_user = models.BooleanField(default=True)
-    content = models.TextField()
-    
-    def __str__(self):
-        return f"{'User' if self.is_user else 'System'} Message in {self.session}" 
+        return f"PaceNote for {self.rank} - {self.created[:10]}" 

@@ -43,6 +43,7 @@ class PaceNotesUI {
         this.maxOutputs = 5;
         this.outputs = [];
         this.sessionKey = 'caf-gpt-pacenotes-input';
+        this.apiEndpoint = '/pacenote/api/generate-pace-note/';
         
         // Restore input from session storage
         this.inputBox.value = sessionStorage.getItem(this.sessionKey) || '';
@@ -153,35 +154,45 @@ class PaceNotesUI {
         this.outputSection.insertBefore(loadingBox, this.outputSection.firstChild);
 
         try {
-            // For demo purposes, simulate an API call
-            setTimeout(() => {
-                // Remove loading box
-                loadingBox.remove();
-                
-                // Generate a sample response
-                const sampleResponse = {
-                    content: this.generateSampleResponse(input, rank),
-                    timestamp: new Date().toISOString()
-                };
-                
-                // Display the result
-                this.addOutput(sampleResponse.content, sampleResponse.timestamp);
-                
-                // Update rate limits
-                rateLimiter.updateLimits();
-                
-                // Re-enable inputs
-                this.generateButton.disabled = !this.rankSelect.value;
-                this.inputBox.disabled = false;
-                this.rankSelect.disabled = false;
-            }, 2000);
+            // Convert rank format from 'cpl-mcpl' to 'cpl_mcpl'
+            const apiRank = rank.replace('-', '_');
             
+            // Call the API to generate the pace note
+            const response = await fetch(this.apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_input: input,
+                    rank: apiRank
+                })
+            });
+            
+            // Remove loading box
+            loadingBox.remove();
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Display the result
+                    this.addOutput(data.pace_note, new Date().toISOString());
+                    
+                    // Update rate limits
+                    rateLimiter.updateLimits();
+                } else {
+                    this.showError(`Error: ${data.message || 'Unknown error'}`);
+                }
+            } else {
+                this.showError(`Server error: ${response.status}`);
+            }
         } catch (error) {
             // Remove loading box on error too
             loadingBox.remove();
             this.showError('Failed to connect to server. Please try again.');
             console.error('Error:', error);
-            
+        } finally {
             // Re-enable inputs
             this.generateButton.disabled = !this.rankSelect.value;
             this.inputBox.disabled = false;
@@ -189,12 +200,6 @@ class PaceNotesUI {
         }
     }
     
-    generateSampleResponse(input, rank) {
-        // This is a placeholder for the actual API response
-        const prefix = rank === 'cpl-mcpl' ? 'CPL SMITH:' : 'SGT JOHNSON:';
-        return `${prefix} PACE NOTE\n\nOBSERVATION:\n${input}\n\nANALYSIS:\nThis action demonstrates initiative and attention to team morale, which is critical for maintaining operational effectiveness.\n\nRECOMMENDATION:\nContinue to identify opportunities to boost team morale while ensuring operational requirements are met. Consider documenting the positive impact on productivity for future reference.`;
-    }
-
     showError(message) {
         const errorBox = document.createElement('div');
         errorBox.className = 'alert alert-danger';

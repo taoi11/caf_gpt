@@ -2,52 +2,50 @@
 description: Base set of rules to always follow
 globs: *
 ---
-
 # Project Guidelines
 
-## General Approach
+## Development Philosophy
 - **Simplicity**: Keep everything minimal and straightforward
 - **Learning Focus**: Prioritize understanding over complexity
 - **Iterative Development**: Build features incrementally
 
-## Django Best Practices
-1. **Project Structure**
-   - Use Django's default project structure
-   - Keep apps focused on single responsibilities
-   - Use `settings/` directory for different environments
+## User Interaction
+- **Educational Approach**: User is new to Django and Python
+- **Instruction Clarification**: Question ambiguous directions
+- **Error Correction**: Respectfully identify misconceptions or mistakes
+- **Alternatives**: Suggest better approaches when user instructions seem suboptimal
+- **Explanations**: Provide context for why certain patterns are recommended
+- **Learning Path**: Balance immediate solutions with knowledge building
 
-2. **Models**
-   - Use descriptive field names
-   - Add `__str__` methods for better debugging
-   - Use Django's built-in validators
-   - Keep business logic in models
+## Planning Phase
+- **Start with Overview**: Begin sessions by sharing `.app_logic/overview.md`
+- **Focus Area**: Clearly state which project part we're working on
+- **Explicit Preferences**: State implementation preferences upfront
+- **Note pad**: use the .cursor/notepad dir to explain and present to the user in longform. 
 
-3. **Views**
-   - Prefer class-based views for common patterns
-   - Keep views simple and focused
-   - Use Django's built-in generic views
+## Implementation Phase
+### Architecture
+- Use Django's default structure
+- Keep apps focused on single responsibilities
+- Organize settings by environment
+- Place reusable code in core app
 
-4. **Templates**
-   - Use template inheritance
-   - Keep logic in views, not templates
-   - Use Django's template tags and filters
+### Coding Standards
+- **Models**: Descriptive names, `__str__` methods, validators, business logic
+- **Views**: Class-based when appropriate, simple, focused, leverage generics
+- **Templates**: Inheritance, logic in views, Django template tags
+- **Security**: Django's features, no hardcoded secrets, environment variables
 
-5. **Security**
-   - Always use Django's built-in security features
-   - Never store sensitive information in code
-   - Use environment variables for secrets
-
-6. **Testing**
-   - Write tests for critical functionality
-   - Use Django's test framework
-   - Test both happy and error paths
-
-## Development Workflow
+### Process
 - Start with simple implementations
 - Add complexity only when needed
-- Document decisions and learnings
-- Regularly review and refactor code
+- Note similar existing code when available
+- Follow established patterns
 
-## Documentation
-- File-level: Brief overview paragraph at top
-- Functions: 1 line docstring for each function
+## Review Phase
+- **Testing**: Place holder for now. Will build tests later.
+- **Documentation**: Brief file overviews at the top, 1-line function docstrings
+- **Feedback Loop**: Provide quick feedback on approaches
+- **Iterative Clarification**: Welcome questions for clarity
+- Regularly review and refactor code
+- Document decisions and learnings
