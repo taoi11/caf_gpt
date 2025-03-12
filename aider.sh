@@ -9,8 +9,8 @@ aider \
   --no-detect-urls \
   --read ".app_logic/overview.md" \
   --read ".app_logic/core.md" \
-  --file "caf_gpt/file_1.py"\
-  --file "caf_gpt/file_2.py"\
+  --file "core/utils/s3_client.py"\
+  --file "core/utils/__init__.py"\
   --yes
 
 # Aider second run
@@ -20,6 +20,6 @@ aider \
   --no-detect-urls \
   --read ".app_logic/overview.md" \
   --read ".app_logic/core.md" \
-  --file "caf_gpt/file_1.py"\
-  --file "caf_gpt/file_2.py"\
+  --file "core/utils/s3_client.py"\
+  --file "core/utils/__init__.py"\
   --yes

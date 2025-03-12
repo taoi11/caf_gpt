@@ -49,7 +49,6 @@ pkgs.mkShell {
     fi
     
     echo "NixOS development environment ready!"
-    echo "Run 'python manage.py migrate' to set up the database."
     echo "Run 'python manage.py runserver' to start the development server."
   '';
 }

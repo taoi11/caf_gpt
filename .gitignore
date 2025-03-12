@@ -1,6 +1,7 @@
 # Aider
 .aider*
 !.aider.conf.yml
+prompt.md
 
 # Environment
 .env
