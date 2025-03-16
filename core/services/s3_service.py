@@ -1,14 +1,14 @@
 """
-S3 Client utility for interacting with Storj S3-compatible storage.
+S3 Service for interacting with Storj S3-compatible storage.
 
-This module provides a client for interacting with S3-compatible storage services,
+This module provides a service for interacting with S3-compatible storage services,
 specifically configured for Storj by default. It handles listing files, reading
 file contents, checking file existence, and retrieving file metadata.
 """
 import os
 import logging
 from typing import Dict, List, Optional, Union, Any
-from io import BytesIO
+# Removing unused import: from io import BytesIO
 
 import boto3
 from botocore.exceptions import ClientError, BotoCoreError
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class S3ClientError(Exception):
-    """Base exception class for S3Client errors."""
+    """Base exception class for S3Service errors."""
     pass
 
 
@@ -41,11 +41,11 @@ class S3PermissionError(S3ClientError):
     pass
 
 
-class S3Client:
+class S3Service:
     """
-    Client for interacting with S3-compatible storage services.
+    Service for interacting with S3-compatible storage services.
 
-    This client is configured by default to work with Storj S3-compatible storage,
+    This service is configured by default to work with Storj S3-compatible storage,
     but can be configured to work with any S3-compatible service through
     environment variables.
     """
@@ -57,7 +57,7 @@ class S3Client:
                  secret_access_key: Optional[str] = None,
                  region_name: Optional[str] = None):
         """
-        Initialize the S3 client with configuration.
+        Initialize the S3 service with configuration.
 
         Args:
             endpoint_url: Custom S3 endpoint URL. Defaults to S3_ENDPOINT_URL env var or 'https://gateway.storjshare.io'.
@@ -86,20 +86,20 @@ class S3Client:
                 aws_secret_access_key=self.secret_access_key,
                 region_name=self.region_name
             )
-            logger.info(f"S3 client initialized with endpoint: {self.endpoint_url}, bucket: {self.bucket_name}")
+            logger.info(f"S3 service initialized with endpoint: {self.endpoint_url}, bucket: {self.bucket_name}")
         except ClientError as e:
             error_code = e.response.get('Error', {}).get('Code', 'Unknown')
             if error_code in ('InvalidAccessKeyId', 'SignatureDoesNotMatch'):
-                logger.error(f"Authentication error initializing S3 client: {str(e)}")
+                logger.error(f"Authentication error initializing S3 service: {str(e)}")
                 raise S3AuthenticationError(f"Authentication failed: {str(e)}")
             else:
-                logger.error(f"Error initializing S3 client: {str(e)}")
-                raise S3ConnectionError(f"Failed to initialize S3 client: {str(e)}")
+                logger.error(f"Error initializing S3 service: {str(e)}")
+                raise S3ConnectionError(f"Failed to initialize S3 service: {str(e)}")
         except BotoCoreError as e:
-            logger.error(f"Connection error initializing S3 client: {str(e)}")
+            logger.error(f"Connection error initializing S3 service: {str(e)}")
             raise S3ConnectionError(f"Failed to connect to S3: {str(e)}")
         except Exception as e:
-            logger.error(f"Unexpected error initializing S3 client: {str(e)}")
+            logger.error(f"Unexpected error initializing S3 service: {str(e)}")
             raise S3ConnectionError(f"Unexpected error: {str(e)}")
 
     def list_files(self, prefix: str = '', delimiter: str = '/', max_keys: int = 1000) -> List[Dict[str, Any]]:
@@ -216,93 +216,7 @@ class S3Client:
             logger.error(f"Unexpected error reading file: {str(e)}")
             raise S3ConnectionError(f"Unexpected error: {str(e)}")
 
-    def file_exists(self, key: str) -> bool:
-        """
-        Check if a file exists in S3.
+    # Additional methods will be added here...
 
-        Args:
-            key: The key (path) of the file to check.
-
-        Returns:
-            True if the file exists, False otherwise.
-
-        Raises:
-            S3ConnectionError: If connection to S3 fails.
-            S3AuthenticationError: If authentication with S3 fails.
-            S3PermissionError: If permission is denied.
-        """
-        try:
-            self.s3.head_object(Bucket=self.bucket_name, Key=key)
-            logger.info(f"File '{key}' exists")
-            return True
-        except ClientError as e:
-            error_code = e.response.get('Error', {}).get('Code', 'Unknown')
-            if error_code == '404' or error_code == 'NoSuchKey' or error_code == 'NotFound':
-                logger.info(f"File '{key}' does not exist")
-                return False
-            elif error_code in ('InvalidAccessKeyId', 'SignatureDoesNotMatch'):
-                logger.error(f"Authentication error checking file existence: {str(e)}")
-                raise S3AuthenticationError(f"Authentication failed: {str(e)}")
-            elif error_code == 'AccessDenied':
-                logger.error(f"Permission denied checking file existence: {str(e)}")
-                raise S3PermissionError(f"Permission denied: {str(e)}")
-            else:
-                logger.error(f"Error checking file existence: {str(e)}")
-                raise S3ConnectionError(f"Failed to check file existence: {str(e)}")
-        except BotoCoreError as e:
-            logger.error(f"Connection error checking file existence: {str(e)}")
-            raise S3ConnectionError(f"Failed to connect to S3: {str(e)}")
-        except Exception as e:
-            logger.error(f"Unexpected error checking file existence: {str(e)}")
-            raise S3ConnectionError(f"Unexpected error: {str(e)}")
-
-    def get_file_metadata(self, key: str) -> Dict[str, Any]:
-        """
-        Get metadata for a file in S3.
-
-        Args:
-            key: The key (path) of the file to get metadata for.
-
-        Returns:
-            Dictionary containing file metadata.
-
-        Raises:
-            S3ConnectionError: If connection to S3 fails.
-            S3AuthenticationError: If authentication with S3 fails.
-            S3FileNotFoundError: If the file is not found.
-            S3PermissionError: If permission is denied.
-        """
-        try:
-            response = self.s3.head_object(Bucket=self.bucket_name, Key=key)
-
-            metadata = {
-                'content_length': response.get('ContentLength'),
-                'content_type': response.get('ContentType'),
-                'last_modified': response.get('LastModified'),
-                'etag': response.get('ETag'),
-                'metadata': response.get('Metadata', {})
-            }
-
-            logger.info(f"Retrieved metadata for file '{key}'")
-            return metadata
-
-        except ClientError as e:
-            error_code = e.response.get('Error', {}).get('Code', 'Unknown')
-            if error_code == '404' or error_code == 'NoSuchKey' or error_code == 'NotFound':
-                logger.error(f"File not found: {key}")
-                raise S3FileNotFoundError(f"File not found: {key}")
-            elif error_code in ('InvalidAccessKeyId', 'SignatureDoesNotMatch'):
-                logger.error(f"Authentication error getting file metadata: {str(e)}")
-                raise S3AuthenticationError(f"Authentication failed: {str(e)}")
-            elif error_code == 'AccessDenied':
-                logger.error(f"Permission denied getting file metadata: {str(e)}")
-                raise S3PermissionError(f"Permission denied: {str(e)}")
-            else:
-                logger.error(f"Error getting file metadata: {str(e)}")
-                raise S3ConnectionError(f"Failed to get file metadata: {str(e)}")
-        except BotoCoreError as e:
-            logger.error(f"Connection error getting file metadata: {str(e)}")
-            raise S3ConnectionError(f"Failed to connect to S3: {str(e)}")
-        except Exception as e:
-            logger.error(f"Unexpected error getting file metadata: {str(e)}")
-            raise S3ConnectionError(f"Unexpected error: {str(e)}")
+# For backward compatibility
+S3Client = S3Service 

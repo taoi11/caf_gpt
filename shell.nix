@@ -14,11 +14,10 @@ let
     boto3
 
     # Development tools
-    pylint
-    black
     isort
     flake8
     autopep8
+    pyflakes
   ]);
 in
 pkgs.mkShell {
