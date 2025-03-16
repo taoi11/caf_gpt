@@ -1,7 +1,6 @@
 """
 Core app middleware.
 """
-from django.conf import settings
 
 
 class SecurityHeadersMiddleware:

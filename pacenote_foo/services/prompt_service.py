@@ -1,7 +1,6 @@
 """
 Service for managing prompt templates and variable substitution.
 """
-import os
 import pathlib
 
 

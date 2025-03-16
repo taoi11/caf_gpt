@@ -9,7 +9,8 @@ from django.views import View
 import json
 import logging
 
-from .services import S3Service, PromptService, OpenRouterService
+from core.services import OpenRouterService
+from .services import S3Service, PromptService
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,8 @@ class PaceNoteGeneratorView(View):
             examples_path = "paceNote/examples.md"
 
             try:
-                competency_list = s3_client.read_file(competency_path, decode=True)
-                examples = s3_client.read_file(examples_path, decode=True)
+                competency_list = s3_client.read_file(competency_path)
+                examples = s3_client.read_file(examples_path)
             except Exception as e:
                 logger.error(f"Error retrieving S3 content: {e}")
                 return JsonResponse({

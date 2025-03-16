@@ -2,7 +2,12 @@
 Django settings initialization.
 """
 import os
-from .base import *
+from .base import (
+    # Import specific settings from base.py
+    BASE_DIR, INSTALLED_APPS, MIDDLEWARE, ROOT_URLCONF, TEMPLATES,
+    DATABASES, AUTH_PASSWORD_VALIDATORS, LANGUAGE_CODE, TIME_ZONE,
+    USE_I18N, USE_TZ, STATIC_URL, STATICFILES_DIRS, MEDIA_URL, MEDIA_ROOT
+)
 
 # Environment-specific settings
 if os.getenv('DJANGO_ENV') == 'production':

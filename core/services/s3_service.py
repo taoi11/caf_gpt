@@ -4,6 +4,9 @@ S3 Service for interacting with Storj S3-compatible storage.
 This module provides a service for interacting with S3-compatible storage services,
 specifically configured for Storj by default. It handles listing files, reading
 file contents, checking file existence, and retrieving file metadata.
+
+The S3Service class is the primary interface for S3 operations, with S3Client
+provided as an alias for backward compatibility.
 """
 import os
 import logging
@@ -48,6 +51,11 @@ class S3Service:
     This service is configured by default to work with Storj S3-compatible storage,
     but can be configured to work with any S3-compatible service through
     environment variables.
+    
+    Usage:
+        s3_service = S3Service()
+        files = s3_service.list_files('my-prefix/')
+        content = s3_service.read_file('my-file.txt')
     """
 
     def __init__(self,
@@ -64,7 +72,7 @@ class S3Service:
             bucket_name: S3 bucket name. Defaults to S3_BUCKET_NAME env var or 'policies'.
             access_key_id: AWS access key ID. Defaults to AWS_ACCESS_KEY_ID env var.
             secret_access_key: AWS secret access key. Defaults to AWS_SECRET_ACCESS_KEY env var.
-            region_name: AWS region name. Defaults to S3_REGION_NAME env var.
+            region_name: AWS region name. Defaults to S3_REGION_NAME env var or 'us-east-1'.
 
         Raises:
             S3ConnectionError: If connection to S3 fails.
@@ -75,7 +83,10 @@ class S3Service:
         self.bucket_name = bucket_name or os.environ.get('S3_BUCKET_NAME', 'policies')
         self.access_key_id = access_key_id or os.environ.get('AWS_ACCESS_KEY_ID')
         self.secret_access_key = secret_access_key or os.environ.get('AWS_SECRET_ACCESS_KEY')
-        self.region_name = region_name or os.environ.get('S3_REGION_NAME')
+        self.region_name = region_name or os.environ.get('S3_REGION_NAME', 'us-east-1')
+
+        if not self.bucket_name:
+            raise ValueError("Bucket name must be provided either as an argument or through S3_BUCKET_NAME env var")
 
         # Initialize the S3 client
         try:
@@ -104,12 +115,12 @@ class S3Service:
 
     def list_files(self, prefix: str = '', delimiter: str = '/', max_keys: int = 1000) -> List[Dict[str, Any]]:
         """
-        List files in a directory/prefix.
+        List files in the S3 bucket with the given prefix.
 
         Args:
-            prefix: Directory or prefix to list files from.
-            delimiter: Character used to group keys.
-            max_keys: Maximum number of keys to return.
+            prefix: Prefix to filter files by. Default is empty string (list all).
+            delimiter: Delimiter to use for hierarchical listing. Default is '/'.
+            max_keys: Maximum number of keys to return. Default is 1000.
 
         Returns:
             List of dictionaries containing file information.
@@ -128,25 +139,23 @@ class S3Service:
             )
 
             files = []
-
-            # Process regular objects
-            for obj in response.get('Contents', []):
+            # Process regular files (Contents)
+            for item in response.get('Contents', []):
                 files.append({
-                    'key': obj.get('Key'),
-                    'size': obj.get('Size'),
-                    'last_modified': obj.get('LastModified'),
-                    'etag': obj.get('ETag'),
+                    'key': item.get('Key'),
+                    'size': item.get('Size'),
+                    'last_modified': item.get('LastModified'),
                     'type': 'file'
                 })
 
-            # Process common prefixes (folders)
-            for prefix in response.get('CommonPrefixes', []):
+            # Process prefixes (directories)
+            for prefix_item in response.get('CommonPrefixes', []):
                 files.append({
-                    'key': prefix.get('Prefix'),
+                    'key': prefix_item.get('Prefix'),
                     'type': 'directory'
                 })
 
-            logger.info(f"Listed {len(files)} files/directories with prefix '{prefix}'")
+            logger.info(f"Listed {len(files)} files with prefix '{prefix}'")
             return files
 
         except ClientError as e:
@@ -167,17 +176,15 @@ class S3Service:
             logger.error(f"Unexpected error listing files: {str(e)}")
             raise S3ConnectionError(f"Unexpected error: {str(e)}")
 
-    def read_file(self, key: str, decode: bool = False, encoding: str = 'utf-8') -> Union[bytes, str, None]:
+    def read_file(self, key: str) -> str:
         """
-        Read a file's contents from S3.
+        Read a file from S3 and return its contents as a string.
 
         Args:
             key: The key (path) of the file to read.
-            decode: Whether to decode the file contents to string.
-            encoding: The encoding to use for decoding.
 
         Returns:
-            The file contents as bytes or string (if decode=True).
+            The contents of the file as a string.
 
         Raises:
             S3ConnectionError: If connection to S3 fails.
@@ -187,17 +194,12 @@ class S3Service:
         """
         try:
             response = self.s3.get_object(Bucket=self.bucket_name, Key=key)
-            content = response['Body'].read()
-
+            content = response['Body'].read().decode('utf-8')
             logger.info(f"Read file '{key}' ({len(content)} bytes)")
-
-            if decode:
-                return content.decode(encoding)
             return content
-
         except ClientError as e:
             error_code = e.response.get('Error', {}).get('Code', 'Unknown')
-            if error_code == 'NoSuchKey':
+            if error_code == '404' or error_code == 'NoSuchKey' or error_code == 'NotFound':
                 logger.error(f"File not found: {key}")
                 raise S3FileNotFoundError(f"File not found: {key}")
             elif error_code in ('InvalidAccessKeyId', 'SignatureDoesNotMatch'):
