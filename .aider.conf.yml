@@ -4,8 +4,9 @@ watch-files: true
 max-chat-history-tokens: 32768
 restore-chat-history: false
 read:
-  - "caf_gpt/settings.py"
+  - "caf_gpt/settings/base.py"
   - "manage.py"
+  - "caf_gpt/urls.py"
 # file:
 
 auto-commits: false
