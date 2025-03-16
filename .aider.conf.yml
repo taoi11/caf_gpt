@@ -12,7 +12,7 @@ auto-commits: false
 attribute-commit-message-author: true
 auto-lint: true
 lint-cmd: 
-  - "npm run lint"
+  - "autopep8 --in-place --recursive --aggressive --aggressive --max-line-length 150 . && flake8"
 
 map-tokens: 2048
 map-refresh: always

@@ -8,14 +8,16 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+
 class OpenRouterService:
     """
     Service for Open Router API integration.
     """
+
     def __init__(self, model=None):
         """
         Initialize the Open Router service with API key from environment variables.
-        
+
         Args:
             model: The model to use for generation. Defaults to "anthropic/claude-3.5-haiku:beta".
         """
@@ -23,16 +25,16 @@ class OpenRouterService:
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
         # Default model
         self.model = model or "anthropic/claude-3.5-haiku:beta"
-        
+
     def generate_completion(self, prompt, temperature=0.3, max_tokens=500):
         """
         Generate a completion using the Open Router API.
-        
+
         Args:
             prompt: The prompt to send to the model.
             temperature: Controls randomness. Lower values are more deterministic.
             max_tokens: Maximum number of tokens to generate.
-            
+
         Returns:
             The generated text.
         """
@@ -43,7 +45,7 @@ class OpenRouterService:
                 "HTTP-Referer": "https://caf-gpt.com",
                 "X-Title": "CAF-GPT"
             }
-            
+
             data = {
                 "model": self.model,
                 "messages": [
@@ -52,16 +54,16 @@ class OpenRouterService:
                 "temperature": temperature,
                 "max_tokens": max_tokens
             }
-            
+
             logger.info(f"Sending request to Open Router API with model: {self.model}")
-            
+
             response = requests.post(
                 self.api_url,
                 headers=headers,
                 data=json.dumps(data),
                 timeout=60  # 60 second timeout
             )
-            
+
             if response.status_code == 200:
                 result = response.json()
                 # Extract the generated text from the response
@@ -71,7 +73,7 @@ class OpenRouterService:
             else:
                 logger.error(f"Error from Open Router API: {response.status_code} - {response.text}")
                 return f"Error generating completion. Status code: {response.status_code}"
-                
+
         except Exception as e:
             logger.error(f"Error generating completion: {e}")
-            return f"Error generating completion: {str(e)}" 
+            return f"Error generating completion: {str(e)}"

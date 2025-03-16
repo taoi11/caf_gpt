@@ -15,51 +15,57 @@ from botocore.exceptions import ClientError, BotoCoreError
 
 logger = logging.getLogger(__name__)
 
+
 class S3ClientError(Exception):
     """Base exception class for S3Client errors."""
     pass
+
 
 class S3ConnectionError(S3ClientError):
     """Exception raised when connection to S3 fails."""
     pass
 
+
 class S3AuthenticationError(S3ClientError):
     """Exception raised when authentication with S3 fails."""
     pass
+
 
 class S3FileNotFoundError(S3ClientError):
     """Exception raised when a file is not found in S3."""
     pass
 
+
 class S3PermissionError(S3ClientError):
     """Exception raised when permission is denied for an S3 operation."""
     pass
 
+
 class S3Client:
     """
     Client for interacting with S3-compatible storage services.
-    
+
     This client is configured by default to work with Storj S3-compatible storage,
     but can be configured to work with any S3-compatible service through
     environment variables.
     """
-    
-    def __init__(self, 
-                 endpoint_url: Optional[str] = None, 
+
+    def __init__(self,
+                 endpoint_url: Optional[str] = None,
                  bucket_name: Optional[str] = None,
                  access_key_id: Optional[str] = None,
                  secret_access_key: Optional[str] = None,
                  region_name: Optional[str] = None):
         """
         Initialize the S3 client with configuration.
-        
+
         Args:
             endpoint_url: Custom S3 endpoint URL. Defaults to S3_ENDPOINT_URL env var or 'https://gateway.storjshare.io'.
             bucket_name: S3 bucket name. Defaults to S3_BUCKET_NAME env var or 'policies'.
             access_key_id: AWS access key ID. Defaults to AWS_ACCESS_KEY_ID env var.
             secret_access_key: AWS secret access key. Defaults to AWS_SECRET_ACCESS_KEY env var.
             region_name: AWS region name. Defaults to S3_REGION_NAME env var.
-        
+
         Raises:
             S3ConnectionError: If connection to S3 fails.
             S3AuthenticationError: If authentication with S3 fails.
@@ -70,7 +76,7 @@ class S3Client:
         self.access_key_id = access_key_id or os.environ.get('AWS_ACCESS_KEY_ID')
         self.secret_access_key = secret_access_key or os.environ.get('AWS_SECRET_ACCESS_KEY')
         self.region_name = region_name or os.environ.get('S3_REGION_NAME')
-        
+
         # Initialize the S3 client
         try:
             self.s3 = boto3.client(
@@ -95,19 +101,19 @@ class S3Client:
         except Exception as e:
             logger.error(f"Unexpected error initializing S3 client: {str(e)}")
             raise S3ConnectionError(f"Unexpected error: {str(e)}")
-    
+
     def list_files(self, prefix: str = '', delimiter: str = '/', max_keys: int = 1000) -> List[Dict[str, Any]]:
         """
         List files in a directory/prefix.
-        
+
         Args:
             prefix: Directory or prefix to list files from.
             delimiter: Character used to group keys.
             max_keys: Maximum number of keys to return.
-            
+
         Returns:
             List of dictionaries containing file information.
-            
+
         Raises:
             S3ConnectionError: If connection to S3 fails.
             S3AuthenticationError: If authentication with S3 fails.
@@ -120,9 +126,9 @@ class S3Client:
                 Delimiter=delimiter,
                 MaxKeys=max_keys
             )
-            
+
             files = []
-            
+
             # Process regular objects
             for obj in response.get('Contents', []):
                 files.append({
@@ -132,17 +138,17 @@ class S3Client:
                     'etag': obj.get('ETag'),
                     'type': 'file'
                 })
-            
+
             # Process common prefixes (folders)
             for prefix in response.get('CommonPrefixes', []):
                 files.append({
                     'key': prefix.get('Prefix'),
                     'type': 'directory'
                 })
-            
+
             logger.info(f"Listed {len(files)} files/directories with prefix '{prefix}'")
             return files
-            
+
         except ClientError as e:
             error_code = e.response.get('Error', {}).get('Code', 'Unknown')
             if error_code in ('InvalidAccessKeyId', 'SignatureDoesNotMatch'):
@@ -160,19 +166,19 @@ class S3Client:
         except Exception as e:
             logger.error(f"Unexpected error listing files: {str(e)}")
             raise S3ConnectionError(f"Unexpected error: {str(e)}")
-    
+
     def read_file(self, key: str, decode: bool = False, encoding: str = 'utf-8') -> Union[bytes, str, None]:
         """
         Read a file's contents from S3.
-        
+
         Args:
             key: The key (path) of the file to read.
             decode: Whether to decode the file contents to string.
             encoding: The encoding to use for decoding.
-            
+
         Returns:
             The file contents as bytes or string (if decode=True).
-            
+
         Raises:
             S3ConnectionError: If connection to S3 fails.
             S3AuthenticationError: If authentication with S3 fails.
@@ -182,13 +188,13 @@ class S3Client:
         try:
             response = self.s3.get_object(Bucket=self.bucket_name, Key=key)
             content = response['Body'].read()
-            
+
             logger.info(f"Read file '{key}' ({len(content)} bytes)")
-            
+
             if decode:
                 return content.decode(encoding)
             return content
-            
+
         except ClientError as e:
             error_code = e.response.get('Error', {}).get('Code', 'Unknown')
             if error_code == 'NoSuchKey':
@@ -209,17 +215,17 @@ class S3Client:
         except Exception as e:
             logger.error(f"Unexpected error reading file: {str(e)}")
             raise S3ConnectionError(f"Unexpected error: {str(e)}")
-    
+
     def file_exists(self, key: str) -> bool:
         """
         Check if a file exists in S3.
-        
+
         Args:
             key: The key (path) of the file to check.
-            
+
         Returns:
             True if the file exists, False otherwise.
-            
+
         Raises:
             S3ConnectionError: If connection to S3 fails.
             S3AuthenticationError: If authentication with S3 fails.
@@ -249,17 +255,17 @@ class S3Client:
         except Exception as e:
             logger.error(f"Unexpected error checking file existence: {str(e)}")
             raise S3ConnectionError(f"Unexpected error: {str(e)}")
-    
+
     def get_file_metadata(self, key: str) -> Dict[str, Any]:
         """
         Get metadata for a file in S3.
-        
+
         Args:
             key: The key (path) of the file to get metadata for.
-            
+
         Returns:
             Dictionary containing file metadata.
-            
+
         Raises:
             S3ConnectionError: If connection to S3 fails.
             S3AuthenticationError: If authentication with S3 fails.
@@ -268,7 +274,7 @@ class S3Client:
         """
         try:
             response = self.s3.head_object(Bucket=self.bucket_name, Key=key)
-            
+
             metadata = {
                 'content_length': response.get('ContentLength'),
                 'content_type': response.get('ContentType'),
@@ -276,10 +282,10 @@ class S3Client:
                 'etag': response.get('ETag'),
                 'metadata': response.get('Metadata', {})
             }
-            
+
             logger.info(f"Retrieved metadata for file '{key}'")
             return metadata
-            
+
         except ClientError as e:
             error_code = e.response.get('Error', {}).get('Code', 'Unknown')
             if error_code == '404' or error_code == 'NoSuchKey' or error_code == 'NotFound':

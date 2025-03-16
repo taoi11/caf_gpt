@@ -10,7 +10,7 @@ if os.getenv('DJANGO_ENV') == 'production':
     DEBUG = False
     SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
     ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-    
+
     # Security settings
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -23,8 +23,8 @@ else:
     DEBUG = True
     SECRET_KEY = 'django-insecure-+dvyb7^bme)edn!i%4-zyq&ov2+s6vrf()s6-ar9^ab6)&m@&6'
     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-    
+
     # Debug toolbar
     INSTALLED_APPS += ['debug_toolbar']
     MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware'] + MIDDLEWARE
-    INTERNAL_IPS = ['127.0.0.1'] 
+    INTERNAL_IPS = ['127.0.0.1']

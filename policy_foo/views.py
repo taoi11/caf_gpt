@@ -25,7 +25,7 @@ class DocumentSearchView(ListView):
     model = PolicyDocument
     template_name = 'policy_foo/document_search.html'
     context_object_name = 'documents'
-    
+
     def get_queryset(self):
         queryset = super().get_queryset()
         query = self.request.GET.get('q', '')
@@ -39,6 +39,7 @@ class PolicyRetrieverView(View):
     """
     API view for policy retrieval.
     """
+
     def post(self, request, *args, **kwargs):
         """
         Handle POST requests for policy retrieval.
@@ -46,7 +47,7 @@ class PolicyRetrieverView(View):
         try:
             data = json.loads(request.body)
             query = data.get('query', '')
-            
+
             # Placeholder for policy retrieval implementation
             # In a real implementation, this would call a service to perform the search
             results = {
@@ -58,7 +59,7 @@ class PolicyRetrieverView(View):
                 ],
                 'status': 'success'
             }
-            
+
             return JsonResponse(results)
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400) 
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

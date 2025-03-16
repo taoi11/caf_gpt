@@ -17,6 +17,7 @@ class HealthCheckView(TemplateView):
     """
     Health check view for monitoring and load balancers.
     """
+
     def get(self, request, *args, **kwargs):
         """
         Return a simple JSON response indicating the service is up.
@@ -24,4 +25,4 @@ class HealthCheckView(TemplateView):
         return JsonResponse({
             'status': 'ok',
             'service': 'caf_gpt',
-        }) 
+        })

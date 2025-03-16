@@ -1,0 +1,23 @@
+[flake8]
+max-line-length = 150
+exclude = 
+    .git,
+    __pycache__,
+    build,
+    dist,
+    .direnv,
+    .venv,
+    venv,
+    */migrations/*,
+    static,
+    media,
+    logs
+
+
+# Focus on the most important issues first
+select = E,F,W,C90
+
+# Complexity threshold
+max-complexity = 10
+
+# autopep8 --in-place --recursive --select=W291,W292,W293,E302,E303 .

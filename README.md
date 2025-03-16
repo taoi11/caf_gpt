@@ -149,6 +149,20 @@ For a detailed list of completed tasks, current sprint items, backlog, and open 
 - Use the development settings by setting `DJANGO_ENV=development`
 - Debug toolbar is available in development mode
 
+### Code Quality
+
+- **Linting**: Run `flake8` to check code quality
+- **Formatting**: Run `black .` to format code
+- **Import Sorting**: Run `isort .` to sort imports
+
+The project uses the following tools for code quality:
+- **Flake8**: For code linting (style and error checking)
+- **Black**: For code formatting
+- **isort**: For import sorting
+
+Configuration files:
+- `.flake8`: Flake8 configuration
+
 ## Deployment
 
 - Set `DJANGO_ENV=production` for production deployment

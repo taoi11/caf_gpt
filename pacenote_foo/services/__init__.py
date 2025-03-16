@@ -6,4 +6,4 @@ from core.services.open_router_service import OpenRouterService
 from .prompt_service import PromptService
 
 # Create aliases for backward compatibility
-S3Service = S3Client 
+S3Service = S3Client

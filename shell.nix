@@ -17,6 +17,8 @@ let
     pylint
     black
     isort
+    flake8
+    autopep8
   ]);
 in
 pkgs.mkShell {

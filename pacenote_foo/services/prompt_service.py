@@ -9,6 +9,7 @@ class PromptService:
     """
     Service for managing prompt templates and variable substitution.
     """
+
     def __init__(self):
         """
         Initialize the prompt service.
@@ -34,15 +35,15 @@ class PromptService:
         """
         try:
             template = self.load_template()
-            
+
             # Replace variables in the template
             prompt = template.replace("{{competency_list}}", competency_list)
             prompt = prompt.replace("{{examples}}", examples)
-            
+
             # Add user input at the beginning
             full_prompt = f"User input: {user_input}\n\n{prompt}"
-            
+
             return full_prompt
         except Exception as e:
             print(f"Error constructing prompt: {e}")
-            return "Error constructing prompt. Please try again later." 
+            return "Error constructing prompt. Please try again later."
