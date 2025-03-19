@@ -23,11 +23,12 @@
 - [x] Connect PaceNote UI to backend API
 - [x] Implement prompt template handling for PaceNote generation
 - [x] Integrate with S3 for competency lists and examples
+- [x] Implement PolicyFoo app models structure (skeleton)
 
 ## Current Sprint
 
 ### Core App
-- [ ] Create API client base class
+- [x] Create API client base class (S3Service and OpenRouterService)
 - [x] Implement Open Router service for LLM integration
 
 ### PaceNoteFoo App
@@ -36,6 +37,12 @@
 - [ ] Implement server-side rate limiting
 - [x] Add data validation for user input
 - [x] Create response formatting for pace notes
+
+### PolicyFoo App
+- [x] Create basic data models for policy documents, queries and responses (skeleton)
+- [ ] Implement ChatInterfaceView
+- [ ] Create DocumentSearchView
+- [ ] Set up PolicyRetriever service
 
 ### Infrastructure
 - [ ] Implement basic CI/CD pipeline
@@ -113,7 +120,10 @@
 - [ ] Define audit requirements
 
 ### Infrastructure
-- [x] Which LLM provider should we use? (Open Router with Claude 3.5 Haiku)
+- [x] Which LLM provider should we use? 
+    User Response: 
+        - decide on a case by case basis
+        - Claude 3.5 Haiku for now PaceNoteFoo
 - [ ] Do we need user authentication?
 - [ ] What are the rate limiting requirements?
-- [ ] What are the security requirements? 
+- [ ] What are the security requirements?

@@ -6,27 +6,5 @@ services:
     restart: always
     ports:
       - "8000:8000"
-    environment:
-      - DJANGO_ENV=production
-      - DJANGO_SECRET_KEY=change-me-in-production
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/caf_gpt
-      - ALLOWED_HOSTS=localhost,127.0.0.1
-    depends_on:
-      - db
-    volumes:
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
-
-  db:
-    image: postgres:15
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=caf_gpt
-
-volumes:
-  postgres_data:
-  static_volume:
-  media_volume: 
+    env_file:
+      - .env
