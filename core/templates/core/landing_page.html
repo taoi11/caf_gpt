@@ -1,4 +1,5 @@
-{% extends 'base/base.html' %}
+{% extends "core/base.html" %}
+{% load static %}
 
 {% block title %}Welcome to CAF GPT{% endblock %}
 
@@ -10,7 +11,7 @@
         <hr class="my-4">
         <p>Choose one of our specialized assistants below to get started.</p>
         <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-            <a href="{% url 'pacenote_foo:chat_interface' %}" class="btn btn-primary btn-lg px-4 me-md-2">PaceNote Assistant</a>
+            <a href="{% url 'pacenote_foo:pace_notes' %}" class="btn btn-primary btn-lg px-4 me-md-2">PaceNote Assistant</a>
             <a href="{% url 'policy_foo:chat_interface' %}" class="btn btn-outline-secondary btn-lg px-4">Policy Assistant</a>
         </div>
     </div>
@@ -30,7 +31,7 @@
             <div class="card-body">
                 <h5 class="card-title">PaceNote Assistant</h5>
                 <p class="card-text">Interact with our AI to get answers to your questions using our RAG system.</p>
-                <a href="{% url 'pacenote_foo:chat_interface' %}" class="btn btn-primary">Try PaceNote</a>
+                <a href="{% url 'pacenote_foo:pace_notes' %}" class="btn btn-primary">Try PaceNote</a>
             </div>
         </div>
     </div>
@@ -53,4 +54,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

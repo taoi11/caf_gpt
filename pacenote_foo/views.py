@@ -19,7 +19,7 @@ class PaceNoteView(TemplateView):
     """
     View for the PaceNote generator interface.
     """
-    template_name = 'pace_notes.html'
+    template_name = 'pacenote_foo/pace_notes.html'
 
 
 @method_decorator(csrf_exempt, name='dispatch')

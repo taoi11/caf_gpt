@@ -1,6 +1,11 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}Policy Documents{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/policy.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
@@ -44,7 +49,7 @@
             {% else %}
                 <div class="row">
                     <div class="col-md-4 mb-4">
-                        <div class="card h-100">
+                        <div class="card h-100 document-card">
                             <div class="card-body">
                                 <h5 class="card-title">Employee Handbook</h5>
                                 <p class="card-text">Comprehensive guide to company policies, procedures, and employee expectations.</p>
@@ -53,7 +58,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-4">
-                        <div class="card h-100">
+                        <div class="card h-100 document-card">
                             <div class="card-body">
                                 <h5 class="card-title">Security Policy</h5>
                                 <p class="card-text">Guidelines and procedures for maintaining security of company assets and information.</p>
@@ -62,7 +67,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-4">
-                        <div class="card h-100">
+                        <div class="card h-100 document-card">
                             <div class="card-body">
                                 <h5 class="card-title">Code of Conduct</h5>
                                 <p class="card-text">Standards of behavior and ethical guidelines for all employees.</p>
@@ -71,7 +76,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-4">
-                        <div class="card h-100">
+                        <div class="card h-100 document-card">
                             <div class="card-body">
                                 <h5 class="card-title">Travel Policy</h5>
                                 <p class="card-text">Guidelines for business travel, expenses, and reimbursement procedures.</p>
@@ -80,7 +85,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-4">
-                        <div class="card h-100">
+                        <div class="card h-100 document-card">
                             <div class="card-body">
                                 <h5 class="card-title">IT Acceptable Use Policy</h5>
                                 <p class="card-text">Guidelines for appropriate use of company IT resources and systems.</p>
@@ -89,7 +94,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-4">
-                        <div class="card h-100">
+                        <div class="card h-100 document-card">
                             <div class="card-body">
                                 <h5 class="card-title">Remote Work Policy</h5>
                                 <p class="card-text">Guidelines and procedures for working remotely, including eligibility and expectations.</p>
@@ -110,4 +115,4 @@
         </a>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

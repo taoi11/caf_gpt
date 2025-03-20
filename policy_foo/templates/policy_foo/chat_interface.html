@@ -1,4 +1,5 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}Policy Assistant{% endblock %}
 
@@ -28,6 +29,13 @@
     .assistant-message {
         background-color: #4a6bdf;
         color: white;
+    }
+    
+    .error-message {
+        background-color: #f8d7da;
+        color: #721c24;
+        margin-left: 2rem;
+        margin-right: 2rem;
     }
     
     .citation {
@@ -72,6 +80,9 @@
                     <textarea class="form-control" id="userInput" rows="2" placeholder="Type your policy question here..."></textarea>
                     <button class="btn btn-primary" type="submit">Send</button>
                 </div>
+                <div class="form-text text-end mt-1">
+                    Press Ctrl+Enter to send
+                </div>
             </form>
         </div>
     </div>
@@ -106,125 +117,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const chatForm = document.getElementById('chatForm');
-        const userInput = document.getElementById('userInput');
-        const chatContainer = document.getElementById('chatContainer');
-        const citationsContainer = document.getElementById('citationsContainer');
-        
-        // Handle form submission
-        chatForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const message = userInput.value.trim();
-            if (!message) return;
-            
-            // Add user message to chat
-            addMessage(message, true);
-            
-            // Clear input
-            userInput.value = '';
-            
-            // Simulate API call
-            simulateResponse(message);
-        });
-        
-        // Handle policy document clicks
-        document.querySelectorAll('.policy-document').forEach(doc => {
-            doc.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const docName = this.textContent;
-                const message = `Tell me about the ${docName}`;
-                
-                // Set input value
-                userInput.value = message;
-                
-                // Submit form
-                chatForm.dispatchEvent(new Event('submit'));
-            });
-        });
-        
-        // Function to add message to chat
-        function addMessage(content, isUser, citations = []) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            messageDiv.classList.add(isUser ? 'user-message' : 'assistant-message');
-            
-            const messagePara = document.createElement('p');
-            messagePara.textContent = content;
-            
-            messageDiv.appendChild(messagePara);
-            
-            // Add citations if any
-            if (citations.length > 0 && !isUser) {
-                const citationsDiv = document.createElement('div');
-                citationsDiv.classList.add('citations');
-                
-                citations.forEach((citation, index) => {
-                    const citationSpan = document.createElement('span');
-                    citationSpan.classList.add('citation');
-                    citationSpan.textContent = `[${index + 1}]`;
-                    citationSpan.dataset.citation = JSON.stringify(citation);
-                    
-                    citationSpan.addEventListener('click', function() {
-                        showCitation(citation);
-                    });
-                    
-                    citationsDiv.appendChild(citationSpan);
-                });
-                
-                messageDiv.appendChild(citationsDiv);
-            }
-            
-            chatContainer.appendChild(messageDiv);
-            
-            // Scroll to bottom
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-        
-        // Function to show citation
-        function showCitation(citation) {
-            citationsContainer.innerHTML = `
-                <div class="citation-content">
-                    <h6>${citation.title}</h6>
-                    <p class="small">${citation.excerpt}</p>
-                    <div class="text-end">
-                        <small class="text-muted">Document ID: ${citation.document_id}</small>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Function to simulate API response
-        function simulateResponse(query) {
-            // Show loading indicator
-            citationsContainer.innerHTML = '<p class="text-muted">Searching policy documents...</p>';
-            
-            // Simulate API delay
-            setTimeout(() => {
-                // Sample citations
-                const citations = [
-                    {
-                        document_id: 'policy-001',
-                        title: 'Employee Handbook',
-                        excerpt: 'This is a relevant excerpt from the Employee Handbook related to your query.'
-                    },
-                    {
-                        document_id: 'policy-002',
-                        title: 'Code of Conduct',
-                        excerpt: 'Another relevant excerpt from the Code of Conduct that addresses your question.'
-                    }
-                ];
-                
-                // Update citations container
-                citationsContainer.innerHTML = '<p class="text-muted">Click on a citation number in the response to view details.</p>';
-                
-                // Add assistant response with citations
-                addMessage(`Based on our policies, here's what I found about "${query}". The Employee Handbook states that this is handled according to our standard procedures. The Code of Conduct also provides guidance on this matter.`, false, citations);
-            }, 1500);
-        }
-    });
-</script>
-{% endblock %} 
+<script src="{% static 'js/policy.js' %}"></script>
+{% endblock %}
