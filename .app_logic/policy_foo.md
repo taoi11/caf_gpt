@@ -8,6 +8,7 @@ LLM workflow for answering policy/regulation questions with citations.
 - URL routing configured
 - Models defined (PolicyDocument, PolicyQuery, PolicyResponse)
 - Placeholder views created
+- Document search template implemented
 
 ## Planned Features
 - Bootstrap-styled chat interface with citations
@@ -22,20 +23,23 @@ LLM workflow for answering policy/regulation questions with citations.
    - PolicyQuery - Stores user queries with query_text and user_identifier
    - PolicyResponse - Stores responses with reference to query and documents
 
-2. **Views** (Placeholder)
-   - ChatInterfaceView - Will provide the policy chat interface
-   - DocumentSearchView - Will allow searching policy documents
-   - PolicyRetrieverView - API endpoint for policy retrieval
+2. **Views** (Implementation In Progress)
+   - ChatInterfaceView - Will provide the policy chat interface (Placeholder)
+   - DocumentSearchView - Search interface for policy documents (Template implemented)
+   - PolicyRetrieverView - API endpoint for policy retrieval (Planned)
 
-3. **Future Components**
+3. **Templates** (In Progress)
+   - Document search template (Implemented)
+   - Chat interface template (Planned)
+
+4. **Future Components**
    - PolicyRetriever service
    - CitationGenerator service
-   - Templates for chat interface and document search
 
 ## Integration Points
-- Will use the same base template as other apps
+- Uses the shared base template from Core app
 - Will share rate limiting approach with PaceNoteFoo
-- Will use Bootstrap for consistent styling
+- Uses Bootstrap for consistent styling
 
 ## Questions
 1. What specific policy documents need to be included?

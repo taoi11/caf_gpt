@@ -32,6 +32,7 @@ A collection of AI tools and agents for army personnel, packaged as a Django app
    - Prompt template handling
 
 3. **policy_foo** - PolicyFoo LLM workflow
+   - Policy document search interface (implemented)
    - Chat interface (planned)
    - RAG implementation (planned)
    - LLM integration (planned)
@@ -39,7 +40,8 @@ A collection of AI tools and agents for army personnel, packaged as a Django app
 ### Pages
 1. **Landing Page** - Introduction and navigation to tools
 2. **Pace Notes Tool** - Interface for generating pace notes based on observations
-3. **Policy Tool** - Chat interface for policy questions (coming soon)
+3. **Policy Documents** - Interface for browsing and searching policy documents
+4. **Policy Chat** - Chat interface for policy questions (coming soon)
 
 ## Project Structure
 ```
@@ -55,20 +57,27 @@ caf_gpt/
 │   │   └── open_router_service.py  # LLM integration
 │   └── utils/            # Utility functions
 │       └── s3_client.py  # S3 storage access
+│   └── templates/        # Core templates
+│       └── base.html     # Base template
+│   ├── static/           # Static files
+│   │   └── css/         # CSS files
+│   │   └── js/          # JavaScript files
 ├── pacenote_foo/         # PaceNote app
 │   ├── services/         # App-specific services
 │   │   └── prompt_service.py  # Prompt template handling
 │   └── prompts/          # Prompt templates
 │       └── base.md       # Base prompt template
+│   └── templates/        # PaceNote templates
+│       └── pacenote_foo.html  # PaceNote generator template
+│   └── static/           # Static files
+│       └── css/         # CSS files
+│       └── js/          # JavaScript files
 ├── policy_foo/           # Policy app
-├── static/               # Static files
-│   ├── css/              # CSS files
-│   │   └── paceNote.css  # PaceNote styles
-│   └── js/               # JavaScript files
-│       └── paceNotes.js  # PaceNote client-side logic
-├── templates/            # Project-wide templates
-│   └── pace_notes.html   # PaceNote interface
-├── .app_logic/           # Documentation
+│   └── templates/        # Policy templates
+│       └── policy_foo.html  # Policy document search template
+│   └── static/           # Static files
+│       └── css/         # CSS files
+│       └── js/          # JavaScript files
 ├── manage.py             # Django management script
 ├── requirements.txt      # Python dependencies
 └── shell.nix            # NixOS development environment

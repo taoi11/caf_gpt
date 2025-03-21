@@ -22,7 +22,7 @@ Base application containing shared functionality, landing page, and health check
    - TimeStampedModel - Abstract base model with created_at and updated_at fields
 
 4. **Templates**
-   - base/base.html - Main template with Bootstrap styling
+   - core/base.html - Main template with Bootstrap styling and navigation
    - core/landing_page.html - Landing page with tool cards
 
 ## Implementation Details
@@ -30,6 +30,8 @@ Base application containing shared functionality, landing page, and health check
 - Environment variables loaded from .env file
 - Modular settings structure (base.py and environment-specific overrides)
 - PostgreSQL database connection via URL parsing
+- Navbar with links to all available tools (Home, PaceNote, Policy)
+- Common footer across all pages
 
 ## Future Enhancements
 - IP-based rate limiting

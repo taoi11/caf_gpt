@@ -24,6 +24,7 @@
 - [x] Implement prompt template handling for PaceNote generation
 - [x] Integrate with S3 for competency lists and examples
 - [x] Implement PolicyFoo app models structure (skeleton)
+- [x] Create basic UI template for PolicyFoo document search
 
 ## Current Sprint
 
@@ -40,8 +41,9 @@
 
 ### PolicyFoo App
 - [x] Create basic data models for policy documents, queries and responses (skeleton)
+- [x] Create document search UI template
 - [ ] Implement ChatInterfaceView
-- [ ] Create DocumentSearchView
+- [ ] Create DocumentSearchView functionality
 - [ ] Set up PolicyRetriever service
 
 ### Infrastructure
@@ -66,7 +68,8 @@
 
 ### PolicyFoo App
 - [ ] Implement ChatInterfaceView
-- [ ] Create DocumentSearchView
+- [x] Create document search template
+- [ ] Create DocumentSearchView functionality
 - [ ] Set up PolicyRetriever service
 - [ ] Add basic chat template
 - [ ] Implement CitationGenerator
