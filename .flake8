@@ -15,7 +15,7 @@ exclude =
 
 
 # Focus on the most important issues first
-select = E,F,W,C90
+select = E,F,W,C90,B,S  # Added B (Bandit) and S (basic security)
 
 # Complexity threshold
 max-complexity = 10

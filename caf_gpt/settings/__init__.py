@@ -3,11 +3,19 @@ Django settings initialization.
 """
 import os
 from .base import (
-    # Import specific settings from base.py
+    # Import and explicitly expose settings from base
     BASE_DIR, INSTALLED_APPS, MIDDLEWARE, ROOT_URLCONF, TEMPLATES,
     DATABASES, AUTH_PASSWORD_VALIDATORS, LANGUAGE_CODE, TIME_ZONE,
     USE_I18N, USE_TZ, STATIC_URL, STATICFILES_DIRS, MEDIA_URL, MEDIA_ROOT
 )
+
+# Make all variables available at the module level
+__all__ = [
+    'BASE_DIR', 'INSTALLED_APPS', 'MIDDLEWARE', 'ROOT_URLCONF', 'TEMPLATES',
+    'DATABASES', 'AUTH_PASSWORD_VALIDATORS', 'LANGUAGE_CODE', 'TIME_ZONE',
+    'USE_I18N', 'USE_TZ', 'STATIC_URL', 'STATICFILES_DIRS', 'MEDIA_URL', 'MEDIA_ROOT',
+    'DEBUG', 'SECRET_KEY', 'ALLOWED_HOSTS'
+]
 
 # Environment-specific settings
 if os.getenv('DJANGO_ENV') == 'production':

@@ -10,8 +10,7 @@ provided as an alias for backward compatibility.
 """
 import os
 import logging
-from typing import Dict, List, Optional, Union, Any
-# Removing unused import: from io import BytesIO
+from typing import Dict, List, Optional, Any
 
 import boto3
 from botocore.exceptions import ClientError, BotoCoreError
@@ -51,7 +50,7 @@ class S3Service:
     This service is configured by default to work with Storj S3-compatible storage,
     but can be configured to work with any S3-compatible service through
     environment variables.
-    
+
     Usage:
         s3_service = S3Service()
         files = s3_service.list_files('my-prefix/')
@@ -220,5 +219,6 @@ class S3Service:
 
     # Additional methods will be added here...
 
+
 # For backward compatibility
-S3Client = S3Service 
+S3Client = S3Service
