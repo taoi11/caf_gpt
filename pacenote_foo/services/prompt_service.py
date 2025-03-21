@@ -28,21 +28,38 @@ class PromptService:
             # Return a simple fallback in case of error
             return "Error loading prompt template. Please try again later."
 
-    def construct_prompt(self, user_input, competency_list, examples):
+    def prepare_system_prompt(self, competency_list, examples):
         """
-        Construct a prompt using the template and variables.
+        Prepare the system prompt by replacing variables in the template.
+        
+        Returns:
+            str: The processed system prompt with variables substituted
         """
         try:
             template = self.load_template()
 
             # Replace variables in the template
-            prompt = template.replace("{{competency_list}}", competency_list)
-            prompt = prompt.replace("{{examples}}", examples)
+            system_prompt = template.replace("{{competency_list}}", competency_list)
+            system_prompt = system_prompt.replace("{{examples}}", examples)
 
-            # Add user input at the beginning
-            full_prompt = f"User input: {user_input}\n\n{prompt}"
-
-            return full_prompt
+            return system_prompt
         except Exception as e:
-            print(f"Error constructing prompt: {e}")
-            return "Error constructing prompt. Please try again later."
+            print(f"Error preparing system prompt: {e}")
+            return "Error preparing system prompt. Please try again later."
+            
+    def get_messages(self, user_input, competency_list, examples):
+        """
+        Get formatted messages for the LLM API with proper role assignment.
+        
+        Returns:
+            list: List of message objects with roles and content
+        """
+        system_prompt = self.prepare_system_prompt(competency_list, examples)
+        
+        # Format messages for the LLM API
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_input}
+        ]
+        
+        return messages

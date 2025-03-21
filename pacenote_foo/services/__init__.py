@@ -1,8 +1,10 @@
 """
-Services package for the PaceNote app.
+PaceNoteFoo app services package.
 """
-from core.services import S3Service, S3Client
-from .prompt_service import PromptService
+from pacenote_foo.services.prompt_service import PromptService
+from core.services import S3Service
 
-# Explicitly expose these classes at the package level
-__all__ = ['S3Service', 'S3Client', 'PromptService']
+__all__ = [
+    'PromptService',
+    'S3Service',
+]

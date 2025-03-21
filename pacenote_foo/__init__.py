@@ -1,3 +1,3 @@
 """
-PaceNoteFoo app initialization.
+PaceNoteFoo app.
 """
