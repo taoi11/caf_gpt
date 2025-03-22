@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 {% load static %}
 
 {% block title %}CAF Pace Notes Generator{% endblock %}
@@ -21,11 +21,10 @@
                     <div class="form-group mb-3">
                         <label for="rank-select" class="form-label">Select Rank</label>
                         <select id="rank-select" class="form-select">
-                            <option value="" selected disabled>-- Select Rank --</option>
-                            <option value="cpl-mcpl">Cpl</option>
-                            <option value="mcpl-sgt">MCpl</option>
-                            <option value="sgt-wojtg">Sgt</option>
-                            <option value="wojtg-mwopwo">WO</option>
+                            <option value="cpl">Cpl</option>
+                            <option value="mcpl">MCpl</option>
+                            <option value="sgt">Sgt</option>
+                            <option value="wo">WO</option>
                         </select>
                     </div>
                     
@@ -40,7 +39,7 @@
                         <div class="form-text">Press Ctrl+Enter to generate</div>
                     </div>
                     
-                    <button id="generate-btn" class="btn btn-primary" disabled>
+                    <button id="generate-btn" class="btn btn-primary">
                         <i class="bi bi-lightning-charge-fill me-1"></i>Generate Pace Note
                     </button>
                 </div>

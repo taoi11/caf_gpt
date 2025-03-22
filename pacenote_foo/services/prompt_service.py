@@ -31,7 +31,7 @@ class PromptService:
     def prepare_system_prompt(self, competency_list, examples):
         """
         Prepare the system prompt by replacing variables in the template.
-        
+
         Returns:
             str: The processed system prompt with variables substituted
         """
@@ -46,20 +46,38 @@ class PromptService:
         except Exception as e:
             print(f"Error preparing system prompt: {e}")
             return "Error preparing system prompt. Please try again later."
-            
+
     def get_messages(self, user_input, competency_list, examples):
         """
         Get formatted messages for the LLM API with proper role assignment.
-        
+
         Returns:
             list: List of message objects with roles and content
         """
         system_prompt = self.prepare_system_prompt(competency_list, examples)
-        
+
         # Format messages for the LLM API
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_input}
         ]
-        
+
         return messages
+
+    def construct_prompt(self, user_input, competency_list, examples):
+        """
+        Construct the complete prompt for the LLM using the template.
+
+        Args:
+            user_input (str): The user's input text
+            competency_list (str): The rank-specific competencies
+            examples (str): The examples for reference
+
+        Returns:
+            list: The formatted messages for the LLM API
+        """
+        # Validate user input
+        if not user_input or not user_input.strip():
+            raise ValueError("User input cannot be empty")
+            
+        return self.get_messages(user_input, competency_list, examples)

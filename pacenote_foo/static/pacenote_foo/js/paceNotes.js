@@ -154,8 +154,14 @@ class PaceNotesUI {
         this.outputSection.insertBefore(loadingBox, this.outputSection.firstChild);
 
         try {
-            // Convert rank format from 'cpl-mcpl' to 'cpl_mcpl'
-            const apiRank = rank.replace('-', '_');
+            // Map the frontend rank values to backend rank values
+            const rankMap = {
+                'cpl': 'cpl',
+                'mcpl': 'mcpl',
+                'sgt': 'sgt',
+                'wo': 'wo'
+            };
+            const apiRank = rankMap[rank] || 'cpl';
             
             // Call the API to generate the pace note
             const response = await fetch(this.apiEndpoint, {
@@ -214,4 +220,4 @@ class PaceNotesUI {
 document.addEventListener('DOMContentLoaded', () => {
     const ui = new PaceNotesUI();
     rateLimiter.initializeDisplay();
-}); 
+});

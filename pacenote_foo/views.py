@@ -9,8 +9,8 @@ from django.views import View
 import json
 import logging
 
-from core.services import OpenRouterService
-from .services import S3Service, PromptService
+from core.services import OpenRouterService, S3Service
+from .services import PromptService
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +34,16 @@ class PaceNoteGeneratorView(View):
         """
         try:
             data = json.loads(request.body)
-            user_input = data.get('user_input', '')
-            rank = data.get('rank', 'cpl_mcpl')  # Default to cpl_mcpl
+            user_input = data.get('user_input', '').strip()
+            rank = data.get('rank', 'cpl')
+
+            # Validate user input
+            if not user_input:
+                logger.warning("Empty user input provided for pace note generation")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Please provide some input text to generate a pace note'
+                }, status=400)
 
             logger.info(f"Generating pace note for rank: {rank}")
 
@@ -44,8 +52,17 @@ class PaceNoteGeneratorView(View):
             prompt_service = PromptService()
             open_router_service = OpenRouterService()
 
+            # Map the form values to the correct S3 file paths
+            rank_to_file_map = {
+                'cpl': 'cpl.md',
+                'mcpl': 'mcpl.md',  # Changed from mcpl_sgt.md to mcpl.md
+                'sgt': 'sgt.md',  # Changed from sgt_wojtg.md to sgt.md
+                'wo': 'wo.md'  # Changed from wojtg_mwopwo.md to wo.md
+            }
+
             # Get competency list and examples from S3
-            competency_path = f"paceNote/{rank}.md"
+            competency_filename = rank_to_file_map.get(rank, 'cpl.md')
+            competency_path = f"paceNote/{competency_filename}"
             examples_path = "paceNote/examples.md"
 
             try:
