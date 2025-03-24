@@ -1,0 +1,14 @@
+{
+  "editor.accessibilitySupport": "off",
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": ".ai/rules/base.md",
+    },
+    {
+      "file": ".ai/rules/notepad.md",
+    },
+    {
+      "file": ".ai/rules/aider.md"
+    }
+  ]
+}

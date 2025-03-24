@@ -1,8 +1,4 @@
----
-description: Base set of rules to always follow
-globs: *
----
-# Project Guidelines
+# Copilot Instructions
 
 ## Development Philosophy
 - **Simplicity**: Keep everything minimal and straightforward
@@ -27,7 +23,6 @@ globs: *
 ### Architecture
 - Use Django's default structure
 - Keep apps focused on single responsibilities
-- Organize settings by environment
 - Place reusable code in core app
 
 ### Coding Standards
@@ -38,14 +33,14 @@ globs: *
 
 ### Process
 - Start with simple implementations
-- Add complexity only when needed
+- Add complexity ONLY when needed
 - Note similar existing code when available
 - Follow established patterns
 
 ## Review Phase
-- **Testing**: Place holder for now. Will build tests later.
+- **Testing**: Placeholder for now. Will build tests later.
 - **Documentation**: Brief file overviews at the top, 1-line function docstrings
 - **Feedback Loop**: Provide quick feedback on approaches
-- **Iterative Clarification**: Welcome questions for clarity
-- Regularly review and refactor code
+- **Iterative Clarification**: Ask questions for clarity
+- Regularly review and suggest refactoring code
 - Document decisions and learnings

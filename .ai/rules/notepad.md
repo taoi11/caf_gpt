@@ -1,11 +1,7 @@
----
-description: Notes and Planning
-globs: *
----
 # Notepad Usage Guidelines
 
 ## Purpose
-The `.cursor/notepad` directory serves as a knowledge repository and planning space for the project. It should be used to document ideas, plans, and decisions before implementing them in the codebase.
+The `.ai/notepad/` directory serves as a knowledge repository and planning space for the project. It should be used to document ideas, plans, and decisions before implementing them in the codebase.
 
 ## When to Use Notepad
 - **Before Implementation**: Document ideas and approaches before writing code

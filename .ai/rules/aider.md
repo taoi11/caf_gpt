@@ -1,7 +1,3 @@
----
-description: Use Aider to offload small and repetitive taskes.
-globs: aider.sh, .aider.conf.yml, prompt_template.md
----
 # Aider: CLI AI Coding Assistant
 
 ## Purpose
