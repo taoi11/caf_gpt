@@ -1,35 +1,33 @@
 # Notepad Usage Guidelines
 
 ## Purpose
-The `.ai/notepad/` directory serves as a knowledge repository and planning space for the project. It should be used to document ideas, plans, and decisions before implementing them in the codebase.
+The `.ai/notepad/` directory serves as a knowledge repository and planning space for documenting ideas, plans, and decisions before implementation.
 
-## When to Use Notepad
-- **Before Implementation**: Document ideas and approaches before writing code
-- **During Research**: Collect information about tools, libraries, and best practices
-- **For Complex Tasks**: Break down complex tasks into manageable steps
-- **To Record Decisions**: Document why certain approaches were chosen over others
+## When to Use
+- **Pre-Implementation**: Document approaches before coding
+- **Research**: Gather information on tools, libraries, best practices
+- **Complex Tasks**: Break down into manageable steps
+- **Decision Recording**: Document approach selection rationale
 
-## Notepad Structure
-- Use descriptive filenames that clearly indicate the content
-- Organize content with clear headings and sections
-- Include examples where appropriate
-- Link to relevant documentation or resources
+## Structure
+- Use descriptive filenames indicating content
+- Organize with clear headings/sections
+- Include relevant examples
 
-## Notepad Content Types
-1. **Idea Documents**: Brainstorming and exploring different approaches
-2. **Implementation Plans**: Step-by-step guides for implementing features
-3. **Decision Records**: Documentation of why certain decisions were made
-4. **Troubleshooting Guides**: Common issues and their solutions
-5. **Best Practices**: Project-specific guidelines and standards
+## Content Types
+1. **Idea Documents**: Brainstorming approaches
+2. **Implementation Plans**: Step-by-step feature guides
+3. **Decision Records**: Justification for choices
+4. **Troubleshooting Guides**: Common issues/solutions
+5. **Best Practices**: Project-specific standards
 
-## Updating Notepad Files
-- Update documents as new information becomes available
-- Mark outdated information clearly
-- Add timestamps to major updates
-- Reference related code files when appropriate
+## Updating Files
+- Update with new information
+- Mark outdated content clearly
+- Timestamp major updates
+- Reference related code files
 
-## Integration with Development Workflow
-- Reference notepad documents in commit messages when implementing ideas
-- Review and update notepad documents during code reviews
-- Use notepad for planning before starting new features
-- Create templates in notepad for repetitive tasks 
+## Workflow Integration
+- Review/update during code reviews
+- Use for feature planning
+- Create templates for repetitive tasks
