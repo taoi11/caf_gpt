@@ -6,9 +6,9 @@
     },
     {
       "file": ".ai/rules/notepad.md",
-    },
-    {
-      "file": ".ai/rules/aider.md"
     }
+    // {
+    //   "file": ".ai/rules/aider.md"
+    // }
   ]
 }
