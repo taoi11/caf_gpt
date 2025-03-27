@@ -12,10 +12,10 @@
 - **Explanations**: Provide rationale for recommendations
 
 ## Planning Phase
-- **Overview First**: Begin with `.app_logic/overview.md`
+- **Overview First**: Begin with `.notepad/overview.md`
 - **Focus Area**: Specify current project component
 - **Explicit Preferences**: State implementation choices upfront
-- **Notepad**: Use `.cursor/notepad` for longform explanations
+- **Notepad**: Use `.ai/notepad` for longform explanations
 
 ## Implementation Phase
 ### Architecture
