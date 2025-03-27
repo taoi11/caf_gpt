@@ -10,5 +10,11 @@
     // {
     //   "file": ".ai/rules/aider.md"
     // }
+  ],
+  "extensions.ignoreRecommendations": true,
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Always start the commit message with `Copilot:`"
+    }
   ]
 }
