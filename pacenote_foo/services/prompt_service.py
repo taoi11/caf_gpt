@@ -79,5 +79,5 @@ class PromptService:
         # Validate user input
         if not user_input or not user_input.strip():
             raise ValueError("User input cannot be empty")
-            
+
         return self.get_messages(user_input, competency_list, examples)

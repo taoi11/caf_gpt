@@ -43,7 +43,7 @@ class OpenRouterService:
             if not prompt or not isinstance(prompt, (str, list)) or (isinstance(prompt, str) and not prompt.strip()):
                 logger.error("Empty or invalid prompt provided to OpenRouter API")
                 return "Error: Input must have at least 1 token"
-                
+
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {self.api_key}",
@@ -75,14 +75,14 @@ class OpenRouterService:
 
             if response.status_code == 200:
                 result = response.json()
-                
+
                 # Check if the response contains an error
                 if 'error' in result:
                     error_code = result['error'].get('code')
                     error_message = result['error'].get('message')
                     logger.error(f"OpenRouter API error {error_code}: {error_message}")
                     return f"Error: {error_message}"
-                    
+
                 # Only try to access 'choices' if there's no error
                 if 'choices' in result:
                     generated_text = result['choices'][0]['message']['content']

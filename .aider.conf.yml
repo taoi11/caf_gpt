@@ -4,9 +4,11 @@ watch-files: true
 max-chat-history-tokens: 32768
 restore-chat-history: false
 read:
+  - ".ai/rules/base.md"
+  - ".ai/rules/notepad.md"
+  - ".ai/notepad/overview.md"
   - "caf_gpt/settings/base.py"
   - "manage.py"
-  - "caf_gpt/urls.py"
 # file:
 
 auto-commits: false

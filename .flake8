@@ -9,7 +9,9 @@ exclude =
     .venv,
     venv,
     */migrations/*,
-    static,
+    *.html,
+    *.css,
+    *.js,
     media,
     logs
 
