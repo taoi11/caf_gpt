@@ -1,17 +1,8 @@
 /* PaceNote specific styles */
-
-main {
-    padding: 2rem 0;
-}
-
 /* Input Section */
-.input-section {
-    margin-bottom: 2rem;
-}
-
 .input-box {
     width: 100%;
-    min-height: 150px;
+    min-height: 150px; /* instead of this class */
     padding: 1rem;
     border: 1px solid #ced4da;
     border-radius: 4px;
@@ -27,6 +18,7 @@ main {
     align-items: center;
 }
 
+/* Unused class - we use #rank-select instead */
 .rank-select {
     padding: 0.5rem;
     border: 1px solid #ced4da;
@@ -36,72 +28,22 @@ main {
 
 /* Enhance the rank selector to look more like a dropdown */
 #rank-select {
-    appearance: menulist; /* Show the default dropdown arrow for better recognition */
-    padding-right: 2rem; /* Add space for the dropdown arrow */
-    /* background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); */
+    appearance: menulist;
+    padding-right: 2rem;
     background-repeat: no-repeat;
     background-position: right 0.5rem center;
     background-size: 16px 12px;
+    cursor: pointer;
 }
 
 #rank-select:hover {
-    border-color: #adb5bd; /* Darker border on hover */
-    background-color: #f8f9fa; /* Slight background change on hover */
-}
-
-/* Output Section */
-.output-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.output-box {
-    background-color: white;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
+    border-color: #adb5bd;
+    background-color: #f8f9fa;
 }
 
 .output-content {
     padding: 1.5rem;
     white-space: pre-wrap;
-}
-
-.response-text {
-    white-space: pre-wrap;
-    font-family: monospace;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: 0.25rem;
-    border: 1px solid #dee2e6;
-}
-
-.output-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 1rem;
-    border-top: 1px solid #dee2e6;
-    font-size: 0.8rem;
-    color: var(--secondary-color);
-}
-
-.copy-button {
-    background: none;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 0.25rem 0.5rem;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: all 0.2s;
-}
-
-.copy-button:hover {
-    background-color: #f8f9fa;
 }
 
 /* Loading State */
@@ -110,20 +52,6 @@ main {
     text-align: center;
     color: var(--secondary-color);
     position: relative;
-}
-
-.loading:after {
-    content: '';
-    display: block;
-    width: 30px;
-    height: 30px;
-    border: 3px solid #dee2e6;
-    border-top-color: var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    position: absolute;
-    top: calc(50% - 15px);
-    left: calc(50% - 15px);
 }
 
 .loading-spinner {
@@ -141,9 +69,25 @@ main {
     to { transform: rotate(360deg); }
 }
 
+.button-class {
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    background-color: #007bff;
+    color: #fff;
+}
+
 /* Alert styles specific to pace notes */
 .alert-danger {
     color: #721c24;
     background-color: #f8d7da;
     border-color: #f5c6cb;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
 }

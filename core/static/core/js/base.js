@@ -14,9 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add active class to current nav item
     highlightCurrentNavItem();
-    
-    // Common functionality for text areas with Ctrl+Enter support
-    initCtrlEnterSupport();
 });
 
 /**
@@ -81,33 +78,14 @@ function initSmoothScrolling() {
  */
 function highlightCurrentNavItem() {
     const currentLocation = window.location.pathname;
-    const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+    // Fixed selector to match our HTML structure
+    const navLinks = document.querySelectorAll('.nav-links .nav-link');
     
     navLinks.forEach(link => {
         const linkPath = link.getAttribute('href');
         if (currentLocation === linkPath || currentLocation.startsWith(linkPath) && linkPath !== '/') {
             link.classList.add('active');
         }
-    });
-}
-
-/**
- * Initializes Ctrl+Enter support for textareas
- */
-function initCtrlEnterSupport() {
-    const textAreas = document.querySelectorAll('textarea[data-ctrl-enter="true"]');
-    textAreas.forEach(textArea => {
-        textArea.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.ctrlKey) {
-                e.preventDefault();
-                
-                // Find closest form and submit it
-                const form = textArea.closest('form');
-                if (form) {
-                    form.dispatchEvent(new Event('submit', { cancelable: true }));
-                }
-            }
-        });
     });
 }
 

@@ -26,10 +26,10 @@
                             <a class="nav-link {% if request.resolver_match.app_name == 'core' %}active{% endif %}" href="{% url 'core:landing_page' %}">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.app_name == 'pacenote_foo' %}active{% endif %}" href="{% url 'pacenote_foo:pace_notes' %}">PaceNote</a>
+                            <a class="nav-link {% if request.resolver_match.app_name == 'pacenote_foo' %}active{% endif %}" href="{% url 'pacenote_foo:pace_notes' %}">PaceNoteFoo</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.app_name == 'policy_foo' %}active{% endif %}" href="{% url 'policy_foo:chat_interface' %}">Policy</a>
+                            <a class="nav-link {% if request.resolver_match.app_name == 'policy_foo' %}active{% endif %}" href="{% url 'policy_foo:chat_interface' %}">PolicyFoo</a>
                         </li>
                     </ul>
                 </div>

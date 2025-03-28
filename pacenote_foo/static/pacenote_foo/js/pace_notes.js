@@ -33,21 +33,11 @@ class PaceNotesGenerator {
     }
     
     loadRateLimits() {
-        // Use the global rate limits function if available
+        // Simplified: Just use the global rate limits function
         if (window.cafGpt && window.cafGpt.updateRateLimits) {
             window.cafGpt.updateRateLimits();
             return;
         }
-        
-        // Fallback to direct API call
-        fetch(this.rateLimitsEndpoint)
-            .then(response => response.json())
-            .then(data => {
-                this.updateRateLimitsDisplay(data);
-            })
-            .catch(error => {
-                console.error('Error fetching rate limits:', error);
-            });
     }
     
     updateRateLimitsDisplay(data) {
@@ -89,12 +79,8 @@ class PaceNotesGenerator {
             
             if (response.ok) {
                 this.displayOutput(data.pace_note);
-                // Only update rate limits if they're included in the response
-                if (data.rate_limits) {
-                    this.updateRateLimitsDisplay(data.rate_limits);
-                }
                 
-                // Update global rate limits if available
+                // Update global rate limits
                 if (window.cafGpt && window.cafGpt.updateRateLimits) {
                     window.cafGpt.updateRateLimits();
                 }
