@@ -11,9 +11,11 @@ import logging
 
 from core.services import OpenRouterService, S3Service
 from .services import PromptService
+from core.services.rate_limit_service import RateLimitService
 
 logger = logging.getLogger(__name__)
 
+rate_limit_service = RateLimitService()
 
 class PaceNoteView(TemplateView):
     """
@@ -46,6 +48,16 @@ class PaceNoteGeneratorView(View):
                 }, status=400)
 
             logger.info(f"Generating pace note for rank: {rank}")
+
+            # Get the IP address from the request headers
+            ip = request.META.get('HTTP_CF_CONNECTING_IP') or request.META.get('HTTP_CF_PSEUDO_IPV4') or request.META.get('REMOTE_ADDR')
+
+            # Increment the rate limit counter
+            if not rate_limit_service.increment(ip):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Rate limit exceeded. Please try again later.'
+                }, status=429)
 
             # Initialize services
             s3_client = S3Service(bucket_name="policies")
@@ -101,27 +113,19 @@ class RateLimitsView(View):
     def get(self, request, *args, **kwargs):
         """
         Return the current rate limits for the user.
-
-        This is currently a placeholder implementation that returns
-        static values. In a production implementation, this would
-        check a rate limiting system (e.g., Redis) and return
-        actual values.
         """
-        # Placeholder implementation - would be replaced with actual rate limiting
-        hourly_limit = 10
-        hourly_remaining = 8
-        daily_limit = 50
-        daily_remaining = 45
+        ip = request.META.get('HTTP_CF_CONNECTING_IP') or request.META.get('HTTP_CF_PSEUDO_IPV4') or request.META.get('REMOTE_ADDR')
+        usage = rate_limit_service.get_usage(ip)
 
         return JsonResponse({
             'hourly': {
-                'limit': hourly_limit,
-                'remaining': hourly_remaining,
+                'limit': rate_limit_service.hourly_limit,
+                'remaining': max(0, rate_limit_service.hourly_limit - usage['hourly']),
                 'reset': 3600,  # seconds until reset
             },
             'daily': {
-                'limit': daily_limit,
-                'remaining': daily_remaining,
+                'limit': rate_limit_service.daily_limit,
+                'remaining': max(0, rate_limit_service.daily_limit - usage['daily']),
                 'reset': 86400,  # seconds until reset
             }
         })
