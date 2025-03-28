@@ -1,4 +1,4 @@
-# Copilot Instructions
+# AI Instructions
 
 ## Development Philosophy
 - Simplicity : Maintain minimal, straightforward design

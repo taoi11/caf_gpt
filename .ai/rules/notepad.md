@@ -1,4 +1,4 @@
-# Notepad Usage Guidelines
+# Ai Notepad Usage
 
 ## Purpose
 The `.ai/notepad/` directory serves as a knowledge repository and planning space for documenting ideas, plans, and decisions before implementation.

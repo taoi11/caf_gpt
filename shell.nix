@@ -10,6 +10,7 @@ let
     django-debug-toolbar
     gunicorn
     django-cors-headers
+    django-csp
     requests
     boto3
 
