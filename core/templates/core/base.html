@@ -1,29 +1,27 @@
 <!DOCTYPE html>
+{% load static %}
+{% load csp %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CAF GPT{% endblock %}</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <!-- Custom CSS -->
-    {% load static %}
     <link rel="stylesheet" href="{% static 'core/css/styles.css' %}">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar">
             <div class="container">
                 <a class="navbar-brand" href="{% url 'core:landing_page' %}">CAF GPT</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">
+                    <span class="menu-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
+                <div class="navbar-menu" id="navbarMenu">
+                    <ul class="nav-links">
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.app_name == 'core' %}active{% endif %}" href="{% url 'core:landing_page' %}">Home</a>
                         </li>
@@ -39,28 +37,25 @@
         </nav>
     </header>
 
-    <main class="container py-4">
+    <main class="container">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-dark text-white py-4 mt-5">
+    <footer>
         <div class="container">
-            <div class="row">
-                <div class="col-md-6">
+            <div class="footer-content">
+                <div class="footer-info">
                     <h5>CAF GPT</h5>
-                    <p>A powerful AI assistant platform.</p>
+                    <p>An AI assistant platform.</p>
                 </div>
-                <div class="col-md-6 text-md-end">
+                <div class="footer-copyright">
                     <p>&copy; {% now "Y" %} CAF GPT. All rights reserved.</p>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
+    <!-- Common JS -->
     <script src="{% static 'core/js/main.js' %}"></script>
     
     {% block extra_js %}{% endblock %}

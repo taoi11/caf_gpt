@@ -63,3 +63,37 @@ class PolicyRetrieverView(View):
             return JsonResponse(results)
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+class RateLimitsView(View):
+    """
+    View for checking API rate limits.
+    """
+
+    def get(self, request, *args, **kwargs):
+        """
+        Return the current rate limits for the user.
+        
+        This is currently a placeholder implementation that returns
+        static values. In a production implementation, this would
+        check a rate limiting system (e.g., Redis) and return
+        actual values.
+        """
+        # Placeholder implementation - would be replaced with actual rate limiting
+        hourly_limit = 10
+        hourly_remaining = 7
+        daily_limit = 50
+        daily_remaining = 42
+        
+        return JsonResponse({
+            'hourly': {
+                'limit': hourly_limit,
+                'remaining': hourly_remaining,
+                'reset': 3600,  # seconds until reset
+            },
+            'daily': {
+                'limit': daily_limit,
+                'remaining': daily_remaining,
+                'reset': 86400,  # seconds until reset
+            }
+        })

@@ -3,6 +3,18 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('CAF GPT application initialized');
     
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const navbarMenu = document.getElementById('navbarMenu');
+    
+    if (menuToggle && navbarMenu) {
+        menuToggle.addEventListener('click', function() {
+            navbarMenu.classList.toggle('active');
+            const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+            menuToggle.setAttribute('aria-expanded', !isExpanded);
+        });
+    }
+    
     // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -42,4 +54,59 @@ document.addEventListener('DOMContentLoaded', function() {
             link.classList.add('active');
         }
     });
-}); 
+    
+    // Common functionality for text areas with Ctrl+Enter support
+    const textAreas = document.querySelectorAll('textarea[data-ctrl-enter="true"]');
+    textAreas.forEach(textArea => {
+        textArea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                
+                // Find closest form and submit it
+                const form = textArea.closest('form');
+                if (form) {
+                    form.dispatchEvent(new Event('submit', { cancelable: true }));
+                }
+            }
+        });
+    });
+    
+    // Rate limit display updater
+    updateRateLimits();
+});
+
+/**
+ * Updates any rate limit displays on the page
+ */
+function updateRateLimits() {
+    // Check if we need to fetch rate limits
+    const rateLimitElements = document.querySelectorAll('.hourly-remaining, .daily-remaining');
+    if (rateLimitElements.length === 0) return;
+    
+    // Determine which app we're in based on the URL path
+    const path = window.location.pathname;
+    let rateLimitsEndpoint = '/api/rate-limits/';
+    
+    // Adjust endpoint based on current app
+    if (path.startsWith('/pacenote/')) {
+        rateLimitsEndpoint = '/pacenote/api/rate-limits/';
+    } else if (path.startsWith('/policy/')) {
+        rateLimitsEndpoint = '/policy/api/rate-limits/';
+    }
+    
+    // Fetch rate limits from API
+    fetch(rateLimitsEndpoint)
+        .then(response => response.json())
+        .then(data => {
+            // Update hourly limits
+            document.querySelectorAll('.hourly-remaining').forEach(el => {
+                el.textContent = `${data.hourly.remaining}/${data.hourly.limit}`;
+            });
+            
+            // Update daily limits
+            document.querySelectorAll('.daily-remaining').forEach(el => {
+                el.textContent = `${data.daily.remaining}/${data.daily.limit}`;
+            });
+        })
+        .catch(error => console.error('Error fetching rate limits:', error));
+}

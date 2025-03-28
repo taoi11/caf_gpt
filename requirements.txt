@@ -20,6 +20,9 @@ requests==2.32.3
 # AWS
 boto3==1.35.30
 
+# CSP
+django-csp==3.8
+
 # LangChain and LLM
 langchain==0.3.7
 langchain-openai==0.2.5

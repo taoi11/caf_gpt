@@ -1,4 +1,6 @@
-// Policy Assistant chat functionality
+/**
+ * Policy Assistant chat functionality
+ */
 
 class PolicyChatUI {
     constructor() {
@@ -60,6 +62,7 @@ class PolicyChatUI {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken() 
                 },
                 body: JSON.stringify({ query })
             });
@@ -70,7 +73,7 @@ class PolicyChatUI {
                     // Add assistant response
                     this.addMessage(data.response, false, data.citations);
                     // Update citations container
-                    this.citationsContainer.innerHTML = '<p class="text-muted">Click on a citation number in the response to view details.</p>';
+                    this.updateCitationsDisplay(data.citations);
                 } else {
                     this.showError('Failed to get a response. Please try again.');
                 }
@@ -81,6 +84,26 @@ class PolicyChatUI {
             console.error('Error fetching policy response:', error);
             this.showError('Connection error. Please check your network and try again.');
         }
+    }
+    
+    getCSRFToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+                return value;
+            }
+        }
+        return '';
+    }
+    
+    updateCitationsDisplay(citations) {
+        if (!citations || citations.length === 0) {
+            this.citationsContainer.innerHTML = '<p class="text-muted">No citations available for this response.</p>';
+            return;
+        }
+        
+        this.citationsContainer.innerHTML = '<p class="text-muted">Click on a citation number in the response to view details.</p>';
     }
     
     addMessage(content, isUser, citations = []) {
@@ -148,6 +171,11 @@ class PolicyChatUI {
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    const ui = new PolicyChatUI();
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chatForm');
+    const chatContainer = document.getElementById('chatContainer');
+    
+    if (chatForm && chatContainer) {
+        new PolicyChatUI();
+    }
 });
