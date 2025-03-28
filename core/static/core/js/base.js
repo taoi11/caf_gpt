@@ -1,9 +1,28 @@
-// Main JavaScript file for CAF GPT
+// Base JavaScript functionality for CAF GPT
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('CAF GPT application initialized');
     
     // Mobile menu toggle
+    initMobileMenu();
+    
+    // Initialize Bootstrap components if available
+    initBootstrapComponents();
+    
+    // Smooth scrolling for anchor links
+    initSmoothScrolling();
+    
+    // Add active class to current nav item
+    highlightCurrentNavItem();
+    
+    // Common functionality for text areas with Ctrl+Enter support
+    initCtrlEnterSupport();
+});
+
+/**
+ * Initializes mobile menu toggle functionality
+ */
+function initMobileMenu() {
     const menuToggle = document.getElementById('menuToggle');
     const navbarMenu = document.getElementById('navbarMenu');
     
@@ -14,20 +33,32 @@ document.addEventListener('DOMContentLoaded', function() {
             menuToggle.setAttribute('aria-expanded', !isExpanded);
         });
     }
-    
-    // Initialize tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Initialize popovers
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
-    
-    // Smooth scrolling for anchor links
+}
+
+/**
+ * Initializes Bootstrap tooltips and popovers if Bootstrap is available
+ */
+function initBootstrapComponents() {
+    // Check if Bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Initialize popovers
+        const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl);
+        });
+    }
+}
+
+/**
+ * Sets up smooth scrolling for anchor links
+ */
+function initSmoothScrolling() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -43,8 +74,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    // Add active class to current nav item
+}
+
+/**
+ * Highlights the current navigation item based on URL
+ */
+function highlightCurrentNavItem() {
     const currentLocation = window.location.pathname;
     const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
     
@@ -54,8 +89,12 @@ document.addEventListener('DOMContentLoaded', function() {
             link.classList.add('active');
         }
     });
-    
-    // Common functionality for text areas with Ctrl+Enter support
+}
+
+/**
+ * Initializes Ctrl+Enter support for textareas
+ */
+function initCtrlEnterSupport() {
     const textAreas = document.querySelectorAll('textarea[data-ctrl-enter="true"]');
     textAreas.forEach(textArea => {
         textArea.addEventListener('keydown', function(e) {
@@ -70,10 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    // Rate limit display updater
-    updateRateLimits();
-});
+}
 
 /**
  * Updates any rate limit displays on the page
@@ -110,3 +146,8 @@ function updateRateLimits() {
         })
         .catch(error => console.error('Error fetching rate limits:', error));
 }
+
+// Expose functions that might be needed by other modules
+window.cafGpt = {
+    updateRateLimits: updateRateLimits
+};

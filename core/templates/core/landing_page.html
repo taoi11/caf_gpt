@@ -1,6 +1,12 @@
 {% extends "core/base.html" %}
 
+{% load static %}
+
 {% block title %}CAF-GPT Home{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/landing_page.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container my-5">
@@ -33,4 +39,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'core/js/landing_page.js' %}"></script>
 {% endblock %}

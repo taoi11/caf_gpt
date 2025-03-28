@@ -33,6 +33,13 @@ class PaceNotesGenerator {
     }
     
     loadRateLimits() {
+        // Use the global rate limits function if available
+        if (window.cafGpt && window.cafGpt.updateRateLimits) {
+            window.cafGpt.updateRateLimits();
+            return;
+        }
+        
+        // Fallback to direct API call
         fetch(this.rateLimitsEndpoint)
             .then(response => response.json())
             .then(data => {
@@ -74,7 +81,7 @@ class PaceNotesGenerator {
               },
               body: JSON.stringify({
                 rank: rank,
-                user_input: inputText,  // Use inputText instead of user_input and rename field to user_input
+                user_input: inputText,
               }),
             });
             
@@ -85,6 +92,11 @@ class PaceNotesGenerator {
                 // Only update rate limits if they're included in the response
                 if (data.rate_limits) {
                     this.updateRateLimitsDisplay(data.rate_limits);
+                }
+                
+                // Update global rate limits if available
+                if (window.cafGpt && window.cafGpt.updateRateLimits) {
+                    window.cafGpt.updateRateLimits();
                 }
             } else {
                 this.showError(data.message || 'An error occurred while generating the pace note.');
@@ -149,6 +161,12 @@ class PaceNotesGenerator {
                         console.error('Error copying to clipboard:', error);
                     });
             });
+        }
+        
+        // Initialize tooltips if Bootstrap is available
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
         }
     }
     

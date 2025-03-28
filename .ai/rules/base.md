@@ -20,8 +20,7 @@ Start by gaining a clear understanding of the project.
 - Notepad : Use `.ai/notepad` for longform explanations and plans to be presended to the user.
 
 ### Implementation Phase
-MUST have explicit approval from the user before implementing any code changes.
-
+**MUST have explicit approval from the user before implementing any code changes.**
 #### Architecture
 - Use Django's default structure
 - Keep apps single-responsibility focused
@@ -32,4 +31,3 @@ MUST have explicit approval from the user before implementing any code changes.
 - Views : Class-based when appropriate, focused, leverage generics
 - Templates : Inheritance, minimal logic, Django template tags
 - Security : Django protections, no hardcoded secrets, env variables
-- 

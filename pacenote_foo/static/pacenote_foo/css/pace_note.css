@@ -13,7 +13,7 @@ main {
     width: 100%;
     min-height: 150px;
     padding: 1rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid #ced4da;
     border-radius: 4px;
     font-family: inherit;
     font-size: 1rem;
@@ -29,9 +29,24 @@ main {
 
 .rank-select {
     padding: 0.5rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 0.9rem;
+}
+
+/* Enhance the rank selector to look more like a dropdown */
+#rank-select {
+    appearance: menulist; /* Show the default dropdown arrow for better recognition */
+    padding-right: 2rem; /* Add space for the dropdown arrow */
+    /* background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); */
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 16px 12px;
+}
+
+#rank-select:hover {
+    border-color: #adb5bd; /* Darker border on hover */
+    background-color: #f8f9fa; /* Slight background change on hover */
 }
 
 /* Output Section */
@@ -43,7 +58,7 @@ main {
 
 .output-box {
     background-color: white;
-    border: 1px solid var(--border-color);
+    border: 1px solid #dee2e6;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     overflow: hidden;
@@ -51,6 +66,7 @@ main {
 
 .output-content {
     padding: 1.5rem;
+    white-space: pre-wrap;
 }
 
 .response-text {
@@ -69,14 +85,14 @@ main {
     justify-content: space-between;
     align-items: center;
     padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid #dee2e6;
     font-size: 0.8rem;
     color: var(--secondary-color);
 }
 
 .copy-button {
     background: none;
-    border: 1px solid var(--border-color);
+    border: 1px solid #dee2e6;
     border-radius: 4px;
     padding: 0.25rem 0.5rem;
     cursor: pointer;
@@ -85,7 +101,7 @@ main {
 }
 
 .copy-button:hover {
-    background-color: var(--light-bg);
+    background-color: #f8f9fa;
 }
 
 /* Loading State */
@@ -101,7 +117,7 @@ main {
     display: block;
     width: 30px;
     height: 30px;
-    border: 3px solid var(--border-color);
+    border: 3px solid #dee2e6;
     border-top-color: var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -110,6 +126,24 @@ main {
     left: calc(50% - 15px);
 }
 
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 0.5rem;
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
-} 
+}
+
+/* Alert styles specific to pace notes */
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
