@@ -49,5 +49,5 @@ def csp_report_view(request):
             )
     except Exception as e:
         logger.error(f"Error processing CSP report: {e}")
-    
+
     return HttpResponse(status=204)  # No content response
