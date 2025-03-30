@@ -15,13 +15,36 @@ from core.services.rate_limit_service import RateLimitService
 
 logger = logging.getLogger(__name__)
 
+# Instantiate the service once
 rate_limit_service = RateLimitService()
 
 class PaceNoteView(TemplateView):
     """
     View for the PaceNote generator interface.
+    Passes initial rate limit data to the template.
     """
     template_name = 'pacenote_foo/pace_notes.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        request = self.request
+        ip = request.META.get('HTTP_CF_CONNECTING_IP') or \
+             request.META.get('HTTP_CF_PSEUDO_IPV4') or \
+             request.META.get('REMOTE_ADDR')
+
+        if ip:
+            usage = rate_limit_service.get_usage(ip)
+            context['rate_limit_hourly_used'] = usage.get('hourly', 0)
+            context['rate_limit_daily_used'] = usage.get('daily', 0)
+        else:
+            # Handle cases where IP might not be available (e.g., tests)
+            context['rate_limit_hourly_used'] = 0
+            context['rate_limit_daily_used'] = 0
+            logger.warning("Could not determine IP address for rate limit context.")
+
+        context['rate_limit_hourly_limit'] = rate_limit_service.hourly_limit
+        context['rate_limit_daily_limit'] = rate_limit_service.daily_limit
+        return context
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -50,13 +73,24 @@ class PaceNoteGeneratorView(View):
             logger.info(f"Generating pace note for rank: {rank}")
 
             # Get the IP address from the request headers
-            ip = request.META.get('HTTP_CF_CONNECTING_IP') or request.META.get('HTTP_CF_PSEUDO_IPV4') or request.META.get('REMOTE_ADDR')
+            ip = request.META.get('HTTP_CF_CONNECTING_IP') or \
+                 request.META.get('HTTP_CF_PSEUDO_IPV4') or \
+                 request.META.get('REMOTE_ADDR')
 
-            # Increment the rate limit counter
-            if not rate_limit_service.increment(ip):
+            if not ip:
+                logger.error("Could not determine client IP address for rate limiting.")
                 return JsonResponse({
                     'status': 'error',
-                    'message': 'Rate limit exceeded. Please try again later.'
+                    'message': 'Could not determine your IP address.'
+                }, status=400)
+
+            # Check rate limit BEFORE proceeding
+            if not rate_limit_service.check_limits(ip):
+                logger.warning(f"Rate limit exceeded for IP: {ip}")
+                usage = rate_limit_service.get_usage(ip) # Get current usage for message
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f"Rate limit exceeded. Hourly: {usage.get('hourly', 0)}/{rate_limit_service.hourly_limit}, Daily: {usage.get('daily', 0)}/{rate_limit_service.daily_limit}. Please try again later."
                 }, status=429)
 
             # Initialize services
@@ -92,6 +126,10 @@ class PaceNoteGeneratorView(View):
 
             # Generate pace note
             pace_note = open_router_service.generate_completion(prompt)
+
+            # Increment rate limit counter AFTER successful generation
+            rate_limit_service.increment(ip)
+            logger.info(f"Successfully generated pace note and incremented rate limit for IP: {ip}")
 
             return JsonResponse({
                 'status': 'success',

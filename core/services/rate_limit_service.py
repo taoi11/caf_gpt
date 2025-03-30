@@ -8,7 +8,10 @@ class RateLimitService:
         self.daily_limit = 30
         self.hourly_window = 3600  # 1 hour in seconds
         self.daily_window = 86400  # 24 hours in seconds
-        self.whitelist = [ip_network('205.193.0.0/16')]
+        self.whitelist = [
+            ip_network('205.193.0.0/16'),
+            ip_network('127.0.0.1/32') # Whitelist localhost for development
+        ]
         self.usage = {}
 
     def is_whitelisted(self, ip):
