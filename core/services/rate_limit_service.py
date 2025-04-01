@@ -10,7 +10,7 @@ class RateLimitService:
         self.daily_window = 86400  # 24 hours in seconds
         self.whitelist = [
             ip_network('205.193.0.0/16'),
-            ip_network('127.0.0.1/32') # Whitelist localhost for development
+            # ip_network('127.0.0.1/32') # Whitelist localhost for development (Temporarily commented out for testing)
         ]
         self.usage = {}
 
@@ -39,6 +39,10 @@ class RateLimitService:
 
     def check_limits(self, ip):
         if self.is_whitelisted(ip):
+            return True
+            
+        # If IP not tracked yet, usage is 0, so limits are not exceeded
+        if ip not in self.usage:
             return True
 
         hourly_usage = len(self.usage[ip]['hourly'])

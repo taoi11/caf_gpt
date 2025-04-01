@@ -14,9 +14,9 @@ class PaceNotesGenerator {
         this.rateLimitsEndpoint = '/pacenote/api/rate-limits/';
         
         this.setupEventListeners();
-        this.loadRateLimits();
+        this.loadRateLimits(); // Initial load
     }
-    
+
     setupEventListeners() {
         // Generate button click
         this.generateBtn.addEventListener('click', () => {
@@ -31,15 +31,30 @@ class PaceNotesGenerator {
             }
         });
     }
-    
-    loadRateLimits() {
-        // Simplified: Just use the global rate limits function
-        if (window.cafGpt && window.cafGpt.updateRateLimits) {
-            window.cafGpt.updateRateLimits();
-            return;
+
+    async loadRateLimits() {
+        try {
+            // Add cache-control header to prevent browser caching of the API response
+            const response = await fetch(this.rateLimitsEndpoint, {
+                cache: 'no-cache', // Standard cache control
+                headers: {
+                    'Cache-Control': 'no-cache', // Explicit header
+                    'Pragma': 'no-cache' // For older browsers/proxies
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            this.updateRateLimitsDisplay(data);
+        } catch (error) {
+            console.error('Error fetching rate limits for PaceNotes:', error);
+            // Optionally display an error or default values
+            if (this.hourlyRemainingElement) this.hourlyRemainingElement.textContent = 'Error';
+            if (this.dailyRemainingElement) this.dailyRemainingElement.textContent = 'Error';
         }
     }
-    
+
     updateRateLimitsDisplay(data) {
         if (this.hourlyRemainingElement) {
             this.hourlyRemainingElement.textContent = `${data.hourly.remaining}/${data.hourly.limit}`;
@@ -79,13 +94,11 @@ class PaceNotesGenerator {
             
             if (response.ok) {
                 this.displayOutput(data.pace_note);
-                
-                // Update global rate limits
-                if (window.cafGpt && window.cafGpt.updateRateLimits) {
-                    window.cafGpt.updateRateLimits();
-                }
+                this.loadRateLimits(); // Fetch and update rate limits after successful generation
             } else {
                 this.showError(data.message || 'An error occurred while generating the pace note.');
+                // Still try to update rate limits even if generation failed (e.g., rate limit exceeded error)
+                this.loadRateLimits(); 
             }
         } catch (error) {
             console.error('Error:', error);
