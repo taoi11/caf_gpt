@@ -20,6 +20,11 @@ Foundation module providing shared functionality, services, and utilities across
   - Error handling with custom exceptions
   - Configurable endpoints and credentials
 
+- **RateLimitService**: IP-based rate limiting
+  - Request counting and threshold enforcement
+  - Configurable time windows and limits
+  - Redis-based implementation for distributed environments
+
 ### Middleware
 - **SecurityHeadersMiddleware**: Response security headers
   - Content Security Policy
@@ -28,7 +33,7 @@ Foundation module providing shared functionality, services, and utilities across
   - Referrer Policy
 
 ### Templates
-- **base.html**: Main template with Bootstrap
+- **base.html**: Main template with custom CSS
   - Responsive navbar
   - Common footer
   - Block structure for app extensions
@@ -40,7 +45,7 @@ Foundation module providing shared functionality, services, and utilities across
 
 ### Services Integration
 ```python
-from core.services import OpenRouterService, S3Service
+from core.services import OpenRouterService, S3Service, RateLimitService
 
 # LLM generation
 router_service = OpenRouterService()
@@ -49,6 +54,13 @@ completion = router_service.generate_completion(prompt)
 # S3 file access
 s3_service = S3Service(bucket_name="policies")
 content = s3_service.read_file("path/to/file.md")
+
+# Rate limiting
+rate_limiter = RateLimitService()
+if rate_limiter.check_rate_limit(request):
+    # Process request
+else:
+    # Return rate limit exceeded response
 ```
 
 ### Template Extension

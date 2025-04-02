@@ -13,9 +13,10 @@ Collection of AI tools for Canadian Armed Forces personnel, providing specialize
 - S3 storage (Storj)
 
 ### Frontend
-- Bootstrap 5
+- Custom CSS (Bootstrap-like implementation)
 - Vanilla JavaScript
 - Responsive design
+- Content Security Policy (CSP) reporting
 
 ### Infrastructure
 - NixOS development environment
@@ -29,7 +30,8 @@ Foundation module providing shared functionality across the platform:
 - Base templates and static assets
 - LLM integration services (OpenRouterService)
 - Storage access (S3Service)
-- Security middleware
+- Rate limiting (RateLimitService)
+- Security middleware and CSP implementation
 - Health check endpoints
 
 ### PaceNote App
@@ -39,11 +41,13 @@ Tool for generating professional feedback notes for CAF members:
 - System prompt templates with variable substitution
 - Copy functionality and session storage
 
-### Policy App (Planned)
+### Policy App (Planned + some placeholder code)
 Tool for policy document search and QA:
 - Document search interface
-- RAG implementation for context-aware answers
+- Policy document model architecture
 - Chat interface for policy questions
+- RAG implementation for context-aware answers
+- Citation support for answers
 
 ## Project Structure
 ```
@@ -51,11 +55,14 @@ caf_gpt/
 ├── caf_gpt/              # Django project settings
 │   ├── settings/         # Environment-specific configs
 │   ├── urls.py           # Main URL configuration
-│   └── wsgi.py           # WSGI configuration
+│   ├── wsgi.py           # WSGI configuration
+│   └── asgi.py           # ASGI configuration
 ├── core/                 # Core app (foundation)
 │   ├── services/         # Shared services
-│   ├── templates/        # Base templates
-│   └── static/           # Common static files
+│   ├── templates/        # Base templates  (base + landing page)
+│   ├── static/           # Common static files
+│   │   ├── css/          # Global CSS styles
+│   │   └── js/           # Global JavaScript files
 ├── pacenote_foo/         # PaceNote generator
 │   ├── services/         # Prompt handling
 │   ├── prompts/          # Template storage

@@ -8,16 +8,23 @@ Generate professional feedback notes for CAF members based on user observations 
 ### Views
 - **PaceNoteView**: Main interface for pace note generation
 - **PaceNoteGeneratorView**: API endpoint handling LLM requests
+  - Input validation and sanitization
+  - Rate limiting integration
+  - Error handling with appropriate status codes
 
 ### Services
 - **PromptService**: Template management and variable substitution
   - Loads base prompt template
-  - Inserts rank-specific competencies
+  - Inserts rank-specific competencies from S3
   - Formats messages for LLM API
+  - Handles error cases for missing resources
 
 ### Templates & Static Files
 - **pace_notes.html**: Interactive form interface
 - **paceNotes.js**: AJAX handling and UI interactions
+  - Form submission and response handling
+  - Error state management
+  - Copy to clipboard functionality
 - **paceNote.css**: Custom styling
 
 ### Models (Placeholder)
@@ -45,7 +52,8 @@ Generate professional feedback notes for CAF members based on user observations 
 ### UI Features
 - Session storage for input preservation
 - Copy to clipboard functionality
-- Simulated rate limiting
+- Visual feedback during generation
+- Error handling with user-friendly messages
 
 ## Usage Example
 
@@ -65,9 +73,7 @@ response = requests.post(
 if response.status_code == 200:
     data = response.json()
     print(data['pace_note'])
+else:
+    print(f"Error: {response.status_code}")
+    print(response.json().get('error', 'Unknown error'))
 ```
-
-## Implementation Notes
-- No database storage currently implemented
-- Uses S3 for competency lists and examples
-- Model included as placeholder for future enhancements
