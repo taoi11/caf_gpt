@@ -140,7 +140,7 @@ CSP_STYLE_SRC = ("'self'",)
 CSP_STYLE_SRC_ELEM = ("'self'",)
 
 # Since you said no images, let's restrict this
-CSP_IMG_SRC = ("'self'",)  # Remove 'data:' if you don't need it
+CSP_IMG_SRC = ("'self'",)
 
 # You probably don't need these if it's just text
 CSP_FONT_SRC = ("'none'",)  # Block external fonts

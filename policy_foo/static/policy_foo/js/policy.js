@@ -148,7 +148,7 @@ class PolicyChatUI {
             <div class="citation-content">
                 <h6>${citation.title}</h6>
                 <p class="small">${citation.excerpt}</p>
-                <div class="text-end">
+                <div style="text-align: right;">
                     <small class="text-muted">Document ID: ${citation.document_id}</small>
                 </div>
             </div>

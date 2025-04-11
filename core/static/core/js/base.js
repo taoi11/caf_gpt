@@ -6,9 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     initMobileMenu();
     
-    // Initialize Bootstrap components if available
-    initBootstrapComponents();
-    
     // Smooth scrolling for anchor links
     initSmoothScrolling();
     
@@ -32,25 +29,6 @@ function initMobileMenu() {
     }
 }
 
-/**
- * Initializes Bootstrap tooltips and popovers if Bootstrap is available
- */
-function initBootstrapComponents() {
-    // Check if Bootstrap is available
-    if (typeof bootstrap !== 'undefined') {
-        // Initialize tooltips
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-        
-        // Initialize popovers
-        const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-        popoverTriggerList.map(function (popoverTriggerEl) {
-            return new bootstrap.Popover(popoverTriggerEl);
-        });
-    }
-}
 
 /**
  * Sets up smooth scrolling for anchor links

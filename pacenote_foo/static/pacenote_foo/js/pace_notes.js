@@ -174,7 +174,7 @@ class PaceNotesGenerator {
             this.generateBtn.innerHTML = '<span class="loading-spinner"></span> Generating...'; // Show spinner and text
         } else {
             this.generateBtn.disabled = false;
-            this.generateBtn.innerHTML = '<i class="bi bi-lightning-charge-fill me-1"></i>Generate Pace Note';
+            this.generateBtn.textContent = 'Generate Pace Note';
         }
     }
 
@@ -185,29 +185,27 @@ class PaceNotesGenerator {
     displayOutput(content) {
         // Clear previous output/errors and set new content
         this.outputSection.innerHTML = `
-            <div class="card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Generated Pace Note</h5>
-                    <button class="btn btn-sm btn-outline-secondary copy-btn" data-bs-toggle="tooltip" title="Copy to clipboard">
-                        <i class="bi bi-clipboard"></i>
-                    </button>
+            <div class="output-card">
+                <div class="output-header">
+                    <h5>Generated Pace Note</h5>
+                    <button class="copy-button button" title="Copy to clipboard">Copy</button> 
                 </div>
-                <div class="card-body">
+                <div class="output-body">
                     <div class="output-content">${content}</div>
                 </div>
             </div>
         `;
         
         // Set up copy button functionality
-        const copyBtn = document.querySelector('.copy-btn');
+        const copyBtn = document.querySelector('.copy-button');
         if (copyBtn) {
             copyBtn.addEventListener('click', () => {
                 const outputContent = document.querySelector('.output-content');
                 navigator.clipboard.writeText(outputContent.textContent)
                     .then(() => {
-                        copyBtn.innerHTML = '<i class="bi bi-check2"></i>';
+                        copyBtn.textContent = 'Copied!';
                         setTimeout(() => {
-                            copyBtn.innerHTML = '<i class="bi bi-clipboard"></i>';
+                            copyBtn.textContent = 'Copy';
                         }, 2000);
                     })
                     .catch(error => {
@@ -216,11 +214,6 @@ class PaceNotesGenerator {
             });
         }
         
-        // Initialize tooltips if Bootstrap is available
-        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
-        }
     }
 
     /**
@@ -231,7 +224,7 @@ class PaceNotesGenerator {
     showError(message) {
         // Create a Bootstrap alert element
         const errorBox = document.createElement('div');
-        errorBox.className = 'alert alert-danger'; // Use Bootstrap's danger alert style
+        errorBox.className = 'error-message'; // Use custom error class
         errorBox.textContent = message;
         
         this.outputSection.insertBefore(errorBox, this.outputSection.firstChild);

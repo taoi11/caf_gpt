@@ -29,10 +29,10 @@
 <div class="row">
     <div class="col">
         {% if documents %}
-            <div class="list-group">
+            <div class="document-list">
                 {% for document in documents %}
-                    <div class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
+                    <div class="document-list-item">
+                        <div style="display: flex; justify-content: space-between; width: 100%;">
                             <h5 class="mb-1">{{ document.title }}</h5>
                             <small class="text-muted">ID: {{ document.document_id }}</small>
                         </div>
@@ -43,7 +43,7 @@
             </div>
         {% else %}
             {% if request.GET.q %}
-                <div class="alert alert-info">
+                <div class="info-message">
                     No policy documents found matching "{{ request.GET.q }}".
                 </div>
             {% else %}
@@ -111,7 +111,7 @@
 <div class="row mt-4">
     <div class="col">
         <a href="{% url 'policy_foo:chat_interface' %}" class="btn btn-outline-primary">
-            <i class="bi bi-chat"></i> Ask the Policy Assistant
+            Ask the Policy Assistant
         </a>
     </div>
 </div>

@@ -1,8 +1,16 @@
 /* PaceNote specific styles */
-/* Input Section */
+:root {
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --secondary-color: #6c757d;
+    --error-color: #721c24;
+    --error-bg: #f8d7da;
+    --error-border: #f5c6cb;
+}
+
 .input-box {
     width: 100%;
-    min-height: 150px; /* instead of this class */
+    min-height: 150px;
     padding: 1rem;
     border: 1px solid #ced4da;
     border-radius: 4px;
@@ -26,13 +34,13 @@
     font-size: 0.9rem;
 }
 
-/* Enhance the rank selector to look more like a dropdown */
+/* Rank selector dropdown */
 #rank-select {
-    appearance: menulist;
-    padding-right: 2rem;
-    background-repeat: no-repeat;
-    background-position: right 0.5rem center;
-    background-size: 16px 12px;
+    appearance: none;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
     cursor: pointer;
 }
 
@@ -41,8 +49,30 @@
     background-color: #f8f9fa;
 }
 
+.output-card {
+    border: 1px solid #ddd;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    background-color: #fff;
+    overflow: hidden;
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+.output-header h5 {
+    margin: 0;
+    font-size: 1rem;
+}
+
 .output-content {
-    padding: 1.5rem;
+    padding: 1rem;
     white-space: pre-wrap;
 }
 
@@ -69,7 +99,19 @@
     to { transform: rotate(360deg); }
 }
 
-.button-class {
+
+/* Error message styles */
+.error-message {
+    color: var(--error-color);
+    background-color: var(--error-bg);
+    border: 1px solid var(--error-border);
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+}
+
+/* Base button styles */
+.button {
     padding: 0.75rem 1.25rem;
     border-radius: 0.25rem;
     font-size: 1rem;
@@ -77,17 +119,17 @@
     text-align: center;
     text-decoration: none;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    background-color: #007bff;
+    transition: background-color 0.3s ease;
+    background-color: var(--primary-color);
     color: #fff;
+    border: none;
 }
 
-/* Alert styles specific to pace notes */
-.alert-danger {
-    color: #721c24;
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-    padding: 0.75rem 1.25rem;
-    margin-bottom: 1rem;
-    border-radius: 0.25rem;
+.button:hover {
+    background-color: var(--primary-hover);
+}
+
+.button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
 }

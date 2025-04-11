@@ -4,57 +4,6 @@
 {% block title %}Policy Assistant{% endblock %}
 
 {% block extra_css %}
-<style>
-    .chat-container {
-        height: 60vh;
-        overflow-y: auto;
-        padding: 1rem;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-    }
-    
-    .message {
-        margin-bottom: 1rem;
-        padding: 0.75rem;
-        border-radius: 8px;
-        max-width: 80%;
-    }
-    
-    .user-message {
-        background-color: #e9ecef;
-        margin-left: auto;
-    }
-    
-    .assistant-message {
-        background-color: #4a6bdf;
-        color: white;
-    }
-    
-    .error-message {
-        background-color: #f8d7da;
-        color: #721c24;
-        margin-left: 2rem;
-        margin-right: 2rem;
-    }
-    
-    .citation {
-        font-size: 0.8rem;
-        background-color: #f1f1f1;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        margin-right: 0.5rem;
-        cursor: pointer;
-    }
-    
-    .citation-content {
-        background-color: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-top: 0.5rem;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -80,7 +29,7 @@
                     <textarea class="form-control" id="userInput" rows="2" placeholder="Type your policy question here..."></textarea>
                     <button class="btn btn-primary" type="submit">Send</button>
                 </div>
-                <div class="form-text text-end mt-1">
+                <div class="form-text mt-1" style="text-align: right;">
                     Press Ctrl+Enter to send
                 </div>
             </form>
@@ -102,13 +51,13 @@
         <div class="card mt-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Policy Documents</h5>
-                <a href="{% url 'policy_foo:document_search' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                <a href="{% url 'policy_foo:document_search' %}" class="btn btn-outline-primary">View All</a>
             </div>
             <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><a href="#" class="policy-document">Employee Handbook</a></li>
-                    <li class="list-group-item"><a href="#" class="policy-document">Security Policy</a></li>
-                    <li class="list-group-item"><a href="#" class="policy-document">Code of Conduct</a></li>
+                <ul class="policy-quick-links">
+                    <li><a href="#" class="policy-document">Employee Handbook</a></li>
+                    <li><a href="#" class="policy-document">Security Policy</a></li>
+                    <li><a href="#" class="policy-document">Code of Conduct</a></li>
                 </ul>
             </div>
         </div>
@@ -117,5 +66,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/policy.js' %}"></script>
+<script src="{% static 'policy_foo/js/policy.js' %}"></script>
 {% endblock %}
