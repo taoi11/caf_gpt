@@ -2,13 +2,15 @@ import time
 from collections import deque
 from ipaddress import ip_network, ip_address
 
+
 class RateLimitService:
     """
     Implements IP-based rate limiting with rolling time windows.
-    
-    Manages hourly and daily request limits, supports IP whitelisting, 
+
+    Manages hourly and daily request limits, supports IP whitelisting,
     and efficiently tracks usage through timestamp deques.
     """
+
     def __init__(self):
         """
         Initializes the RateLimitService with default limits, windows, and whitelist.
@@ -21,7 +23,7 @@ class RateLimitService:
             ip_network('205.193.0.0/16'),
             # ip_network('127.0.0.1/32') # Whitelist localhost for development (Temporarily commented out for testing)
         ]
-        self.usage = {} # Dictionary to store usage data per IP: {'ip': {'hourly': deque(), 'daily': deque()}}
+        self.usage = {}  # Dictionary to store usage data per IP: {'ip': {'hourly': deque(), 'daily': deque()}}
 
     def is_whitelisted(self, ip):
         """
@@ -33,7 +35,7 @@ class RateLimitService:
     def increment(self, ip):
         """
         Registers an IP access attempt and evaluates limit compliance.
-        
+
         For whitelisted IPs, returns True without tracking.
         Otherwise, adds current timestamp to tracking queues,
         prunes expired entries, and verifies limit status.
@@ -77,9 +79,9 @@ class RateLimitService:
 
         # Check against defined limits
         if hourly_usage > self.hourly_limit or daily_usage > self.daily_limit:
-            return False # Limit exceeded
+            return False  # Limit exceeded
 
-        return True # Within limits
+        return True  # Within limits
 
     def get_usage(self, ip):
         """

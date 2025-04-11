@@ -8,8 +8,6 @@ read:
   - "core/README.md"
   - "pacenote_foo/README.md"
   - "policy_foo/README.md"
-  - "caf_gpt/settings/base.py"
-  - "manage.py"
 
 # file:
 

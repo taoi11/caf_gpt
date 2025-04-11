@@ -40,7 +40,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.middleware.SecurityHeadersMiddleware',
     'csp.middleware.CSPMiddleware',
 ]
 
@@ -126,35 +125,43 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Content Security Policy (CSP) settings
 # --------------------------------------------------------------------------
-CSP_REPORT_ONLY = True  # Still in report-only mode for testing
+CSP_REPORT_ONLY = False
 
+# Most restrictive baseline - only allow resources from same origin
 CSP_DEFAULT_SRC = ("'self'",)
 
+# JavaScript restrictions
 CSP_SCRIPT_SRC = ("'self'",)
-
 CSP_SCRIPT_SRC_ELEM = ("'self'",)
 
-CSP_STYLE_SRC = (
-    "'self'",
-    "'unsafe-inline'",  # Allow inline styles if needed
-)
+# If you're using Django's admin or forms, you might need this
+# If not, you can remove unsafe-inline completely
+CSP_STYLE_SRC = ("'self'",)
+CSP_STYLE_SRC_ELEM = ("'self'",)
 
-CSP_STYLE_SRC_ELEM = (
-    "'self'",
-    "'unsafe-inline'",  # Allow inline styles if needed
-)
+# Since you said no images, let's restrict this
+CSP_IMG_SRC = ("'self'",)  # Remove 'data:' if you don't need it
 
-CSP_IMG_SRC = ("'self'", 'data:')  # Allow self-hosted images and data URIs
-CSP_FONT_SRC = ("'self'", "data:")  # Allow local fonts and data URIs
-CSP_CONNECT_SRC = ("'self'",)  # Allow fetch/XHR/WebSockets to the same origin
-CSP_FRAME_ANCESTORS = ("'none'",)  # Disallow embedding in iframes
-CSP_FORM_ACTION = ("'self'",)  # Allow forms to submit to the same origin
+# You probably don't need these if it's just text
+CSP_FONT_SRC = ("'none'",)  # Block external fonts
+
+# These are good restrictions to keep
+CSP_CONNECT_SRC = ("'self'",)
+CSP_FRAME_ANCESTORS = ("'none'",)  # Prevent framing
+CSP_FORM_ACTION = ("'self'",)
 CSP_BASE_URI = ("'self'",)
-CSP_OBJECT_SRC = ("'none'",)  # Disallow <object>, <embed>, <applet>
+CSP_OBJECT_SRC = ("'none'",)
 
-# Send violation reports to this endpoint (requires URL configuration)
+# Keep your report endpoint
+# Note: The URL pattern 'csp-report/' is defined in the root urls.py (caf_gpt/urls.py)
+# and its name is 'csp_report_view'.
 CSP_REPORT_URI = reverse_lazy('csp_report_view')
 
-# Automatically add nonces to script and style tags for inline code safety
+# The nonces feature is good if you have any inline scripts or styles
 CSP_INCLUDE_NONCE_IN = ['script-src', 'style-src']
 # --------------------------------------------------------------------------
+
+# Security settings
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'

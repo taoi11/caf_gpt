@@ -25,13 +25,6 @@ Foundation module providing shared functionality, services, and utilities across
   - Configurable time windows and limits
   - Redis-based implementation for distributed environments
 
-### Middleware
-- **SecurityHeadersMiddleware**: Response security headers
-  - Content Security Policy
-  - X-Content-Type-Options
-  - X-Frame-Options
-  - Referrer Policy
-
 ### Templates
 - **base.html**: Main template with custom CSS
   - Responsive navbar

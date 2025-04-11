@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Instantiate the service once
 rate_limit_service = RateLimitService()
 
+
 class PaceNoteView(TemplateView):
     """
     Renders the main PaceNote generator interface (pace_notes.html).
@@ -37,8 +38,8 @@ class PaceNoteView(TemplateView):
         # (HTTP_CF_CONNECTING_IP, HTTP_CF_PSEUDO_IPV4) over the standard REMOTE_ADDR
         # as the app might be behind a proxy or load balancer like Cloudflare.
         ip = request.META.get('HTTP_CF_CONNECTING_IP') or \
-             request.META.get('HTTP_CF_PSEUDO_IPV4') or \
-             request.META.get('REMOTE_ADDR')
+            request.META.get('HTTP_CF_PSEUDO_IPV4') or \
+            request.META.get('REMOTE_ADDR')
 
         if ip:
             usage = rate_limit_service.get_usage(ip)
@@ -55,7 +56,7 @@ class PaceNoteView(TemplateView):
         return context
 
 
-@method_decorator(csrf_exempt, name='dispatch') # Disable CSRF for this API endpoint
+@method_decorator(csrf_exempt, name='dispatch')  # Disable CSRF for this API endpoint
 class PaceNoteGeneratorView(View):
     """
     Handles the AJAX POST request to generate a pace note.
@@ -101,8 +102,8 @@ class PaceNoteGeneratorView(View):
             # Determine the client's IP address, prioritizing Cloudflare headers.
             # This is crucial for accurate rate limiting.
             ip = request.META.get('HTTP_CF_CONNECTING_IP') or \
-                 request.META.get('HTTP_CF_PSEUDO_IPV4') or \
-                 request.META.get('REMOTE_ADDR')
+                request.META.get('HTTP_CF_PSEUDO_IPV4') or \
+                request.META.get('REMOTE_ADDR')
 
             # Handle cases where IP cannot be determined (should be rare)
             if not ip:
@@ -110,7 +111,7 @@ class PaceNoteGeneratorView(View):
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Could not determine your IP address.'
-                 }, status=400)
+                }, status=400)
 
             # --- Rate Limit Check ---
             # Check if the IP has exceeded hourly or daily limits BEFORE performing
@@ -119,10 +120,16 @@ class PaceNoteGeneratorView(View):
                 logger.warning(f"Rate limit exceeded for IP: {ip}")
                 # Fetch current usage to include in the error message
                 usage = rate_limit_service.get_usage(ip)
+                # Construct the message separately for clarity and line length
+                message = (
+                    f"Rate limit exceeded. "
+                    f"Hourly: {usage.get('hourly', 0)}/{rate_limit_service.hourly_limit}, "
+                    f"Daily: {usage.get('daily', 0)}/{rate_limit_service.daily_limit}. "
+                    f"Please try again later."
+                )
                 return JsonResponse({
                     'status': 'error',
-                    # Provide a detailed message about which limit was hit
-                    'message': f"Rate limit exceeded. Hourly: {usage.get('hourly', 0)}/{rate_limit_service.hourly_limit}, Daily: {usage.get('daily', 0)}/{rate_limit_service.daily_limit}. Please try again later."
+                    'message': message
                 }, status=429)
 
             # Initialize services
@@ -194,8 +201,8 @@ class RateLimitsView(View):
         """
         # Determine the client's IP address using the same logic as PaceNoteGeneratorView
         ip = request.META.get('HTTP_CF_CONNECTING_IP') or \
-             request.META.get('HTTP_CF_PSEUDO_IPV4') or \
-             request.META.get('REMOTE_ADDR')
+            request.META.get('HTTP_CF_PSEUDO_IPV4') or \
+            request.META.get('REMOTE_ADDR')
 
         # Get current usage counts for the IP from the service
         usage = rate_limit_service.get_usage(ip)

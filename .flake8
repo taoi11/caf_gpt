@@ -13,7 +13,8 @@ exclude =
     *.css,
     *.js,
     media,
-    logs
+    logs,
+    *.md
 
 
 # Focus on the most important issues first
