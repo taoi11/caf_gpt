@@ -5,6 +5,7 @@ import os
 import json
 import logging
 import requests
+from .cost_tracker_service import CostTrackerService
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class OpenRouterService:
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
         # Default model
         self.model = model or "anthropic/claude-3.5-haiku:beta"
+        self.cost_tracker = CostTrackerService()
 
     def generate_completion(self, prompt, temperature=0.3, max_tokens=500):
         """
@@ -42,7 +44,7 @@ class OpenRouterService:
             # Validate prompt input
             if not prompt or not isinstance(prompt, (str, list)) or (isinstance(prompt, str) and not prompt.strip()):
                 logger.error("Empty or invalid prompt provided to OpenRouter API")
-                return "Error: Input must have at least 1 token"
+                return "Input must have at least 1 token"
 
             headers = {
                 "Content-Type": "application/json",
@@ -77,20 +79,26 @@ class OpenRouterService:
                 result = response.json()
 
                 # Check if the response contains an error
+                gen_id = result.get('id')  # Extract the generation ID
                 if 'error' in result:
                     error_code = result['error'].get('code')
                     error_message = result['error'].get('message')
                     logger.error(f"OpenRouter API error {error_code}: {error_message}")
-                    return f"Error: {error_message}"
+                    return f"OpenRouter API error {error_code}: {error_message}"
 
                 # Only try to access 'choices' if there's no error
                 if 'choices' in result:
                     generated_text = result['choices'][0]['message']['content']
+                    if gen_id:
+                        self.cost_tracker.track_cost(gen_id)
+                        logger.info(f"Cost tracking initiated for gen_id: {gen_id}")
+                    else:
+                        logger.warning("No gen_id found in successful response, skipping cost tracking.")
                     logger.info("Successfully generated completion from Open Router API")
                     return generated_text
                 else:
                     logger.error(f"Unexpected response format: {result}")
-                    return "Error: Unexpected response format from API"
+                    return "Unexpected response format from API"
             else:
                 logger.error(f"Error from Open Router API: {response.status_code} - {response.text}")
                 return f"Error generating completion. Status code: {response.status_code}"

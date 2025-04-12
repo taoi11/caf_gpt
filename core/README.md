@@ -2,12 +2,9 @@
 
 ## Purpose
 Foundation module providing shared functionality, services, and utilities across the CAF GPT platform.
+Holds common components used by other applications to ensure consistency and reusability.
 
 ## Key Components
-
-### Views
-- **LandingPageView**: Bootstrap landing with tool navigation
-- **HealthCheckView**: JSON endpoint for monitoring/load balancers
 
 ### Services
 - **OpenRouterService**: LLM integration via OpenRouter API
@@ -23,54 +20,19 @@ Foundation module providing shared functionality, services, and utilities across
 - **RateLimitService**: IP-based rate limiting
   - Request counting and threshold enforcement
   - Configurable time windows and limits
-  - Redis-based implementation for distributed environments
+  - Memory based implementation
+
+- **CostTrackerService**: Cost tracking for LLM usage
+  - Integration with `OpenRouterService` for real-time tracking
+  - Calls https://openrouter.ai/api/v1/generation?id=gen-######
+  - Gets `gen_id` from `OpenRouterService` API return
+  - Half second delay after return of `gen_id` from `OpenRouterService`
 
 ### Templates
 - **base.html**: Main template with custom CSS
-  - Responsive navbar
+  - navbar
   - Common footer
-  - Block structure for app extensions
+  - cost usage display
+- **landing_page.html**: Landing page template
+  - Block structure for `*_foo` apps
 
-### Models
-- **TimeStampedModel**: Abstract base with created/updated fields
-
-## Usage Examples
-
-### Services Integration
-```python
-from core.services import OpenRouterService, S3Service, RateLimitService
-
-# LLM generation
-router_service = OpenRouterService()
-completion = router_service.generate_completion(prompt)
-
-# S3 file access
-s3_service = S3Service(bucket_name="policies")
-content = s3_service.read_file("path/to/file.md")
-
-# Rate limiting
-rate_limiter = RateLimitService()
-if rate_limiter.check_rate_limit(request):
-    # Process request
-else:
-    # Return rate limit exceeded response
-```
-
-### Template Extension
-```html
-{% extends "core/base.html" %}
-{% load static %}
-
-{% block content %}
-  <!-- App content -->
-{% endblock %}
-
-{% block extra_js %}
-  <script src="{% static 'myapp/js/script.js' %}"></script>
-{% endblock %}
-```
-
-## Error Handling
-- Custom exceptions for S3 operations
-- Logging for API interactions
-- Graceful fallbacks for service failures

@@ -15,7 +15,7 @@ from core.services.rate_limit_service import RateLimitService
 
 logger = logging.getLogger(__name__)
 
-# Instantiate the service once
+# Instantiate the services once
 rate_limit_service = RateLimitService()
 
 
@@ -163,21 +163,24 @@ class PaceNoteGeneratorView(View):
             # Construct prompt
             prompt = prompt_service.construct_prompt(user_input, competency_list, examples)
 
-            # Generate pace note using the AI service
-            pace_note = open_router_service.generate_completion(prompt)
+            # Generate pace note using the AI service - expecting a string now
+            pace_note_content = open_router_service.generate_completion(prompt)
 
-            # --- Rate Limit Increment ---
-            # Only increment the usage counter AFTER the request has been
-            # successfully processed and the pace note generated.
-            # This prevents penalizing users for failed requests (e.g., server errors).
-            rate_limit_service.increment(ip)
-            logger.info(f"Successfully generated pace note and incremented rate limit for IP: {ip}")
+            # Check if the response indicates an error (simple string check)
+            if pace_note_content.startswith("OpenRouter API error") or pace_note_content.startswith("Error"):
+                logger.error(f"PaceNote generation failed for IP {ip}: {pace_note_content}")
+                return JsonResponse({'status': 'error', 'message': pace_note_content}, status=500)
 
-            # Return the successful result
-            return JsonResponse({
-                'status': 'success',
-                'pace_note': pace_note
-            })
+            # --- Rate Limit Increment (Success Case) ---
+            # Increment rate limit only on successful generation BEFORE returning response
+            if not rate_limit_service.increment(ip):
+                logger.warning(f"Rate limit increment failed post-generation for IP: {ip}, but proceeding.")
+                pass
+
+            logger.info(f"Successfully generated pace note for IP: {ip}")
+
+            # Return the successful content
+            return JsonResponse({'status': 'success', 'pace_note': pace_note_content})
         except Exception as e:
             logger.error(f"Error generating pace note: {e}")
             return JsonResponse({

@@ -2,8 +2,8 @@
 .git
 .gitignore
 
-# Fly
-fly.toml
+# Development
+data/
 
 # Python
 __pycache__/

@@ -13,3 +13,6 @@ __pycache__
 # Django
 logs/
 *.log
+
+# Deployment
+data/

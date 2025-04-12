@@ -410,6 +410,20 @@ footer {
   }
 }
 
+/* Cost Display in Navbar */
+.nav-cost-display .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  cursor: default;
+}
+.nav-cost-display .nav-link:hover {
+   color: rgba(255, 255, 255, 0.85);
+}
+@media (max-width: 767.98px) {
+  .nav-cost-display {
+    margin-left: 0;
+  }
+}
+
 /* Menu toggle for mobile */
 .menu-toggle {
   display: none;
