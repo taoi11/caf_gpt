@@ -1,0 +1,1 @@
+"""Implements the main handler logic for the DOAD policy set, coordinating the finder and reader components, interacting with the LLM service, and formulating the final assistant response with citations for the router."""

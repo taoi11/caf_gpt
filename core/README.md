@@ -27,6 +27,7 @@ Holds common components used by other applications to ensure consistency and reu
   - Calls https://openrouter.ai/api/v1/generation?id=gen-######
   - Gets `gen_id` from `OpenRouterService` API return
   - Half second delay after return of `gen_id` from `OpenRouterService`
+  - Stores the total accumulated cost in a single JSON file (`./data/cost.json`).
 
 ### Templates
 - **base.html**: Main template with custom CSS

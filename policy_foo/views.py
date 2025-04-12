@@ -1,14 +1,12 @@
 """
 PolicyFoo app views.
 """
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.views import View
-import json
+from django.conf import settings
 
-from .models import PolicyDocument
+from core.services import RateLimitService
 
 
 class ChatInterfaceView(TemplateView):
@@ -18,82 +16,52 @@ class ChatInterfaceView(TemplateView):
     template_name = 'policy_foo/chat_interface.html'
 
 
-class DocumentSearchView(ListView):
-    """
-    View for searching policy documents.
-    """
-    model = PolicyDocument
-    template_name = 'policy_foo/document_search.html'
-    context_object_name = 'documents'
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query = self.request.GET.get('q', '')
-        if query:
-            queryset = queryset.filter(title__icontains=query) | queryset.filter(content__icontains=query)
-        return queryset
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class PolicyRetrieverView(View):
-    """
-    API view for policy retrieval.
-    """
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handle POST requests for policy retrieval.
-        """
-        try:
-            data = json.loads(request.body)
-            query = data.get('query', '')
-
-            # Placeholder for policy retrieval implementation
-            # In a real implementation, this would call a service to perform the search
-            results = {
-                'query': query,
-                'response': 'This is a sample policy response.',
-                'citations': [
-                    {'document_id': 'policy-001', 'title': 'Sample Policy 1', 'excerpt': 'Relevant excerpt from policy.'},
-                    {'document_id': 'policy-002', 'title': 'Sample Policy 2', 'excerpt': 'Another relevant excerpt.'},
-                ],
-                'status': 'success'
-            }
-
-            return JsonResponse(results)
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
-
 class RateLimitsView(View):
     """
     View for checking API rate limits.
     """
+    rate_limit_service = RateLimitService()
 
     def get(self, request, *args, **kwargs):
         """
-        Return the current rate limits for the user.
-
-        This is currently a placeholder implementation that returns
-        static values. In a production implementation, this would
-        check a rate limiting system (e.g., Redis) and return
-        actual values.
+        Return the current rate limits for the user's IP address.
         """
-        # Placeholder implementation - would be replaced with actual rate limiting
-        hourly_limit = 10
-        hourly_remaining = 7
-        daily_limit = 50
-        daily_remaining = 42
+        # Get client IP address
+        ip_address = request.META.get('REMOTE_ADDR')
+        if not ip_address:
+            return JsonResponse({'error': 'Could not determine client IP address.'}, status=400)
+
+        # Check if IP is whitelisted
+        if self.rate_limit_service.is_whitelisted(ip_address):
+            return JsonResponse({
+                'hourly': {'limit': 'Unlimited', 'remaining': 'Unlimited', 'reset': 0},
+                'daily': {'limit': 'Unlimited', 'remaining': 'Unlimited', 'reset': 0}
+            })
+
+        # Get usage and limits from the service
+        usage = self.rate_limit_service.get_usage(ip_address)
+
+        # Get limits from settings (or RateLimitService defaults if not set)
+        hourly_limit = settings.RATE_LIMIT_HOURLY
+        daily_limit = settings.RATE_LIMIT_DAILY
+
+        # Calculate remaining requests
+        hourly_remaining = max(0, hourly_limit - usage['hourly']['count'])
+        daily_remaining = max(0, daily_limit - usage['daily']['count'])
+
+        # Calculate time until reset (approximate)
+        hourly_reset = usage['hourly']['reset']
+        daily_reset = usage['daily']['reset']
 
         return JsonResponse({
             'hourly': {
                 'limit': hourly_limit,
                 'remaining': hourly_remaining,
-                'reset': 3600,  # seconds until reset
+                'reset': hourly_reset,
             },
             'daily': {
                 'limit': daily_limit,
                 'remaining': daily_remaining,
-                'reset': 86400,  # seconds until reset
+                'reset': daily_reset,
             }
         })
