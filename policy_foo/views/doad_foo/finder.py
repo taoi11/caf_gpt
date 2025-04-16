@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 # Define the specific model for the Finder agent
 FINDER_MODEL_NAME = "google/gemini-2.0-flash-001"
 
-# Define base path for prompts relative to this file's directory
-PROMPT_DIR = Path(__file__).parent.parent / 'prompts' / 'doad_foo'
+# Define base path for prompts relative to the policy_foo app directory
+PROMPT_DIR = Path(__file__).parent.parent.parent / 'prompts' / 'doad_foo'
 FINDER_PROMPT_TEMPLATE_PATH = PROMPT_DIR / 'finder.md'
 DOAD_LIST_TABLE_PATH = PROMPT_DIR / 'DOAD-list-table.md'
 
@@ -52,7 +52,7 @@ def find_doad_numbers(messages: list) -> str:
 
         # Call LLM Service
         llm_response_text = open_router_service.generate_completion(
-            messages=llm_messages,
+            llm_messages,
             temperature=0.1,
             max_tokens=50
         )

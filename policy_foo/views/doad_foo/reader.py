@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 # Define the specific model for the Reader agent
 READER_MODEL_NAME = "google/gemini-2.0-flash-001"
 
-# Define base path for prompts relative to this file's directory
-PROMPT_DIR = Path(__file__).parent.parent / 'prompts' / 'doad_foo'
+# Define base path for prompts relative to the policy_foo app directory
+PROMPT_DIR = Path(__file__).parent.parent.parent / 'prompts' / 'doad_foo'
 READER_PROMPT_TEMPLATE_PATH = PROMPT_DIR / 'reader.md'
 
 # Define S3 configuration (could be moved to settings if needed)
@@ -67,9 +67,8 @@ def read_doad_content(doad_number: str, messages: list) -> str:
 
         # Call LLM Service
         llm_response_text = open_router_service.generate_completion(
-            messages=llm_messages,
-            temperature=0.2,
-            max_tokens=1500
+            llm_messages,
+            temperature=0.2
         )
 
         # Process and return response
