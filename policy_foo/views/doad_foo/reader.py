@@ -1,20 +1,119 @@
 """
-Agent responsible for retrieving the content of a specific DOAD document and extracting relevant information using an LLM.
+Agent responsible for retrieving the content of a specific DOAD document
+and extracting relevant information using an LLM.
 """
+import logging
+from pathlib import Path
+from core.services import OpenRouterService, S3Service, S3FileNotFoundError
 
-"""
-Workflow:
-1. Receives a specific DOAD number (e.g., "1000-1") and the user query/conversation history from the orchestrator (`doad_foo/__init__.py`).
-2. Calls the S3Service (`core/services/s3_service.py`) to retrieve the full text content of the specified DOAD.
-  - Bucket: `policies` (or configured bucket)
-  - Key: `doad/<DOAD_NUMBER>.md` (e.g., `doad/1001-1.md`)
-3. Loads the system prompt template from `policy_foo/prompts/doad_foo/reader.md`.
-4. Replaces the `{POLICY_CONTENT}` placeholder in the system prompt with the retrieved DOAD document content.
-  - Note: Assumes the LLM can handle potentially long context from full documents.
-5. Constructs the messages payload for the LLM service (`core/services/open_router_service.py`), including:
-  - The formatted system prompt.
-  - The user and assistant message pairs (conversation history).
-6. Sends the request to the LLM service.
-7. Receives a response string (expected to be loosely formatted XML containing relevant excerpts/info) from the LLM.
-8. Returns the resulting XML string back to the orchestrator (`doad_foo/__init__.py`).
-"""
+logger = logging.getLogger(__name__)
+
+# Define the specific model for the Reader agent
+READER_MODEL_NAME = "google/gemini-2.0-flash-001"
+
+# Define base path for prompts relative to this file's directory
+PROMPT_DIR = Path(__file__).parent.parent / 'prompts' / 'doad_foo'
+READER_PROMPT_TEMPLATE_PATH = PROMPT_DIR / 'reader.md'
+
+# Define S3 configuration (could be moved to settings if needed)
+S3_BUCKET_NAME = 'policies'
+S3_DOAD_PREFIX = 'doad/'
+
+
+def read_doad_content(doad_number: str, messages: list) -> str:
+    """
+    Retrieves a DOAD document from S3, uses an LLM to extract relevant sections
+    based on the conversation history, and returns the result as an XML string.
+
+    Args:
+        doad_number: The specific DOAD number (e.g., "1000-1").
+        messages: A list of message dictionaries representing the conversation history.
+
+    Returns:
+        An XML string containing the extracted relevant content or a
+        "Not relevant" indicator within the XML structure. Returns an empty
+        string if the DOAD file cannot be found or a critical error occurs.
+    """
+    logger.info(f"DOAD Reader: Starting content retrieval for DOAD {doad_number} using model {READER_MODEL_NAME}.")
+    s3_service = S3Service(bucket_name=S3_BUCKET_NAME)
+    open_router_service = OpenRouterService(model=READER_MODEL_NAME)
+
+    # Retrieve DOAD content from S3
+    s3_key = f"{S3_DOAD_PREFIX}{doad_number}.md"
+    try:
+        logger.debug(f"DOAD Reader: Attempting to read S3 object: {S3_BUCKET_NAME}/{s3_key}")
+        policy_content = s3_service.read_file(key=s3_key)
+        logger.info(f"DOAD Reader: Successfully read {len(policy_content)} bytes from {s3_key}")
+    except S3FileNotFoundError:
+        logger.error(f"DOAD Reader: DOAD file not found in S3: {s3_key}")
+        return ""
+    except Exception as s3_ex:
+        logger.exception(f"DOAD Reader: Error reading from S3 ({s3_key}): {s3_ex}")
+        return ""
+
+    try:
+        # Load and format prompt
+        logger.debug(f"DOAD Reader: Loading reader prompt template from: {READER_PROMPT_TEMPLATE_PATH}")
+        with open(READER_PROMPT_TEMPLATE_PATH, 'r', encoding='utf-8') as f:
+            system_prompt_template = f.read()
+
+        system_prompt = system_prompt_template.format(POLICY_CONTENT=policy_content)
+        logger.debug("DOAD Reader: System prompt formatted successfully.")
+
+        # Prepare messages for LLM
+        llm_messages = [{"role": "system", "content": system_prompt}]
+        llm_messages.extend(messages)
+        logger.debug(f"DOAD Reader: Prepared {len(llm_messages)} messages for LLM.")
+
+        # Call LLM Service
+        llm_response_text = open_router_service.generate_completion(
+            messages=llm_messages,
+            temperature=0.2,
+            max_tokens=1500
+        )
+
+        # Process and return response
+        if isinstance(llm_response_text, str) and llm_response_text.strip():
+            if llm_response_text.startswith("Error") or llm_response_text.startswith("OpenRouter API error"):
+                logger.error(f"DOAD Reader: Received error from OpenRouterService for DOAD {doad_number}: {llm_response_text}")
+                return (
+                    f"<policy_extract>"
+                    f"<policy_number>{doad_number}</policy_number>"
+                    f"<section></section>"
+                    f"<content>Error processing document.</content>"
+                    f"</policy_extract>"
+                )
+
+            result = llm_response_text.strip()
+            logger.info(f"DOAD Reader: LLM returned content for DOAD {doad_number}.")
+            if not result.startswith("<policy_extract>"):
+                logger.warning(f"DOAD Reader: LLM response for {doad_number} might not be in expected XML format. Returning as is.")
+            return result
+        else:
+            logger.error(f"DOAD Reader: Failed to get valid content from LLM response for DOAD {doad_number}. Received: {llm_response_text}")
+            return (
+                f"<policy_extract>"
+                f"<policy_number>{doad_number}</policy_number>"
+                f"<section></section>"
+                f"<content>No relevant content identified or error processing.</content>"
+                f"</policy_extract>"
+            )
+
+    except FileNotFoundError as e:
+        logger.exception(f"DOAD Reader: Prompt file not found: {e}. Cannot proceed for DOAD {doad_number}.")
+        return (
+            f"<policy_extract>"
+            f"<policy_number>{doad_number}</policy_number>"
+            f"<section></section>"
+            f"<content>Internal error: Reader prompt missing.</content>"
+            f"</policy_extract>"
+        )
+    except Exception as e:
+        logger.exception(f"DOAD Reader: An unexpected error occurred while processing DOAD {doad_number}: {e}")
+        return (
+            f"<policy_extract>"
+            f"<policy_number>{doad_number}</policy_number>"
+            f"<section></section>"
+            f"<content>Internal error processing document.</content>"
+            f"</policy_extract>"
+        )
