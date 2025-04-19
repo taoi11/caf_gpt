@@ -34,8 +34,8 @@ if os.getenv('DJANGO_ENV') == 'production':
 else:
     # Development settings
     DEBUG = True
-    SECRET_KEY = 'django-insecure-+dvyb7^bme)edn!i%4-zyq&ov2+s6vrf()s6-ar9^ab6)&m@&6'
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+    ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
     # Debug toolbar
     INSTALLED_APPS += ['debug_toolbar']
