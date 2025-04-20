@@ -21,12 +21,15 @@ from django.conf.urls.static import static
 from core.views import csp_report_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', include('core.urls')),
     path('pacenote/', include('pacenote_foo.urls')),
     path('policy/', include('policy_foo.urls')),
     path('csp-report/', csp_report_view, name='csp_report_view'),
 ]
+
+# Add admin URLs only in development
+if settings.DEBUG:
+    urlpatterns.insert(0, path('admin/', admin.site.urls)) # Insert admin path at the beginning if in DEBUG
 
 # Add debug toolbar URLs in development
 if settings.DEBUG:

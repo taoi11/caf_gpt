@@ -7,6 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 from django.urls import reverse_lazy
+from django.conf import settings # Import settings
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,7 +17,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Application definition
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -31,6 +31,10 @@ INSTALLED_APPS = [
     # Third-party apps
     'csp',
 ]
+
+# Add admin app only if in development
+if settings.DEBUG:
+    INSTALLED_APPS.insert(0, 'django.contrib.admin') # Insert admin app at the beginning if in DEBUG
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -123,6 +127,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = []  # Static files are in app sub directories
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Content Security Policy (CSP) settings
 # --------------------------------------------------------------------------
