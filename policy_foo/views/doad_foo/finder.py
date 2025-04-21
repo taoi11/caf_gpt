@@ -49,6 +49,7 @@ def find_doad_numbers(messages: list) -> str:
         llm_messages = [{"role": "system", "content": system_prompt}]
         llm_messages.extend(messages)
         logger.debug(f"DOAD Finder: Prepared {len(llm_messages)} messages for LLM.")
+        logger.debug(f"DOAD Finder: Sending messages to LLM: {llm_messages}") # Log messages being sent
 
         # Call LLM Service
         llm_response_text = open_router_service.generate_completion(
@@ -56,6 +57,7 @@ def find_doad_numbers(messages: list) -> str:
             temperature=0.1,
             max_tokens=50
         )
+        logger.debug(f"DOAD Finder: Raw response from LLM: '{llm_response_text}'") # Log raw response
 
         # Process and return response
         # Check if the response is a non-empty string and doesn't indicate an error from the service

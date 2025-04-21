@@ -32,10 +32,6 @@ INSTALLED_APPS = [
     'csp',
 ]
 
-# Add admin app only if in development
-if settings.DEBUG:
-    INSTALLED_APPS.insert(0, 'django.contrib.admin') # Insert admin app at the beginning if in DEBUG
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -124,10 +120,15 @@ LOGGING = {
 
 # Static files settings
 STATIC_URL = '/static/'
-STATICFILES_DIRS = []  # Static files are in app sub directories
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Define STATIC_ROOT for collectstatic
+# This is where static files will be collected by collectstatic
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Content Security Policy (CSP) settings
 # --------------------------------------------------------------------------

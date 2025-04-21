@@ -44,12 +44,14 @@ def synthesize_answer(context: str, messages: list) -> str:
         llm_messages = [{"role": "system", "content": system_prompt}]
         llm_messages.extend(messages)
         logger.debug(f"DOAD Synthesizer: Prepared {len(llm_messages)} messages for LLM.")
+        logger.debug(f"DOAD Synthesizer: Sending messages to LLM: {llm_messages}") # Log messages being sent
 
         llm_response_text = open_router_service.generate_completion(
             llm_messages,
             temperature=0.4,
             max_tokens=1000
         )
+        logger.debug(f"DOAD Synthesizer: Raw response from LLM: '{llm_response_text}'") # Log raw response
 
         if isinstance(llm_response_text, str) and llm_response_text.strip():
             if llm_response_text.startswith("Error") or llm_response_text.startswith("OpenRouter API error"):

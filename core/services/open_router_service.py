@@ -65,6 +65,7 @@ class OpenRouterService:
             }
 
             logger.info(f"Sending request to Open Router API with model: {self.model}")
+            logger.debug(f"OpenRouter Request Data: {json.dumps(data)}") # Log request data
 
             response = requests.post(
                 self.api_url,
@@ -101,6 +102,9 @@ class OpenRouterService:
                 logger.error(f"Error from Open Router API: {response.status_code} - {response.text}")
                 return f"Error generating completion. Status code: {response.status_code}"
 
+        except requests.exceptions.Timeout:
+            logger.error(f"OpenRouter API request timed out after 60 seconds for model {self.model}.")
+            return "Error generating completion: Request timed out"
         except Exception as e:
             logger.error(f"Error generating completion: {e}")
             return f"Error generating completion: {str(e)}"

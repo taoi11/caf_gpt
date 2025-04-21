@@ -44,6 +44,7 @@ def read_doad_content(doad_number: str, messages: list) -> str:
         logger.debug(f"DOAD Reader: Attempting to read S3 object: {S3_BUCKET_NAME}/{s3_key}")
         policy_content = s3_service.read_file(key=s3_key)
         logger.info(f"DOAD Reader: Successfully read {len(policy_content)} bytes from {s3_key}")
+        logger.debug(f"DOAD Reader: First 100 chars of S3 content: {policy_content[:100]}") # Log snippet of content
     except S3FileNotFoundError:
         logger.error(f"DOAD Reader: DOAD file not found in S3: {s3_key}")
         return ""
@@ -64,12 +65,14 @@ def read_doad_content(doad_number: str, messages: list) -> str:
         llm_messages = [{"role": "system", "content": system_prompt}]
         llm_messages.extend(messages)
         logger.debug(f"DOAD Reader: Prepared {len(llm_messages)} messages for LLM.")
+        logger.debug(f"DOAD Reader [{doad_number}]: Sending messages to LLM: {llm_messages}") # Log messages being sent
 
         # Call LLM Service
         llm_response_text = open_router_service.generate_completion(
             llm_messages,
             temperature=0.2
         )
+        logger.debug(f"DOAD Reader [{doad_number}]: Raw response from LLM: '{llm_response_text}'") # Log raw response
 
         # Process and return response
         if isinstance(llm_response_text, str) and llm_response_text.strip():
