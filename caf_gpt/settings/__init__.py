@@ -32,8 +32,7 @@ if DJANGO_ENV == 'production':
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
-    # Add other production-specific settings like logging, caching etc.
-
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 else:
     # Development settings (or any environment other than 'production')
     DEBUG = True
