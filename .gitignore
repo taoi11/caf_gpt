@@ -3,6 +3,9 @@
 !.aider.conf.yml
 prompt.md
 
+# Editor directories and files
+.idea/
+
 # Environment
 .env
 .direnv
@@ -14,6 +17,11 @@ __pycache__
 logs/
 *.log
 staticfiles/
+media/
+
+# Databases
+*.sqlite3
+*.sqlite3-journal
 
 # Deployment
 data/
