@@ -1,1 +1,9 @@
-"""Initializes the views module, exporting key view classes for easier access throughout the application and defining the public API of the views package."""
+"""Initialize views module and define public API."""
+from django.views.generic import TemplateView
+
+
+class ChatInterfaceView(TemplateView):
+    """
+    View for the policy chat interface.
+    """
+    template_name = 'policy_foo/chat_interface.html'

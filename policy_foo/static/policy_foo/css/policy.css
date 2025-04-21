@@ -146,3 +146,25 @@
 .policy-quick-links li:last-child {
     border-bottom: none;
 }
+
+/* Styles for citations embedded within assistant messages */
+.assistant-message .citations-block {
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.3); /* Light border for separation */
+    font-size: 0.85em; /* Slightly smaller font */
+    opacity: 0.9; /* Slightly faded */
+}
+
+.assistant-message .citations-block h6 {
+    font-size: 0.9em; /* Relative to parent */
+    margin-bottom: 0.25rem;
+    font-weight: bold;
+    color: inherit; /* Inherit color from assistant message */
+}
+
+.assistant-message .citations-block ul {
+    list-style: none; /* Remove default bullets */
+    padding-left: 0;
+    margin-bottom: 0; /* Remove default bottom margin */
+}

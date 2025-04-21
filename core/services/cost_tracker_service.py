@@ -30,6 +30,7 @@ class CostTrackerService:
         self.data_dir = Path("./data")
         self.cost_file_path = self.data_dir / "cost.json"  # Use .json for single total
         self._ensure_data_dir_exists()
+        self._file_lock = threading.Lock()
         self._initialize_cost_file()  # Initialize the cost file with proper structure
         self.api_url_base = "https://openrouter.ai/api/v1/generation"
         self.headers = {
@@ -37,8 +38,6 @@ class CostTrackerService:
             "HTTP-Referer": "https://caf-gpt.com",  # Optional but recommended
             "X-Title": "CAF-GPT"  # Optional but recommended
         }
-        # Lock for thread-safe file writing
-        self._file_lock = threading.Lock()
 
     def _ensure_data_dir_exists(self):
         """Creates the data directory if it doesn't exist."""

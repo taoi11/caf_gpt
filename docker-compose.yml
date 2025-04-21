@@ -1,8 +1,9 @@
-version: '3.8'
-
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile # Explicitly state the Dockerfile name
+    # image: your-image:latest # Remove or comment out the image line
     restart: always
     ports:
       - "8000:8000"

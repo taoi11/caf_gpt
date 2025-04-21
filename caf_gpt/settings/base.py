@@ -7,6 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 from django.urls import reverse_lazy
+from django.conf import settings # Import settings
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,7 +17,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Application definition
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -120,7 +120,14 @@ LOGGING = {
 
 # Static files settings
 STATIC_URL = '/static/'
-STATICFILES_DIRS = []  # Static files are in app sub directories
+
+# Define STATIC_ROOT for collectstatic
+# This is where static files will be collected by collectstatic
+# Django automatically finds static files within each app's 'static/' directory
+# when APP_DIRS is True in TEMPLATES. STATICFILES_DIRS is not needed here.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 

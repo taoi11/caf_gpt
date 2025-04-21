@@ -28,14 +28,13 @@ class OpenRouterService:
         self.model = model or "anthropic/claude-3.5-haiku:beta"
         self.cost_tracker = CostTrackerService()
 
-    def generate_completion(self, prompt, temperature=0.3, max_tokens=500):
+    def generate_completion(self, prompt, temperature=0.3):
         """
         Generate a completion using the Open Router API.
 
         Args:
             prompt: The prompt to send to the model.
             temperature: Controls randomness. Lower values are more deterministic.
-            max_tokens: Maximum number of tokens to generate.
 
         Returns:
             The generated text.
@@ -62,11 +61,11 @@ class OpenRouterService:
             data = {
                 "model": self.model,
                 "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens
+                "temperature": temperature
             }
 
             logger.info(f"Sending request to Open Router API with model: {self.model}")
+            logger.debug(f"OpenRouter Request Data: {json.dumps(data)}") # Log request data
 
             response = requests.post(
                 self.api_url,
@@ -103,6 +102,9 @@ class OpenRouterService:
                 logger.error(f"Error from Open Router API: {response.status_code} - {response.text}")
                 return f"Error generating completion. Status code: {response.status_code}"
 
+        except requests.exceptions.Timeout:
+            logger.error(f"OpenRouter API request timed out after 60 seconds for model {self.model}.")
+            return "Error generating completion: Request timed out"
         except Exception as e:
             logger.error(f"Error generating completion: {e}")
             return f"Error generating completion: {str(e)}"

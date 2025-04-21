@@ -16,5 +16,8 @@
     {
       "text": "Always start the commit message with `Copilot:`"
     }
-  ]
+  ],
+  "chat.promptFilesLocations": {
+    ".ai/rules": true
+  }
 }
