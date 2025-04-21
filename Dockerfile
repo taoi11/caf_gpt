@@ -27,6 +27,7 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update && apt-get install -y \
     libpq-dev \
+    && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /code

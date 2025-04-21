@@ -120,10 +120,11 @@ LOGGING = {
 
 # Static files settings
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Define STATIC_ROOT for collectstatic
 # This is where static files will be collected by collectstatic
+# Django automatically finds static files within each app's 'static/' directory
+# when APP_DIRS is True in TEMPLATES. STATICFILES_DIRS is not needed here.
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
