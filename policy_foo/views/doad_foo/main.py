@@ -47,9 +47,8 @@ def synthesize_answer(context: str, messages: list) -> str:
         logger.debug(f"DOAD Synthesizer: Sending messages to LLM: {llm_messages}") # Log messages being sent
 
         llm_response_text = open_router_service.generate_completion(
-            llm_messages,
-            temperature=0.4,
-            max_tokens=1000
+            prompt=llm_messages,
+            temperature=0.4
         )
         logger.debug(f"DOAD Synthesizer: Raw response from LLM: '{llm_response_text}'") # Log raw response
 

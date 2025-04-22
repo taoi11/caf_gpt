@@ -53,9 +53,8 @@ def find_doad_numbers(messages: list) -> str:
 
         # Call LLM Service
         llm_response_text = open_router_service.generate_completion(
-            llm_messages,
-            temperature=0.1,
-            max_tokens=50
+            prompt=llm_messages,
+            temperature=0.1 # Low temp for deterministic output
         )
         logger.debug(f"DOAD Finder: Raw response from LLM: '{llm_response_text}'") # Log raw response
 

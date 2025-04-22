@@ -164,7 +164,7 @@ class PaceNoteGeneratorView(View):
             prompt = prompt_service.construct_prompt(user_input, competency_list, examples)
 
             # Generate pace note using the AI service - expecting a string now
-            pace_note_content = open_router_service.generate_completion(prompt)
+            pace_note_content = open_router_service.generate_completion(prompt=prompt)
 
             # Check if the response indicates an error (simple string check)
             if pace_note_content.startswith("OpenRouter API error") or pace_note_content.startswith("Error"):

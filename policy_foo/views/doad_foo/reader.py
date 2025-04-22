@@ -69,7 +69,7 @@ def read_doad_content(doad_number: str, messages: list) -> str:
 
         # Call LLM Service
         llm_response_text = open_router_service.generate_completion(
-            llm_messages,
+            prompt=llm_messages,
             temperature=0.2
         )
         logger.debug(f"DOAD Reader [{doad_number}]: Raw response from LLM: '{llm_response_text}'") # Log raw response
