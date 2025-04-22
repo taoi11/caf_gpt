@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limit Status</title>
+    <link rel="stylesheet" href="{% static 'core/css/rate_limit.css' %}">
+</head>
+<body>
+    <div class="rate-limit-container">
+        <h1>Rate Limit Status</h1>
+        <div class="rate-limit-status">
+            <p>Hourly Limit: <span id="hourly-limit">0</span></p>
+            <p>Hourly Remaining: <span id="hourly-remaining">0</span></p>
+            <p>Daily Limit: <span id="daily-limit">0</span></p>
+            <p>Daily Remaining: <span id="daily-remaining">0</span></p>
+        </div>
+        <div class="rate-limit-errors" id="rate-limit-errors"></div>
+    </div>
+    <script src="{% static 'core/js/rate_limit.js' %}"></script>
+</body>
+</html>
