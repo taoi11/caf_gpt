@@ -34,6 +34,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -126,6 +127,9 @@ STATIC_URL = '/static/'
 # Django automatically finds static files within each app's 'static/' directory
 # when APP_DIRS is True in TEMPLATES. STATICFILES_DIRS is not needed here.
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Use WhiteNoise's storage backend for optimal performance (caching, compression)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'

@@ -13,6 +13,7 @@ let
     django-csp
     requests
     boto3
+    whitenoise
 
     # Development tools
     isort
