@@ -7,10 +7,13 @@ Generate professional feedback notes for CAF members based on user observations 
 
 ### Views
 - **PaceNoteView**: Main interface for pace note generation
+  - Renders the interactive form interface
+  - Handles GET requests for the main page
 - **PaceNoteGeneratorView**: API endpoint handling LLM requests
   - Input validation and sanitization
-  - Rate limiting integration
+  - Rate limiting integration via RateLimitService
   - Error handling with appropriate status codes
+  - Integration with OpenRouterService for LLM generation
 
 ### Services
 - **PromptService**: Template management and variable substitution
@@ -18,14 +21,19 @@ Generate professional feedback notes for CAF members based on user observations 
   - Inserts rank-specific competencies from S3
   - Formats messages for LLM API
   - Handles error cases for missing resources
+  - Caches templates for performance
 
 ### Templates & Static Files
 - **pace_notes.html**: Interactive form interface
+  - Rank selection dropdown
+  - Text input area for observations
+  - Generation button and loading indicators
 - **paceNotes.js**: AJAX handling and UI interactions
   - Form submission and response handling
   - Error state management
   - Copy to clipboard functionality
-- **paceNote.css**: Custom styling
+  - Session storage for form persistence
+- **paceNote.css**: Custom styling for the interface
 
 ### Models (Placeholder)
 - **PaceNote**: Model for storing generated notes (future use)
@@ -54,6 +62,7 @@ Generate professional feedback notes for CAF members based on user observations 
 - Copy to clipboard functionality
 - Visual feedback during generation
 - Error handling with user-friendly messages
+- Mobile-responsive design
 
 ## Usage Example
 
