@@ -19,16 +19,4 @@ settings_module = ENV_TO_SETTINGS.get(DJANGO_ENV, 'caf_gpt.settings.dev')
 module = importlib.import_module(settings_module)
 
 # Expose all settings from the loaded module
-# Explicitly list the settings to expose
-ALLOWED_SETTINGS = [
-    'DEBUG',
-    'DATABASES',
-    'INSTALLED_APPS',
-    'MIDDLEWARE',
-    'TEMPLATES',
-    'STATIC_URL',
-    # Add other settings as needed
-]
-
-# Update globals with only the allowed settings
-globals().update({name: getattr(module, name) for name in ALLOWED_SETTINGS if hasattr(module, name)})
+globals().update({name: getattr(module, name) for name in dir(module) if not name.startswith('_')})
