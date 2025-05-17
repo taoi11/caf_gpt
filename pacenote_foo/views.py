@@ -1,23 +1,20 @@
 """
 PaceNoteFoo app views.
 """
-from django.views.generic import TemplateView
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.views import View
 import json
 import logging
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
+from django.utils.decorators import method_decorator
+from django.views import View
 
-from core.services import OpenRouterService, S3Service
-from .services import PromptService
 from core.services.rate_limit_service import RateLimitService
 
 logger = logging.getLogger(__name__)
 
-# Instantiate the services once
+# Initialize rate limit service
 rate_limit_service = RateLimitService()
-
 
 class PaceNoteView(TemplateView):
     """
@@ -56,32 +53,23 @@ class PaceNoteView(TemplateView):
         return context
 
 
-@method_decorator(csrf_exempt, name='dispatch')  # Disable CSRF for this API endpoint
+@method_decorator(csrf_exempt, name='dispatch')
 class PaceNoteGeneratorView(View):
     """
     Handles the AJAX POST request to generate a pace note.
 
-    It validates input, checks rate limits, calls the necessary services
-    (S3, PromptService, OpenRouterService), generates the pace note,
-    increments the rate limit counter on success, and returns the result
-    or an error as a JSON response.
+    This view is responsible for:
+    1. Parsing request data
+    2. Validating input
+    3. Checking rate limits
+    4. Delegating to service layer for pace note generation
+    5. Incrementing rate limits on success
+    6. Returning appropriate JSON responses
     """
 
     def post(self, request, *args, **kwargs):
         """
         Handles the POST request logic for pace note generation.
-
-        Steps:
-        1. Parse request data.
-        2. Validate user input.
-        3. Determine client IP address.
-        4. Check rate limits (return 429 if exceeded).
-        5. Initialize services (S3, Prompt, AI).
-        6. Fetch necessary data from S3.
-        7. Construct the prompt.
-        8. Generate the pace note via AI service.
-        9. Increment rate limit counter (only on success).
-        10. Return JSON response (success or error).
         """
         try:
             data = json.loads(request.body)
@@ -99,8 +87,7 @@ class PaceNoteGeneratorView(View):
             logger.info(f"Generating pace note for rank: {rank}")
 
             # --- IP Address Determination ---
-            # Determine the client's IP address, prioritizing Cloudflare headers.
-            # This is crucial for accurate rate limiting.
+            # Determine the client's IP address for rate limiting
             ip = request.META.get('HTTP_CF_CONNECTING_IP') or \
                 request.META.get('HTTP_CF_PSEUDO_IPV4') or \
                 request.META.get('REMOTE_ADDR')
@@ -114,13 +101,10 @@ class PaceNoteGeneratorView(View):
                 }, status=400)
 
             # --- Rate Limit Check ---
-            # Check if the IP has exceeded hourly or daily limits BEFORE performing
-            # the expensive operation of generating a pace note.
             if not rate_limit_service.check_limits(ip):
                 logger.warning(f"Rate limit exceeded for IP: {ip}")
                 # Fetch current usage to include in the error message
                 usage = rate_limit_service.get_usage(ip)
-                # Construct the message separately for clarity and line length
                 message = (
                     f"Rate limit exceeded. "
                     f"Hourly: {usage.get('hourly', 0)}/{rate_limit_service.hourly_limit}, "
@@ -132,55 +116,21 @@ class PaceNoteGeneratorView(View):
                     'message': message
                 }, status=429)
 
-            # Initialize services
-            s3_client = S3Service(bucket_name="policies")
-            prompt_service = PromptService()
-            open_router_service = OpenRouterService()
-
-            # Map the form values to the correct S3 file paths
-            rank_to_file_map = {
-                'cpl': 'cpl.md',
-                'mcpl': 'mcpl.md',  # Changed from mcpl_sgt.md to mcpl.md
-                'sgt': 'sgt.md',  # Changed from sgt_wojtg.md to sgt.md
-                'wo': 'wo.md'  # Changed from wojtg_mwopwo.md to wo.md
-            }
-
-            # Get competency list and examples from S3
-            competency_filename = rank_to_file_map.get(rank, 'cpl.md')
-            competency_path = f"paceNote/{competency_filename}"
-            examples_path = "paceNote/examples.md"
-
-            try:
-                competency_list = s3_client.read_file(competency_path)
-                examples = s3_client.read_file(examples_path)
-            except Exception as e:
-                logger.error(f"Error retrieving S3 content: {e}")
-                return JsonResponse({
-                    'status': 'error',
-                    'message': f"Error retrieving content from S3: {str(e)}"
-                }, status=500)
-
-            # Construct prompt
-            prompt = prompt_service.construct_prompt(user_input, competency_list, examples)
-
-            # Generate pace note using the AI service - expecting a string now
-            pace_note_content = open_router_service.generate_completion(prompt=prompt)
-
-            # Check if the response indicates an error (simple string check)
-            if pace_note_content.startswith("OpenRouter API error") or pace_note_content.startswith("Error"):
-                logger.error(f"PaceNote generation failed for IP {ip}: {pace_note_content}")
-                return JsonResponse({'status': 'error', 'message': pace_note_content}, status=500)
-
+            # --- Generate Pace Note ---
+            # Delegate to service layer for pace note generation
+            from .services import generate_pace_note
+            result = generate_pace_note(user_input, rank)
+            
             # --- Rate Limit Increment (Success Case) ---
-            # Increment rate limit only on successful generation BEFORE returning response
-            if not rate_limit_service.increment(ip):
-                logger.warning(f"Rate limit increment failed post-generation for IP: {ip}, but proceeding.")
-                pass
-
-            logger.info(f"Successfully generated pace note for IP: {ip}")
-
-            # Return the successful content
-            return JsonResponse({'status': 'success', 'pace_note': pace_note_content})
+            # Increment rate limit only on successful generation
+            if result['status'] == 'success':
+                if not rate_limit_service.increment(ip):
+                    logger.warning(f"Rate limit increment failed post-generation for IP: {ip}, but proceeding.")
+                logger.info(f"Successfully generated pace note for IP: {ip}")
+            
+            # Return the result directly
+            return JsonResponse(result)
+            
         except Exception as e:
             logger.error(f"Error generating pace note: {e}")
             return JsonResponse({
