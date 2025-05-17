@@ -7,8 +7,10 @@
 
 ## Project Structure
 `.ai/` : Contains notes and rules for AI assistants
-- Focus Area : each app has a `<app>/README.md` to explain its purpose and functionality
-- Notepad : Use `.ai/notepad` for longer notes, idas and docs for external tools used in the project
+- Focus Area :
+  - the main `README.md` contains the overview and structure of the project
+  - each app has a `<app>/README.md` to explain its purpose and functionality
+- Notepad : Use `.ai/notepad` for longer notes, ideas and docs for external tools used in the project
 
 #### Architecture
 - Use Django's default structure
