@@ -15,17 +15,21 @@ class OpenRouterService:
     Service for Open Router API integration.
     """
 
-    def __init__(self, model=None):
+    def __init__(self, model):
         """
         Initialize the Open Router service with API key from environment variables.
 
         Args:
-            model: The model to use for generation. Defaults to "anthropic/claude-3.5-haiku:beta".
+            model: The model to use for generation. Must be explicitly specified (no default).
         """
         self.api_key = os.environ.get('OPENROUTER_API_KEY')
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
-        # Default model
-        self.model = model or "anthropic/claude-3.5-haiku:beta"
+        
+        # No default model - must be explicitly provided
+        if not model:
+            raise ValueError("LLM model must be explicitly specified")
+            
+        self.model = model
         self.cost_tracker = CostTrackerService()
 
     def generate_completion(self, prompt, temperature=0.3):

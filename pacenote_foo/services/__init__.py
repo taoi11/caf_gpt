@@ -8,6 +8,8 @@ from .s3_reader import get_competency_list, get_examples
 from .prompt_service import PromptService
 from core.services.open_router_service import OpenRouterService
 
+LLM_MODEL = "openai/gpt-4.1"
+
 logger = logging.getLogger(__name__)
 
 def generate_pace_note(user_input: str, rank: str) -> dict:
@@ -29,7 +31,7 @@ def generate_pace_note(user_input: str, rank: str) -> dict:
     try:
         # Initialize services
         prompt_service = PromptService()
-        open_router_service = OpenRouterService()
+        open_router_service = OpenRouterService(model=LLM_MODEL)
         
         # Get competency list and examples from S3
         try:
