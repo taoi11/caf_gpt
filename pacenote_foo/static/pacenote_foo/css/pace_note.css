@@ -34,19 +34,54 @@
     font-size: 0.9rem;
 }
 
-/* Rank selector dropdown */
+/* Rank selector dropdown - clean, simple design aligned with overall UI */
 #rank-select {
     appearance: none;
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 2.5rem 0.5rem 0.75rem;
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 0.9rem;
     cursor: pointer;
+    background-color: #fff;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+    width: 100%;
 }
 
 #rank-select:hover {
-    border-color: #adb5bd;
-    background-color: #f8f9fa;
+    border-color: var(--primary-color);
+}
+
+#rank-select:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Wrapper for select to add custom styling */
+.form-group {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+/* Custom dropdown arrow - ONLY for the rank select dropdown */
+.form-group:has(#rank-select)::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-30%);
+    width: 0; 
+    height: 0; 
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #495057;
+    pointer-events: none;
+}
+
+/* Remove the dropdown indicator from label */
+.form-group label[for="rank-select"]::after {
+    content: "";
 }
 
 .output-card {

@@ -16,8 +16,10 @@ The project follows a standard Django project structure with multiple apps:
 caf_gpt/
 ├── caf_gpt/              # Main project settings
 │   ├── settings/         # Settings configuration
-│   │   ├── base.py       # Base settings
-│   │   └── __init__.py   # Environment-specific settings
+│   │   ├── base.py       # Base settings shared across environments
+│   │   ├── dev.py        # Development-specific settings
+│   │   ├── prod.py       # Production-specific settings
+│   │   └── __init__.py   # Environment selector based on DJANGO_ENV
 │   ├── urls.py           # Main URL configuration
 │   ├── asgi.py           # ASGI configuration
 │   └── wsgi.py           # WSGI configuration
@@ -72,3 +74,13 @@ caf_gpt/
 - `S3_ACCESS_KEY`: S3 access key
 - `S3_SECRET_KEY`: S3 secret key
 - `S3_BUCKET_NAME`: S3 bucket name
+
+## Environment Setup
+
+### Django Settings Configuration
+
+The project uses environment-based settings:
+- Development mode (default): `DJANGO_ENV=development`
+- Production mode: `DJANGO_ENV=production`
+
+For more details, see [`caf_gpt/settings/README.md`](caf_gpt/settings/README.md).
