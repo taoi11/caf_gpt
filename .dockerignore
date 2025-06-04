@@ -1,6 +1,7 @@
 # Git
 .git
 .gitignore
+.git/
 
 # Development
 data/
@@ -34,6 +35,7 @@ env.bak/
 venv.bak/
 shell.nix
 .aider*
+fly.toml
 
 # Editor directories and files
 .idea
