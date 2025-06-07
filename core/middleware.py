@@ -22,7 +22,7 @@ class HealthCheckMiddleware:
             return JsonResponse({
                 'status': 'ok',
                 'service': 'caf_gpt',
-                'host': request.get_host(),  # For debugging
+                'timestamp': request.META.get('HTTP_DATE', 'unknown'),  # Safe debugging info
             })
         
         # For all other requests, continue normal processing
