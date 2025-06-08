@@ -29,6 +29,7 @@ Start by gaining a clear understanding of the project.
 - Use Django's default structure
 - Keep apps single-responsibility focused
 - Place reusable code in core app
+- Keep the README files updated and accurate.
 
 #### Coding Standards
 - Models : Descriptive names, `__str__` methods, validators, business logic
