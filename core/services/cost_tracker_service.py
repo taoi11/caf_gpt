@@ -4,6 +4,8 @@ import time
 import requests
 import threading
 from django.db import connection, OperationalError, ProgrammingError
+import django
+from django.db import connection, OperationalError, ProgrammingError
 
 logger = logging.getLogger(__name__)
 
@@ -15,16 +17,24 @@ class CostTrackerService:
 
     Fetches cost details using the generation ID after a delay and updates
     the cost data in the database.
+    Fetches cost details using the generation ID after a delay and updates
+    the cost data in the database.
     """
 
     def __init__(self):
         """
         Initializes the service with API key.
         Checks if the cost_tracker table exists.
+        Initializes the service with API key.
+        Checks if the cost_tracker table exists.
         """
         self.api_key = os.environ.get('OPENROUTER_API_KEY')
         if not self.api_key:
             logger.error("OPENROUTER_API_KEY environment variable not set. Cost tracking disabled.")
+        
+        self._lock = threading.Lock()
+        self._check_table_exists()
+        
         
         self._lock = threading.Lock()
         self._check_table_exists()
@@ -45,7 +55,7 @@ class CostTrackerService:
                         SELECT FROM information_schema.tables 
                         WHERE table_schema = 'public' 
                         AND table_name = 'cost_tracker'
-                    )
+                    );
                 """)
                 table_exists = cursor.fetchone()[0]
                 
@@ -111,15 +121,12 @@ class CostTrackerService:
             
             with self._lock:
                 try:
-                    from django.db import transaction
-                    # Wrap the update in a transaction to ensure atomicity
-                    with transaction.atomic():
-                        # Get or create the singleton record
-                        cost_tracker = CostTracker.get_or_create_singleton()
-                        
-                        # Update the total usage
-                        cost_tracker.total_usage += new_usage
-                        cost_tracker.save()
+                    # Get or create the singleton record
+                    cost_tracker = CostTracker.get_or_create_singleton()
+                    
+                    # Update the total usage
+                    cost_tracker.total_usage += new_usage
+                    cost_tracker.save()
                     
                 except OperationalError as e:
                     logger.error(f"Database operational error updating total usage: {e}")
@@ -133,11 +140,27 @@ class CostTrackerService:
     def get_total_usage(self) -> float:
         """
         Safely reads and returns the current total usage from the database.
+        Safely reads and returns the current total usage from the database.
 
         Returns:
             float: The current total usage cost in USD
         """
         try:
+            # Import here to avoid circular imports
+            from core.models import CostTracker
+            
+            with self._lock:
+                try:
+                    # Get or create the singleton record
+                    cost_tracker = CostTracker.get_or_create_singleton()
+                    return float(cost_tracker.total_usage)
+                except OperationalError as e:
+                    logger.error(f"Database operational error getting total usage: {e}")
+                except ProgrammingError as e:
+                    logger.error(f"Database programming error getting total usage: {e}")
+                except Exception as e:
+                    logger.error(f"Database error getting total usage: {e}")
+                    return 0.0
             # Import here to avoid circular imports
             from core.models import CostTracker
             
