@@ -19,5 +19,6 @@
   ],
   "chat.promptFilesLocations": {
     ".ai/rules": true
-  }
+  },
+  "typos.config": ".vscode/typos.toml"
 }
