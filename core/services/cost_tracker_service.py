@@ -55,7 +55,7 @@ class CostTrackerService:
                         SELECT FROM information_schema.tables 
                         WHERE table_schema = 'public' 
                         AND table_name = 'cost_tracker'
-                    );
+                    )
                 """)
                 table_exists = cursor.fetchone()[0]
                 
