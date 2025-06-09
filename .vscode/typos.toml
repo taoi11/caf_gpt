@@ -14,6 +14,7 @@ extend-exclude = [
 [default.extend-words]
 # Military terms
 CAF = "CAF"
+caf = "caf"
 DOAD = "DOAD" 
 DOADs = "DOADs"
 DND = "DND"
@@ -36,4 +37,3 @@ templatetag = "templatetag"
 yul = "YUL"
 gpt = "GPT"
 foo = "foo"
-caf = "caf"
