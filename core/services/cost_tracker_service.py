@@ -3,7 +3,6 @@ import logging
 import time
 import requests
 import threading
-import django
 from django.db import connection, OperationalError, ProgrammingError
 
 logger = logging.getLogger(__name__)
