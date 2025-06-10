@@ -12,7 +12,7 @@ console_command = 'python manage.py shell'
   DEBUG = 'false'
   DJANGO_ENV = 'production'
   AWS_S3_ENDPOINT_URL = 'https://gateway.storjshare.io'
-  ALLOWED_HOSTS = 'caf-gpt.com,dev.caf-gpt.com,caf-gpt.fly.dev'
+  ALLOWED_HOSTS = 'caf-gpt.com,www.caf-gpt.com,dev.caf-gpt.com,caf-gpt.fly.dev'
 
 [http_service]
   internal_port = 8000
@@ -33,6 +33,6 @@ console_command = 'python manage.py shell'
   size = 'shared-cpu-1x'
   count = 1
 
-[mounts]
-  source = "caf_gpt_data"
-  destination = "/code/data"
+# [mounts]
+#   source = "caf_gpt_data"
+#   destination = "/code/data"

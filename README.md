@@ -28,7 +28,6 @@ caf_gpt/
 │   ├── views.py          # Landing page and health check views
 │   ├── urls.py           # Core URL configuration
 │   ├── middleware.py     # Custom middleware
-│   ├── context_processors.py # Template context processors
 │   └── services/         # Shared services
 │       ├── open_router_service.py # LLM integration
 │       ├── s3_service.py # S3 storage integration
