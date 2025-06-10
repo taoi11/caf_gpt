@@ -159,21 +159,6 @@ class CostTrackerService:
                 except Exception as e:
                     logger.error(f"Database error getting total usage: {e}")
                     return 0.0
-            # Import here to avoid circular imports
-            from core.models import CostTracker
-            
-            with self._lock:
-                try:
-                    # Get or create the singleton record
-                    cost_tracker = CostTracker.get_or_create_singleton()
-                    return float(cost_tracker.total_usage)
-                except OperationalError as e:
-                    logger.error(f"Database operational error getting total usage: {e}")
-                except ProgrammingError as e:
-                    logger.error(f"Database programming error getting total usage: {e}")
-                except Exception as e:
-                    logger.error(f"Database error getting total usage: {e}")
-                    return 0.0
         except Exception as e:
             logger.error(f"Unexpected error getting total usage: {e}", exc_info=True)
             return 0.0
