@@ -5,7 +5,6 @@ import requests
 import threading
 from django.db import connection, OperationalError, ProgrammingError
 import django
-from django.db import connection, OperationalError, ProgrammingError
 
 logger = logging.getLogger(__name__)
 
