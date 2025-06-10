@@ -33,6 +33,6 @@ console_command = 'python manage.py shell'
   size = 'shared-cpu-1x'
   count = 1
 
-[mounts]
-  source = "caf_gpt_data"
-  destination = "/code/data"
+# [mounts]
+#   source = "caf_gpt_data"
+#   destination = "/code/data"

@@ -35,5 +35,6 @@ templatetag = "templatetag"
 
 # Project specific
 yul = "YUL"
-gpt = "GPT"
+gpt = "gpt"
+GPT = "GPT"
 foo = "foo"

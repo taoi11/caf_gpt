@@ -205,3 +205,30 @@ class CostTrackerService:
         # Daemon threads exit when the main program exits
         thread = threading.Thread(target=self._fetch_and_save_cost, args=(gen_id,), daemon=True)
         thread.start()
+
+
+# Global service instance for context processor
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
+def get_cost_tracker_service():
+    """
+    Get a singleton instance of CostTrackerService for the context processor.
+    Uses lru_cache for thread-safe initialization.
+    """
+    return CostTrackerService()
+
+
+def cost_context(request):
+    """
+    Django context processor that adds the current total API usage cost to the template context.
+    """
+    total_cost = 0.0
+    try:
+        service = get_cost_tracker_service()
+        total_cost = service.get_total_usage()
+    except Exception as e:
+        logger.error(f"Failed to get total usage for context processor: {e}", exc_info=True)
+
+    return {'current_total_usage_cost': total_cost}
