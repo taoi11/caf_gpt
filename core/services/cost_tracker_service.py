@@ -1,10 +1,9 @@
 import os
-import json
 import logging
 import time
 import requests
 import threading
-from pathlib import Path
+from django.db import connection, OperationalError, ProgrammingError
 
 logger = logging.getLogger(__name__)
 
@@ -14,24 +13,22 @@ class CostTrackerService:
     Tracks the cost of OpenRouter API generations by fetching cost details
     asynchronously using threading.
 
-    Fetches cost details using the generation ID after a delay and appends
-    the cost data to a JSON Lines file.
+    Fetches cost details using the generation ID after a delay and updates
+    the cost data in the database.
     """
 
     def __init__(self):
         """
-        Initializes the service with API key and data storage path.
-        Ensures the data directory exists.
+        Initializes the service with API key.
+        Checks if the cost_tracker table exists.
         """
         self.api_key = os.environ.get('OPENROUTER_API_KEY')
         if not self.api_key:
             logger.error("OPENROUTER_API_KEY environment variable not set. Cost tracking disabled.")
-        # Use pathlib for robust path handling
-        self.data_dir = Path("./data")
-        self.cost_file_path = self.data_dir / "cost.json"  # Use .json for single total
-        self._ensure_data_dir_exists()
-        self._file_lock = threading.Lock()
-        self._initialize_cost_file()  # Initialize the cost file with proper structure
+        
+        self._lock = threading.Lock()
+        self._check_table_exists()
+        
         self.api_url_base = "https://openrouter.ai/api/v1/generation"
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -39,13 +36,27 @@ class CostTrackerService:
             "X-Title": "CAF-GPT"  # Optional but recommended
         }
 
-    def _ensure_data_dir_exists(self):
-        """Creates the data directory if it doesn't exist."""
+    def _check_table_exists(self):
+        """Checks if the cost_tracker table exists in the database."""
         try:
-            self.data_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Ensured data directory exists: {self.data_dir}")
-        except OSError as e:
-            logger.error(f"Failed to create data directory {self.data_dir}: {e}")
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_schema = 'public' 
+                        AND table_name = 'cost_tracker'
+                    )
+                """)
+                table_exists = cursor.fetchone()[0]
+                
+                if not table_exists:
+                    logger.error("The cost_tracker table does not exist in the database. Cost tracking may not work properly.")
+                else:
+                    logger.info("Cost tracker table exists in the database.")
+        except (OperationalError, ProgrammingError) as e:
+            logger.error(f"Database error when checking for cost_tracker table: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error checking cost_tracker table: {e}", exc_info=True)
 
     def _fetch_and_save_cost(self, gen_id: str):
         """
@@ -88,71 +99,60 @@ class CostTrackerService:
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Network error fetching cost data for gen_id {gen_id}: {e}")
-        except json.JSONDecodeError as e:
-            logger.error(f"Error decoding JSON response for cost data gen_id {gen_id}: {e}")
         except Exception as e:
             # Catching broader exceptions that might occur in the thread
             logger.error(f"Unexpected error tracking cost for gen_id {gen_id} in background thread: {e}", exc_info=True)
 
-    def _initialize_cost_file(self):
-        """Ensures the cost JSON file exists and contains the basic structure."""
-        try:
-            with self._file_lock:
-                if not self.cost_file_path.exists():
-                    with open(self.cost_file_path, 'w', encoding='utf-8') as f:
-                        json.dump({"total_usage": 0.0}, f, indent=4)
-                    logger.info(f"Initialized cost file: {self.cost_file_path}")
-        except IOError as e:
-            logger.error(f"Failed to initialize cost file {self.cost_file_path}: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error initializing cost file: {e}", exc_info=True)
-
     def _update_total_usage(self, new_usage: float):
-        """Reads the current total usage, adds the new usage, and writes it back."""
+        """Updates the total usage in the database by adding the new usage."""
         try:
-            with self._file_lock:
-                current_total = 0.0
+            # Import here to avoid circular imports
+            from core.models import CostTracker
+            
+            with self._lock:
                 try:
-                    if self.cost_file_path.exists() and self.cost_file_path.stat().st_size > 0:
-                        with open(self.cost_file_path, 'r', encoding='utf-8') as f:
-                            data = json.load(f)
-                            current_total = data.get("total_usage", 0.0)
-                            if not isinstance(current_total, (float, int)):
-                                logger.warning(f"Invalid 'total_usage' format ({current_total}), resetting to 0.0")
-                                current_total = 0.0
-                except (json.JSONDecodeError, IOError) as e:
-                    logger.error(f"Error reading cost file, resetting total: {e}")
-                    current_total = 0.0
-
-                updated_total = current_total + new_usage
-
-                with open(self.cost_file_path, 'w', encoding='utf-8') as f:
-                    json.dump({"total_usage": updated_total}, f, indent=4)
+                    from django.db import transaction
+                    # Wrap the update in a transaction to ensure atomicity
+                    with transaction.atomic():
+                        # Get or create the singleton record
+                        cost_tracker = CostTracker.get_or_create_singleton()
+                        
+                        # Update the total usage
+                        cost_tracker.total_usage += new_usage
+                        cost_tracker.save()
+                    
+                except OperationalError as e:
+                    logger.error(f"Database operational error updating total usage: {e}")
+                except ProgrammingError as e:
+                    logger.error(f"Database programming error updating total usage: {e}")
+                except Exception as e:
+                    logger.error(f"Database error updating total usage: {e}")
         except Exception as e:
             logger.error(f"Unexpected error updating total usage: {e}", exc_info=True)
 
     def get_total_usage(self) -> float:
         """
-        Safely reads and returns the current total usage from the cost file.
+        Safely reads and returns the current total usage from the database.
 
         Returns:
             float: The current total usage cost in USD
         """
         try:
-            with self._file_lock:
-                if not self.cost_file_path.exists():
+            # Import here to avoid circular imports
+            from core.models import CostTracker
+            
+            with self._lock:
+                try:
+                    # Get or create the singleton record
+                    cost_tracker = CostTracker.get_or_create_singleton()
+                    return float(cost_tracker.total_usage)
+                except OperationalError as e:
+                    logger.error(f"Database operational error getting total usage: {e}")
+                except ProgrammingError as e:
+                    logger.error(f"Database programming error getting total usage: {e}")
+                except Exception as e:
+                    logger.error(f"Database error getting total usage: {e}")
                     return 0.0
-
-                with open(self.cost_file_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    total = data.get("total_usage", 0.0)
-                    if not isinstance(total, (float, int)):
-                        logger.warning(f"Invalid 'total_usage' format ({total}), returning 0.0")
-                        return 0.0
-                    return float(total)
-        except (json.JSONDecodeError, IOError) as e:
-            logger.error(f"Error reading cost file: {e}")
-            return 0.0
         except Exception as e:
             logger.error(f"Unexpected error getting total usage: {e}", exc_info=True)
             return 0.0

@@ -29,7 +29,16 @@ Holds common components used by other applications to ensure consistency and reu
   - Calls https://openrouter.ai/api/v1/generation?id=gen-######
   - Gets `gen_id` from `OpenRouterService` API return
   - Half second delay after return of `gen_id` from `OpenRouterService`
-  - Stores the total accumulated cost in a single JSON file (`./data/cost.json`)
+  - Stores the total accumulated cost in a database table (`cost_tracker`)
+  - Table creation SQL:
+    ```sql
+    CREATE TABLE cost_tracker (
+        id INTEGER PRIMARY KEY,
+        total_usage DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    INSERT INTO cost_tracker (id, total_usage) VALUES (1, 0.0) ON CONFLICT (id) DO NOTHING;
+    ```
 
 ### Views
 - **Landing page**: Entry point with links to all applications
