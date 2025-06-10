@@ -34,7 +34,7 @@ queryset = "queryset"
 templatetag = "templatetag"
 
 # Project specific
-yul = "YUL"
+yul = "yul"
 gpt = "gpt"
 GPT = "GPT"
 foo = "foo"
