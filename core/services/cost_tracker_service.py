@@ -121,12 +121,15 @@ class CostTrackerService:
             
             with self._lock:
                 try:
-                    # Get or create the singleton record
-                    cost_tracker = CostTracker.get_or_create_singleton()
-                    
-                    # Update the total usage
-                    cost_tracker.total_usage += new_usage
-                    cost_tracker.save()
+                    from django.db import transaction
+                    # Wrap the update in a transaction to ensure atomicity
+                    with transaction.atomic():
+                        # Get or create the singleton record
+                        cost_tracker = CostTracker.get_or_create_singleton()
+                        
+                        # Update the total usage
+                        cost_tracker.total_usage += new_usage
+                        cost_tracker.save()
                     
                 except OperationalError as e:
                     logger.error(f"Database operational error updating total usage: {e}")
