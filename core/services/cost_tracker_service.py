@@ -34,10 +34,6 @@ class CostTrackerService:
         self._lock = threading.Lock()
         self._check_table_exists()
         
-        
-        self._lock = threading.Lock()
-        self._check_table_exists()
-        
         self.api_url_base = "https://openrouter.ai/api/v1/generation"
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
