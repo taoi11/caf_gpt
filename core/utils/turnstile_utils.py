@@ -28,10 +28,19 @@ def validate_turnstile_token(request):
             'message': 'Bot protection service is not configured'
         }, status=500)
     
-    # Get token from headers
-    token = request.headers.get('CF-Turnstile-Token')
+    # Get token from request body (JSON or POST)
+    token = None
+    if request.content_type == 'application/json':
+        try:
+            import json
+            body = json.loads(request.body.decode('utf-8'))
+            token = body.get('turnstile_token')
+        except Exception as e:
+            logger.warning(f"Error parsing JSON body: {e}")
     if not token:
-        logger.warning("Missing Turnstile token in request")
+        token = request.POST.get('turnstile_token')
+    if not token:
+        logger.warning("Missing Turnstile token in request body")
         return False, JsonResponse({
             'status': 'error',
             'message': 'Missing verification token'
