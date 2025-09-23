@@ -7,7 +7,7 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from core.services import RateLimitService
+from core.utils.turnstile_utils import validate_turnstile_token
 # Placeholder for future import: from .doad_foo import handle_doad_request
 
 logger = logging.getLogger(__name__)
@@ -17,9 +17,8 @@ logger = logging.getLogger(__name__)
 class PolicyRouterView(View):
     """
     Handles incoming chat requests, validates them, routes them to the appropriate
-    policy set handler, and manages rate limiting.
+    policy set handler, and uses Turnstile for bot protection.
     """
-    rate_limit_service = RateLimitService()
     supported_policy_sets = ['doad']  # Add more as they are implemented
 
     def _validate_request_data(self, data):
@@ -53,16 +52,10 @@ class PolicyRouterView(View):
     def post(self, request, *args, **kwargs):
         """Handle POST requests containing chat messages and policy set information."""
         try:
-            # Get and validate IP address
-            ip_address = request.META.get('REMOTE_ADDR')
-            if not ip_address:
-                logger.warning("Could not determine client IP address for rate limit check.")
-                return JsonResponse({'error': 'Could not determine client IP address.'}, status=400)
-
-            # Check rate limits
-            if not self.rate_limit_service.check_limits(ip_address):
-                logger.warning(f"Rate limit exceeded for IP: {ip_address}")
-                return JsonResponse({'error': 'Rate limit exceeded. Please try again later.'}, status=429)
+            # --- Turnstile Validation ---
+            is_valid, error_response = validate_turnstile_token(request)
+            if not is_valid:
+                return error_response
 
             # Parse and validate request data
             data = json.loads(request.body)
@@ -70,7 +63,7 @@ class PolicyRouterView(View):
             if error:
                 return error
 
-            logger.info(f"Received chat request for policy_set: {policy_set} from IP: {ip_address}")
+            logger.info(f"Received chat request for policy_set: {policy_set}")
 
             # Validate policy set
             error = self._validate_policy_set(policy_set)
@@ -85,11 +78,7 @@ class PolicyRouterView(View):
                 logger.error(f"Routing failed for validated policy_set: {policy_set}")
                 return JsonResponse({'error': 'Internal server error: Routing failed.'}, status=500)
 
-            # Increment rate limit counter
-            if ip_address:
-                self.rate_limit_service.increment(ip_address)
-                logger.info(f"Incremented rate limit for IP: {ip_address}")
-
+            logger.info("Successfully processed chat request")
             return JsonResponse({'assistant_message': assistant_response})
 
         except json.JSONDecodeError:

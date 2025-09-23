@@ -1,13 +1,12 @@
 /**
  * Handles the frontend logic for the PaceNotes Generator page.
- * Includes fetching rate limits, handling user input, generating pace notes via API,
+ * Includes Turnstile token management, handling user input, generating pace notes via API,
  * and displaying results or errors.
  */
 class PaceNotesGenerator {
     /**
      * Initializes the PaceNotesGenerator by capturing DOM elements,
-     * defining API endpoints, binding event listeners, and fetching
-     * initial rate limits.
+     * defining API endpoints, and binding event listeners.
      */
     constructor() {
         // DOM Elements
@@ -15,14 +14,11 @@ class PaceNotesGenerator {
         this.generateBtn = document.getElementById('generate-btn');
         this.rankSelect = document.getElementById('rank-select');
         this.outputSection = document.querySelector('.output-section');
-        this.hourlyRemainingElement = document.querySelector('.hourly-remaining');
-        this.dailyRemainingElement = document.querySelector('.daily-remaining');
+        
         // API Endpoints
         this.apiEndpoint = '/pacenote/api/generate-pace-note/';
-        this.rateLimitsEndpoint = '/pacenote/api/rate-limits/';
 
         this.setupEventListeners();
-        this.loadRateLimits(); // Perform initial load of rate limits when the page loads
     }
 
     /**
@@ -44,65 +40,16 @@ class PaceNotesGenerator {
         });
     }
 
-    /**
-     * Fetches current rate limit status from the API.
-     *
-     * Called during:
-     * 1. Initial page load to display starting limits
-     * 2. After successful or failed pace note generation to reflect current server state
-     *
-     * Implements aggressive cache-busting to ensure fresh limit data
-     */
-    async loadRateLimits() {
-        try {
-            // Fetch rate limits from the dedicated endpoint.
-            // Use cache-busting headers to ensure fresh data.
-            const response = await fetch(this.rateLimitsEndpoint, {
-                cache: 'no-cache', // Tells the browser not to use its cache
-                headers: {
-                    'Cache-Control': 'no-cache', // Standard HTTP header for cache control
-                    'Pragma': 'no-cache' // Legacy header for older browsers/proxies
-                }
-            });
-            // Check if the fetch request itself was successful (e.g., network ok, server responded)
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            this.updateRateLimitsDisplay(data);
-        } catch (error) {
-            console.error('Error fetching rate limits for PaceNotes:', error);
-            // Optionally display an error or default values
-            if (this.hourlyRemainingElement) this.hourlyRemainingElement.textContent = 'Error';
-            if (this.dailyRemainingElement) this.dailyRemainingElement.textContent = 'Error';
-        }
-    }
 
-    /**
-     * Updates rate limit counters in the UI.
-     * @param {object} data - Rate limit data from API.
-     * @param {object} data.hourly - Hourly limit info (remaining/limit).
-     * @param {object} data.daily - Daily limit info (remaining/limit).
-     */
-    updateRateLimitsDisplay(data) {
-        // Update hourly remaining display if the element exists
-        if (this.hourlyRemainingElement) {
-            this.hourlyRemainingElement.textContent = `${data.hourly.remaining}/${data.hourly.limit}`;
-        }
-        
-        if (this.dailyRemainingElement) {
-            this.dailyRemainingElement.textContent = `${data.daily.remaining}/${data.daily.limit}`;
-        }
-    }
 
     /**
      * Manages pace note generation workflow:
      * 1. Extracts user input and rank selection
      * 2. Validates input
-     * 3. Toggles loading state
-     * 4. Submits API request
-     * 5. Renders result or error message
-     * 6. Refreshes rate limit counters
+     * 3. Gets fresh Turnstile token
+     * 4. Toggles loading state
+     * 5. Submits API request with token
+     * 6. Renders result or error message
      * 7. Resets UI state
      */
     async generatePaceNote() {
@@ -118,6 +65,13 @@ class PaceNotesGenerator {
         this.setLoadingState(true);
         
         try {
+            // Get fresh Turnstile token
+            if (!window.turnstileManager || !window.turnstileManager.isInitialized()) {
+                throw new Error('Turnstile not initialized. Please refresh the page.');
+            }
+            
+            const turnstileToken = await window.turnstileManager.getToken();
+            
             const response = await fetch(this.apiEndpoint, {
               method: "POST",
               headers: {
@@ -127,6 +81,7 @@ class PaceNotesGenerator {
               body: JSON.stringify({
                 rank: rank,
                 user_input: inputText,
+                turnstile_token: turnstileToken,
               }),
             });
             
@@ -134,15 +89,16 @@ class PaceNotesGenerator {
             
             if (response.ok) {
                 this.displayOutput(data.pace_note);
-                this.loadRateLimits(); // Fetch and update rate limits after successful generation
             } else {
                 this.showError(data.message || 'An error occurred while generating the pace note.');
-                // Still try to update rate limits even if generation failed (e.g., rate limit exceeded error)
-                this.loadRateLimits(); 
             }
         } catch (error) {
             console.error('Error:', error);
-            this.showError('Connection error. Please check your network and try again.');
+            if (error.message.includes('Turnstile')) {
+                this.showError('Security verification failed. Please refresh the page and try again.');
+            } else {
+                this.showError('Connection error. Please check your network and try again.');
+            }
         } finally {
             this.setLoadingState(false);
         }

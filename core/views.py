@@ -54,14 +54,4 @@ def csp_report_view(request):
     return HttpResponse(status=204)  # No content response
 
 
-def rate_limit_view(request):
-    """
-    View to render the rate_limit.html template and provide context data.
-    """
-    context = {
-        'hourly_limit': 10,  # Example data, replace with actual logic
-        'hourly_remaining': 5,  # Example data, replace with actual logic
-        'daily_limit': 30,  # Example data, replace with actual logic
-        'daily_remaining': 20,  # Example data, replace with actual logic
-    }
-    return render(request, 'core/rate_limit.html', context)
+
