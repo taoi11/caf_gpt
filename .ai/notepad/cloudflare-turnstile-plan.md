@@ -162,10 +162,13 @@ async function submitPaceNote() {
         const response = await fetch('/pacenote/api/generate-pace-note/', {
             method: 'POST',
             headers: {
-                'CF-Turnstile-Token': token,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify({
+                ...formData,
+                turnstile_token: token
+            })
         });
         // Handle response...
     } catch (error) {
@@ -191,7 +194,15 @@ document.getElementById('generate-btn').addEventListener('click', async () => {
 #### Backend Validation Flow (Simplified)
 ```python
 def validate_turnstile_token(request):
-    token = request.headers.get('CF-Turnstile-Token')
+    # Get token from request body (JSON or POST)
+    token = None
+    if request.content_type == 'application/json':
+        import json
+        body = json.loads(request.body.decode('utf-8'))
+        token = body.get('turnstile_token')
+    if not token:
+        token = request.POST.get('turnstile_token')
+    
     if not token:
         return False, 'Missing Turnstile token'
     

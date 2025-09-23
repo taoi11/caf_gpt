@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 def validate_turnstile_token(request):
     """
-    Validate Turnstile token from request headers.
+    Validate Turnstile token from request body.
     
     Args:
         request: Django request object
