@@ -88,30 +88,26 @@ class TurnstileManager {
             // Execute the challenge to get a new token
             return new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => {
+                    // Restore the original callback if timeout occurs
+                    window.turnstile.renderedWidgets[this.widgetId].callback = originalCallbackRef;
                     reject(new Error('Turnstile token timeout'));
                 }, 10000); // 10 second timeout
-                
+
+                // Save reference to the original callback
+                const widgetObj = window.turnstile.renderedWidgets[this.widgetId];
+                const originalCallbackRef = widgetObj.callback;
+
                 // Override the callback temporarily to capture the new token
-                const originalCallback = (token) => {
+                widgetObj.callback = (token) => {
                     clearTimeout(timeout);
                     this.currentToken = token;
+                    // Restore the original callback
+                    widgetObj.callback = originalCallbackRef;
                     resolve(token);
                 };
-                
+
                 // Execute the challenge
                 window.turnstile.execute(this.widgetId);
-                
-                // Poll for token (fallback in case callback doesn't fire)
-                const pollForToken = () => {
-                    if (this.currentToken) {
-                        clearTimeout(timeout);
-                        resolve(this.currentToken);
-                    } else {
-                        setTimeout(pollForToken, 100);
-                    }
-                };
-                
-                setTimeout(pollForToken, 100);
             });
         } catch (error) {
             console.error('Failed to get Turnstile token:', error);
