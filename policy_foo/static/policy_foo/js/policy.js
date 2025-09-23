@@ -90,7 +90,8 @@ class PolicyChat {
     /**
      * Sends the current message history to the backend API.
      * - Sets loading state.
-     * - Prepares the payload including message history and policy_set.
+     * - Gets fresh Turnstile token.
+     * - Prepares the payload including message history, policy_set, and turnstile token.
      * - Makes a POST request to the chat API endpoint.
      * - Handles the response or error.
      * - Resets loading state.
@@ -100,6 +101,13 @@ class PolicyChat {
         const csrfToken = this.getCSRFToken();
 
         try {
+            // Get fresh Turnstile token
+            if (!window.turnstileManager || !window.turnstileManager.isInitialized()) {
+                throw new Error('Turnstile not initialized. Please refresh the page.');
+            }
+            
+            const turnstileToken = await window.turnstileManager.getToken();
+
             const response = await fetch(this.chatApiEndpoint, {
                 method: 'POST',
                 headers: {
@@ -108,7 +116,8 @@ class PolicyChat {
                 },
                 body: JSON.stringify({
                     messages: this.messageHistory,
-                    policy_set: 'doad' // Hardcoded for now, could be dynamic later
+                    policy_set: 'doad', // Hardcoded for now, could be dynamic later
+                    turnstile_token: turnstileToken,
                 }),
             });
 
@@ -122,7 +131,11 @@ class PolicyChat {
 
         } catch (error) {
             console.error('Error sending message:', error);
-            this.displayError(`Failed to get response: ${error.message}`);
+            if (error.message.includes('Turnstile')) {
+                this.displayError('Security verification failed. Please refresh the page and try again.');
+            } else {
+                this.displayError(`Failed to get response: ${error.message}`);
+            }
             // Add the error message as an assistant response in history to avoid resending the user query immediately
              this.messageHistory.push({ role: 'assistant', content: `Error: ${error.message}` });
         } finally {

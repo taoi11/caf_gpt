@@ -143,9 +143,9 @@ CSP_REPORT_ONLY = False
 # Most restrictive baseline - only allow resources from same origin
 CSP_DEFAULT_SRC = ("'self'",)
 
-# JavaScript restrictions
-CSP_SCRIPT_SRC = ("'self'",)
-CSP_SCRIPT_SRC_ELEM = ("'self'",)
+# JavaScript restrictions - allow Cloudflare Turnstile
+CSP_SCRIPT_SRC = ("'self'", "https://challenges.cloudflare.com")
+CSP_SCRIPT_SRC_ELEM = ("'self'", "https://challenges.cloudflare.com")
 
 # If you're using Django's admin or forms, you might need this
 # If not, you can remove unsafe-inline completely
@@ -158,8 +158,8 @@ CSP_IMG_SRC = ("'self'",)
 # You probably don't need these if it's just text
 CSP_FONT_SRC = ("'none'",)  # Block external fonts
 
-# These are good restrictions to keep
-CSP_CONNECT_SRC = ("'self'",)
+# These are good restrictions to keep - allow Turnstile API calls
+CSP_CONNECT_SRC = ("'self'", "https://challenges.cloudflare.com")
 CSP_FRAME_ANCESTORS = ("'none'",)  # Prevent framing
 CSP_FORM_ACTION = ("'self'",)
 CSP_BASE_URI = ("'self'",)
@@ -178,3 +178,7 @@ CSP_INCLUDE_NONCE_IN = ['script-src', 'style-src']
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Cloudflare Turnstile settings
+TURNSTILE_SITE_KEY = os.getenv('TURNSTILE_SITE_KEY')
+TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY')

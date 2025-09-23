@@ -9,7 +9,9 @@
     
     <!-- Base CSS -->
     <link rel="stylesheet" href="{% static 'core/css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'core/css/rate_limit.css' %}">
+    
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -60,7 +62,7 @@
 
     <!-- Common JS -->
     <script src="{% static 'core/js/base.js' %}"></script>
-    <script src="{% static 'core/js/rate_limit.js' %}"></script>
+    <script src="{% static 'core/js/turnstile.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>
