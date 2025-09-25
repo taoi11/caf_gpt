@@ -3,7 +3,7 @@ Management command to test database connection and models.
 """
 from django.core.management.base import BaseCommand
 from django.db import connection
-from core.models.database_models import DoadDocument, LeaveDocument
+from core.models import DoadDocument, LeaveDocument
 
 
 class Command(BaseCommand):
