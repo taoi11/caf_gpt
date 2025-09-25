@@ -4,7 +4,7 @@ Pace Note services orchestration module.
 This module coordinates the different services needed for generating pace notes.
 """
 import logging
-from .s3_reader import get_competency_list, get_examples
+from .database_reader import get_competency_list, get_examples
 from .prompt_service import PromptService
 from core.services.open_router_service import OpenRouterService
 

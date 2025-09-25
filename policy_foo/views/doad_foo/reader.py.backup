@@ -4,7 +4,7 @@ and extracting relevant information using an LLM.
 """
 import logging
 from pathlib import Path
-from core.services import OpenRouterService, doad_service, DocumentNotFoundError
+from core.services import OpenRouterService, S3Service, S3FileNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +15,14 @@ READER_MODEL_NAME = "google/gemini-2.0-flash-001"
 PROMPT_DIR = Path(__file__).parent.parent.parent / 'prompts' / 'doad_foo'
 READER_PROMPT_TEMPLATE_PATH = PROMPT_DIR / 'reader.md'
 
+# Define S3 configuration (could be moved to settings if needed)
+S3_BUCKET_NAME = 'policies'
+S3_DOAD_PREFIX = 'doad/'
+
 
 def read_doad_content(doad_number: str, messages: list) -> str:
     """
-    Retrieves a DOAD document from the database, uses an LLM to extract relevant sections
+    Retrieves a DOAD document from S3, uses an LLM to extract relevant sections
     based on the conversation history, and returns the result as an XML string.
 
     Args:
@@ -31,19 +35,21 @@ def read_doad_content(doad_number: str, messages: list) -> str:
         string if the DOAD file cannot be found or a critical error occurs.
     """
     logger.info(f"DOAD Reader: Starting content retrieval for DOAD {doad_number} using model {READER_MODEL_NAME}.")
+    s3_service = S3Service(bucket_name=S3_BUCKET_NAME)
     open_router_service = OpenRouterService(model=READER_MODEL_NAME)
 
-    # Retrieve DOAD content from database
+    # Retrieve DOAD content from S3
+    s3_key = f"{S3_DOAD_PREFIX}{doad_number}.md"
     try:
-        logger.debug(f"DOAD Reader: Attempting to read DOAD document: {doad_number}")
-        policy_content = doad_service.get_doad_content(doad_number)
-        logger.info(f"DOAD Reader: Successfully read {len(policy_content)} characters from database")
-        logger.debug(f"DOAD Reader: First 100 chars of content: {policy_content[:100]}") # Log snippet of content
-    except DocumentNotFoundError:
-        logger.error(f"DOAD Reader: DOAD document not found in database: {doad_number}")
+        logger.debug(f"DOAD Reader: Attempting to read S3 object: {S3_BUCKET_NAME}/{s3_key}")
+        policy_content = s3_service.read_file(key=s3_key)
+        logger.info(f"DOAD Reader: Successfully read {len(policy_content)} bytes from {s3_key}")
+        logger.debug(f"DOAD Reader: First 100 chars of S3 content: {policy_content[:100]}") # Log snippet of content
+    except S3FileNotFoundError:
+        logger.error(f"DOAD Reader: DOAD file not found in S3: {s3_key}")
         return ""
-    except Exception as db_ex:
-        logger.exception(f"DOAD Reader: Error reading from database (DOAD {doad_number}): {db_ex}")
+    except Exception as s3_ex:
+        logger.exception(f"DOAD Reader: Error reading from S3 ({s3_key}): {s3_ex}")
         return ""
 
     try:
