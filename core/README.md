@@ -13,16 +13,10 @@ Holds common components used by other applications to ensure consistency and reu
   - Temperature and token control
   - Configurable model selection
 
-- **S3Service**: S3-compatible storage access
-  - File listing and retrieval
-  - Error handling with custom exceptions
-  - Configurable endpoints and credentials
-
-- **RateLimitService**: IP-based rate limiting
-  - Request counting and threshold enforcement
-  - Configurable time windows and limits
-  - Memory based implementation
-  - Shared across all app endpoints
+- **TurnstileService**: Cloudflare Turnstile integration for bot protection
+  - Token validation and verification
+  - Rate limiting through human verification
+  - Configurable site and secret keys
 
 - **CostTrackerService**: Cost tracking for LLM usage
   - Integration with `OpenRouterService` for real-time tracking

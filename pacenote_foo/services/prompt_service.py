@@ -1,9 +1,9 @@
 """
 Prompt service for pace note generation.
 
-This module handles the construction of prompts for LLM models.
+This module handles the construction of prompts for LLM models using local files.
 """
-import pathlib
+from .local_file_reader import get_base_prompt
 
 
 class PromptService:
@@ -15,16 +15,14 @@ class PromptService:
         """
         Initialize the prompt service.
         """
-        # Path to the base prompt template
-        self.base_prompt_path = pathlib.Path(__file__).parent.parent / "prompts" / "base.md"
+        pass  # No longer need to store file paths since we use the local_file_reader
 
     def load_template(self):
         """
-        Load the base prompt template.
+        Load the base prompt template from local files.
         """
         try:
-            with open(self.base_prompt_path, 'r', encoding='utf-8') as file:
-                return file.read()
+            return get_base_prompt()
         except Exception as e:
             print(f"Error loading prompt template: {e}")
             # Return a simple fallback in case of error

@@ -17,11 +17,16 @@ Generate professional feedback notes for CAF members based on user observations 
 
 ### Services
 - **PromptService**: Template management and variable substitution
-  - Loads base prompt template
-  - Inserts rank-specific competencies from S3
+  - Loads base prompt template from local files
+  - Integrates rank-specific competencies from local prompt files
   - Formats messages for LLM API
   - Handles error cases for missing resources
   - Caches templates for performance
+- **LocalFileReader**: Reads prompt content from filesystem
+  - Base prompt template from `prompts/base.md`
+  - Rank-specific competencies from `prompts/competencies/{rank}.md`
+  - Examples from `prompts/competencies/examples.md`
+  - Error handling for missing or corrupted files
 
 ### Templates & Static Files
 - **pace_notes.html**: Interactive form interface
