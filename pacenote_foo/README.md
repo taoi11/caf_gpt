@@ -17,11 +17,15 @@ Generate professional feedback notes for CAF members based on user observations 
 
 ### Services
 - **PromptService**: Template management and variable substitution
-  - Loads base prompt template
-  - Inserts rank-specific competencies from S3
+  - Loads base prompt template from local files
+  - Inserts rank-specific competencies from local prompt files
   - Formats messages for LLM API
   - Handles error cases for missing resources
   - Caches templates for performance
+- **LocalPromptReader**: Local file access for prompt data
+  - Reads competency lists from local markdown files
+  - Loads example pace notes from local files
+  - Eliminates S3 dependency for prompt data
 
 ### Templates & Static Files
 - **pace_notes.html**: Interactive form interface
@@ -38,12 +42,11 @@ Generate professional feedback notes for CAF members based on user observations 
 ### Models (Placeholder)
 - **PaceNote**: Model for storing generated notes (future use)
 
-### External Resources
-- **S3 Stored Data**:
-  - Rank-specific competency lists (cpl.md, mcpl.md, sgt.md, wo.md)
-  - Example pace notes (examples.md)
-- **Prompt Template**:
-  - base.md with competency and example variables
+### Local Prompt Resources
+- **Prompt Templates**:
+  - `prompts/base.md`: Main prompt template with competency and example variables
+  - `prompts/competencies/cpl.md`, `mcpl.md`, `sgt.md`, `wo.md`: Rank-specific competency lists
+  - `prompts/competencies/examples.md`: Example pace notes for reference
 
 ## Feature Details
 

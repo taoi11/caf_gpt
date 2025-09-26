@@ -4,7 +4,7 @@ Pace Note services orchestration module.
 This module coordinates the different services needed for generating pace notes.
 """
 import logging
-from .s3_reader import get_competency_list, get_examples
+from .local_prompt_reader import get_competency_list, get_examples
 from .prompt_service import PromptService
 from core.services.open_router_service import OpenRouterService
 
@@ -33,15 +33,15 @@ def generate_pace_note(user_input: str, rank: str) -> dict:
         prompt_service = PromptService()
         open_router_service = OpenRouterService(model=LLM_MODEL)
         
-        # Get competency list and examples from S3
+        # Get competency list and examples from local files
         try:
             competency_list = get_competency_list(rank)
             examples = get_examples()
         except Exception as e:
-            logger.error(f"Error retrieving S3 content: {e}")
+            logger.error(f"Error retrieving local prompt content: {e}")
             return {
                 'status': 'error',
-                'message': f"Error retrieving content from S3: {str(e)}"
+                'message': f"Error retrieving content from local files: {str(e)}"
             }
             
         # Construct prompt
