@@ -41,7 +41,9 @@ def get_competency_list(rank: str) -> str:
             "prompts" /
             "competencies"
         )
-        competency_file = prompts_dir / f"{rank.lower()}.md"
+        competency_file = (
+            prompts_dir / f"{rank.lower()}.md"
+        )
 
         if not competency_file.exists():
             logger.error(f"Competency file not found for rank {rank}: {competency_file}")
@@ -116,7 +118,9 @@ def get_base_prompt() -> str:
             pathlib.Path(__file__).parent.parent /
             "prompts"
         )
-        base_file = prompts_dir / "base.md"
+        base_file = (
+            prompts_dir / "base.md"
+        )
 
         if not base_file.exists():
             logger.error(f"Base prompt file not found: {base_file}")

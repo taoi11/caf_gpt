@@ -47,9 +47,11 @@ def validate_turnstile_token(request):
         }, status=400)
 
     # Get client IP for additional validation
-    ip = (request.META.get('HTTP_CF_CONNECTING_IP') or
-          request.META.get('HTTP_CF_PSEUDO_IPV4') or
-          request.META.get('REMOTE_ADDR'))
+    ip = (
+        request.META.get('HTTP_CF_CONNECTING_IP') or
+        request.META.get('HTTP_CF_PSEUDO_IPV4') or
+        request.META.get('REMOTE_ADDR')
+    )
 
     # Verify token with Cloudflare
     is_valid, error_message = turnstile_service.verify_token(token, ip)
@@ -75,6 +77,8 @@ def get_client_ip(request):
     Returns:
         str: Client IP address or None if not found
     """
-    return (request.META.get('HTTP_CF_CONNECTING_IP') or
-            request.META.get('HTTP_CF_PSEUDO_IPV4') or
-            request.META.get('REMOTE_ADDR'))
+    return (
+        request.META.get('HTTP_CF_CONNECTING_IP') or
+        request.META.get('HTTP_CF_PSEUDO_IPV4') or
+        request.META.get('REMOTE_ADDR')
+    )
