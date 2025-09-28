@@ -7,11 +7,6 @@ from .base import (
     DEBUG,
     ALLOWED_HOSTS,
     INSTALLED_APPS,
-    MIDDLEWARE,
-    ROOT_URLCONF,
-    TEMPLATES,
-    WSGI_APPLICATION,
-    DATABASES,
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
