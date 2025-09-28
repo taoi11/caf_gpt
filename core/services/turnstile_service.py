@@ -33,71 +33,43 @@ class TurnstileService:
             logger.error("TURNSTILE_SITE_KEY not configured")
 
     def verify_token(self, token: str, remote_ip: str = None) -> Tuple[bool, str]:
-        """
-        Verify a Turnstile token with Cloudflare.
+        self.remote_ip = remote_ip
+        payload = self._build_payload(token, remote_ip)
+        try:
+            response = self._make_request(payload)
+            return self._process_response(response)
+        except requests.exceptions.RequestException as e:
+            return False, str(e)
 
-        Args:
-            token: The Turnstile token to verify
-            remote_ip: The client's IP address (optional but recommended)
-
-        Returns:
-            Tuple of (is_valid: bool, error_message: str)
-        """
-        if not self.secret_key:
-            logger.error("Turnstile secret key not configured")
-            return False, "Turnstile not properly configured"
-
-        if not token:
-            logger.warning("Empty token provided for verification")
-            return False, "Missing verification token"
-
-        # Prepare verification request
-        data = {
-            'secret': self.secret_key,
-            'response': token,
+    def _build_payload(self, token: str, remote_ip: str) -> dict:
+        return {
+            "secret": self.secret_key,
+            "response": token,
+            "remoteip": remote_ip
         }
 
-        # Include IP if provided for additional security
-        if remote_ip:
-            data['remoteip'] = remote_ip
+    def _make_request(self, payload: dict) -> requests.Response:
+        response = requests.post(self.VERIFY_URL, data=payload, timeout=10)
+        response.raise_for_status()
+        return response
 
-        try:
-            # Make verification request to Cloudflare
-            response = requests.post(
-                self.VERIFY_URL,
-                data=data,
-                timeout=10,  # 10 second timeout
-                headers={'Content-Type': 'application/x-www-form-urlencoded'}
-            )
-            response.raise_for_status()
+    def _process_response(self, response: requests.Response) -> Tuple[bool, str]:
+        result = response.json()
+        if result.get("success", False):
+            logger.info(f"Turnstile verification successful for IP: {self.remote_ip}")
+            return True, ""
+        else:
+            # Log the specific error codes for debugging
+            error_codes = result.get('error-codes', [])
+            logger.warning(f"Turnstile verification failed. Error codes: {error_codes}, IP: {self.remote_ip}")
 
-            result = response.json()
-
-            if result.get('success', False):
-                logger.info(f"Turnstile verification successful for IP: {remote_ip}")
-                return True, ""
+            # Return user-friendly error message
+            if 'timeout-or-duplicate' in error_codes:
+                return False, "Verification expired. Please try again."
+            elif 'invalid-input-response' in error_codes:
+                return False, "Invalid verification token."
             else:
-                # Log the specific error codes for debugging
-                error_codes = result.get('error-codes', [])
-                logger.warning(f"Turnstile verification failed. Error codes: {error_codes}, IP: {remote_ip}")
-
-                # Return user-friendly error message
-                if 'timeout-or-duplicate' in error_codes:
-                    return False, "Verification expired. Please try again."
-                elif 'invalid-input-response' in error_codes:
-                    return False, "Invalid verification token."
-                else:
-                    return False, "Verification failed. Please try again."
-
-        except requests.exceptions.Timeout:
-            logger.error("Turnstile verification request timed out")
-            return False, "Verification service temporarily unavailable"
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Turnstile verification request failed: {e}")
-            return False, "Verification service temporarily unavailable"
-        except Exception as e:
-            logger.error(f"Unexpected error during Turnstile verification: {e}")
-            return False, "Verification failed"
+                return False, "Verification failed. Please try again."
 
     def is_configured(self) -> bool:
         """

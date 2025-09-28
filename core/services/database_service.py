@@ -7,7 +7,6 @@ PostgreSQL database, replacing the previous S3-based document storage.
 import logging
 from typing import List, Optional, Dict, Any
 from django.db import connection
-from django.core.exceptions import ObjectDoesNotExist
 from core.models import DoadDocument, LeaveDocument
 
 logger = logging.getLogger(__name__)

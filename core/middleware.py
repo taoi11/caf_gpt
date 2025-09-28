@@ -1,7 +1,6 @@
 """
 Core app middleware.
 """
-import json
 from django.http import JsonResponse
 
 

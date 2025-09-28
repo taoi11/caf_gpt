@@ -5,7 +5,6 @@ import time
 import requests
 import threading
 from django.db import connection, OperationalError, ProgrammingError
-import django
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +14,6 @@ class CostTrackerService:
     Tracks the cost of OpenRouter API generations by fetching cost details
     asynchronously using threading.
 
-    Fetches cost details using the generation ID after a delay and updates
-    the cost data in the database.
     Fetches cost details using the generation ID after a delay and updates
     the cost data in the database.
     """
@@ -48,8 +45,8 @@ class CostTrackerService:
             with connection.cursor() as cursor:
                 cursor.execute("""
                     SELECT EXISTS (
-                        SELECT FROM information_schema.tables 
-                        WHERE table_schema = 'public' 
+                        SELECT FROM information_schema.tables
+                        WHERE table_schema = 'public'
                         AND table_name = 'cost_tracker'
                     )
                 """)

@@ -38,9 +38,9 @@ pkgs.mkShell {
     (writeShellScriptBin "lint" ''
       #!/usr/bin/env bash
       set -euo pipefail
-      autopep8 --in-place --recursive .
+      autopep8 --in-place --recursive -v .
       # Lint afterwards to see remaining issues
-      flake8
+      flake8 -v
     '')
   ];
 }

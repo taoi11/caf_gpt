@@ -7,7 +7,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 from django.urls import reverse_lazy
-from django.conf import settings  # Import settings
 
 # Load environment variables from .env file
 load_dotenv()

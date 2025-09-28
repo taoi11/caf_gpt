@@ -11,7 +11,7 @@ read:
 
 # file:
 
-auto-commits: false
+auto-commits: true
 attribute-commit-message-author: true
 auto-lint: true
 lint-cmd: 
