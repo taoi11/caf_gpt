@@ -10,7 +10,7 @@ from core.services.open_router_service import OpenRouterService
 from core.services.cost_tracker_service import CostTrackerService
 from core.services.turnstile_service import TurnstileService, turnstile_service
 from core.services.database_service import (
-    DoadDatabaseService, PaceNoteDatabaseService, 
+    DoadDatabaseService, PaceNoteDatabaseService,
     DatabaseServiceError, DocumentNotFoundError, DatabaseConnectionError,
     doad_service, pacenote_service
 )
@@ -19,7 +19,7 @@ __all__ = [
     'OpenRouterService',
     # S3 services removed from exports (kept for rollback)
     # 'S3Service',
-    # 'S3Client', 
+    # 'S3Client',
     # 'S3FileNotFoundError',
     # 'S3ConnectionError',
     # 'S3AuthenticationError',

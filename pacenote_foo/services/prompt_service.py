@@ -86,12 +86,12 @@ class PromptService:
 def construct_pace_note_prompt(user_input: str, competency_list: str, examples: dict = None) -> str:
     """
     Constructs a prompt for generating a pace note based on user input and competency data.
-    
+
     Args:
         user_input: The user's input text
         competency_list: The competency list text
         examples: Optional dict of example types and their content
-        
+
     Returns:
         str: The constructed prompt
     """
@@ -101,17 +101,17 @@ def construct_pace_note_prompt(user_input: str, competency_list: str, examples: 
         "\n\nCompetency guidelines to consider:",
         f"\n{competency_list}",
     ]
-    
+
     # Add examples if provided
     if examples:
         prompt_parts.append("\n\nReference examples:")
         for example_type, content in examples.items():
             prompt_parts.append(f"\n{example_type.upper()} EXAMPLE:\n{content}")
-    
+
     # Add the user input
     prompt_parts.append(f"\n\nUSER INPUT:\n{user_input}")
-    
+
     # Add the final instruction
     prompt_parts.append("\n\nProvide a concise, constructive pace note that highlights strengths and areas for improvement. Focus on actionable feedback.")
-    
+
     return "".join(prompt_parts)

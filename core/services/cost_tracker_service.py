@@ -1,3 +1,4 @@
+from functools import lru_cache
 import os
 import logging
 import time
@@ -30,10 +31,10 @@ class CostTrackerService:
         self.api_key = os.environ.get('OPENROUTER_API_KEY')
         if not self.api_key:
             logger.error("OPENROUTER_API_KEY environment variable not set. Cost tracking disabled.")
-        
+
         self._lock = threading.Lock()
         self._check_table_exists()
-        
+
         self.api_url_base = "https://openrouter.ai/api/v1/generation"
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -53,7 +54,7 @@ class CostTrackerService:
                     )
                 """)
                 table_exists = cursor.fetchone()[0]
-                
+
                 if not table_exists:
                     logger.error("The cost_tracker table does not exist in the database. Cost tracking may not work properly.")
                 else:
@@ -113,7 +114,7 @@ class CostTrackerService:
         try:
             # Import here to avoid circular imports
             from core.models import CostTracker
-            
+
             with self._lock:
                 try:
                     from django.db import transaction
@@ -121,11 +122,11 @@ class CostTrackerService:
                     with transaction.atomic():
                         # Get or create the singleton record
                         cost_tracker = CostTracker.get_or_create_singleton()
-                        
+
                         # Update the total usage
                         cost_tracker.total_usage += new_usage
                         cost_tracker.save()
-                    
+
                 except OperationalError as e:
                     logger.error(f"Database operational error updating total usage: {e}")
                 except ProgrammingError as e:
@@ -146,7 +147,7 @@ class CostTrackerService:
         try:
             # Import here to avoid circular imports
             from core.models import CostTracker
-            
+
             with self._lock:
                 try:
                     # Get or create the singleton record
@@ -188,7 +189,6 @@ class CostTrackerService:
 
 
 # Global service instance for context processor
-from functools import lru_cache
 
 
 @lru_cache(maxsize=1)

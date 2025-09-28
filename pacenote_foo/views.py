@@ -13,10 +13,11 @@ from core.utils.turnstile_utils import validate_turnstile_token
 
 logger = logging.getLogger(__name__)
 
+
 class PaceNoteView(TemplateView):
     """
     Renders the main PaceNote generator interface (pace_notes.html).
-    
+
     Now uses Cloudflare Turnstile for bot protection instead of rate limiting.
     """
     template_name = 'pacenote_foo/pace_notes.html'
@@ -26,11 +27,11 @@ class PaceNoteView(TemplateView):
         Adds Turnstile configuration to the template context.
         """
         context = super().get_context_data(**kwargs)
-        
+
         # Add Turnstile site key for frontend integration
         from django.conf import settings
         context['turnstile_site_key'] = getattr(settings, 'TURNSTILE_SITE_KEY', '')
-        
+
         return context
 
 
@@ -76,14 +77,14 @@ class PaceNoteGeneratorView(View):
             # Delegate to service layer for pace note generation
             from .services import generate_pace_note
             result = generate_pace_note(user_input, rank)
-            
+
             # Log successful generation
             if result['status'] == 'success':
                 logger.info("Successfully generated pace note")
-            
+
             # Return the result directly
             return JsonResponse(result)
-            
+
         except json.JSONDecodeError:
             logger.error("Invalid JSON in request body")
             return JsonResponse({
@@ -96,6 +97,3 @@ class PaceNoteGeneratorView(View):
                 'status': 'error',
                 'message': str(e)
             }, status=400)
-
-
-

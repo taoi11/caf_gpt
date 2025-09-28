@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write("Testing database connection...")
-        
+
         try:
             # Test basic database connection
             with connection.cursor() as cursor:
@@ -38,14 +38,14 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(f"✓ DOAD table accessible - {doad_count} records found")
             )
-            
+
             # Get sample DOAD numbers
             sample_doads = list(DoadDocument.get_available_doad_numbers()[:5])
             if sample_doads:
                 self.stdout.write(f"  Sample DOAD numbers: {', '.join(sample_doads)}")
             else:
                 self.stdout.write("  No DOAD numbers found")
-                
+
         except Exception as e:
             self.stdout.write(
                 self.style.ERROR(f"✗ DOAD table access failed: {e}")
@@ -57,14 +57,14 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(f"✓ Leave table accessible - {leave_count} records found")
             )
-            
+
             # Get sample chapters
             sample_chapters = list(LeaveDocument.get_available_chapters()[:5])
             if sample_chapters:
                 self.stdout.write(f"  Sample chapters: {', '.join(sample_chapters)}")
             else:
                 self.stdout.write("  No chapters found")
-                
+
         except Exception as e:
             self.stdout.write(
                 self.style.ERROR(f"✗ Leave table access failed: {e}")

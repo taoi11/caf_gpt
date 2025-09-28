@@ -4,6 +4,7 @@ Core app middleware.
 import json
 from django.http import JsonResponse
 
+
 class HealthCheckMiddleware:
     """
     Middleware to handle health check requests before ALLOWED_HOSTS validation.

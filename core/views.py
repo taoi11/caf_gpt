@@ -52,6 +52,3 @@ def csp_report_view(request):
         logger.error(f"Error processing CSP report: {e}")
 
     return HttpResponse(status=204)  # No content response
-
-
-

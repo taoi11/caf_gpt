@@ -1,40 +1,6 @@
-# Typos configuration for CAF GPT Django project
-
-[files]
-extend-exclude = [
-    "__pycache__/",
-    "*/migrations/",
-    "staticfiles/",
-    "data/",
-    ".git/",
-    "*.min.js",
-    "*.min.css",
-]
+# Typos configuration
+# Add words that should not be flagged as typos
 
 [default.extend-words]
-# Military terms
-CAF = "CAF"
+# Project name abbreviation
 caf = "caf"
-DOAD = "DOAD" 
-DOADs = "DOADs"
-DND = "DND"
-MCpl = "MCpl"
-Cpl = "Cpl"
-Sgt = "Sgt"
-WO = "WO"
-pacenote = "pacenote"
-pacenotes = "pacenotes"
-
-# Technical terms
-Django = "Django"
-OpenRouter = "OpenRouter"
-ASGI = "ASGI"
-WSGI = "WSGI"
-queryset = "queryset"
-templatetag = "templatetag"
-
-# Project specific
-yul = "yul"
-gpt = "gpt"
-GPT = "GPT"
-foo = "foo"

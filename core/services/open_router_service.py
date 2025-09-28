@@ -24,11 +24,11 @@ class OpenRouterService:
         """
         self.api_key = os.environ.get('OPENROUTER_API_KEY')
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
-        
+
         # No default model - must be explicitly provided
         if not model:
             raise ValueError("LLM model must be explicitly specified")
-            
+
         self.model = model
         self.cost_tracker = CostTrackerService()
 
@@ -69,7 +69,7 @@ class OpenRouterService:
             }
 
             logger.info(f"Sending request to Open Router API with model: {self.model}")
-            logger.debug(f"OpenRouter Request Data: {json.dumps(data)}") # Log request data
+            logger.debug(f"OpenRouter Request Data: {json.dumps(data)}")  # Log request data
 
             response = requests.post(
                 self.api_url,

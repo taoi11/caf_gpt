@@ -33,5 +33,14 @@ pkgs.mkShell {
     # Development tools
     tree
     git
+
+    # A tiny helper that formats simple whitespace issues with autopep8, then runs flake8
+    (writeShellScriptBin "lint" ''
+      #!/usr/bin/env bash
+      set -euo pipefail
+      autopep8 --in-place --recursive .
+      # Lint afterwards to see remaining issues
+      flake8
+    '')
   ];
 }

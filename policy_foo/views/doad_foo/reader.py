@@ -38,7 +38,7 @@ def read_doad_content(doad_number: str, messages: list) -> str:
         logger.debug(f"DOAD Reader: Attempting to read DOAD document: {doad_number}")
         policy_content = doad_service.get_doad_content(doad_number)
         logger.info(f"DOAD Reader: Successfully read {len(policy_content)} characters from database")
-        logger.debug(f"DOAD Reader: First 100 chars of content: {policy_content[:100]}") # Log snippet of content
+        logger.debug(f"DOAD Reader: First 100 chars of content: {policy_content[:100]}")  # Log snippet of content
     except DocumentNotFoundError:
         logger.error(f"DOAD Reader: DOAD document not found in database: {doad_number}")
         return ""
@@ -59,14 +59,14 @@ def read_doad_content(doad_number: str, messages: list) -> str:
         llm_messages = [{"role": "system", "content": system_prompt}]
         llm_messages.extend(messages)
         logger.debug(f"DOAD Reader: Prepared {len(llm_messages)} messages for LLM.")
-        logger.debug(f"DOAD Reader [{doad_number}]: Sending messages to LLM: {llm_messages}") # Log messages being sent
+        logger.debug(f"DOAD Reader [{doad_number}]: Sending messages to LLM: {llm_messages}")  # Log messages being sent
 
         # Call LLM Service
         llm_response_text = open_router_service.generate_completion(
             prompt=llm_messages,
             temperature=0.2
         )
-        logger.debug(f"DOAD Reader [{doad_number}]: Raw response from LLM: '{llm_response_text}'") # Log raw response
+        logger.debug(f"DOAD Reader [{doad_number}]: Raw response from LLM: '{llm_response_text}'")  # Log raw response
 
         # Process and return response
         if isinstance(llm_response_text, str) and llm_response_text.strip():

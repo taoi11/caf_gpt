@@ -50,21 +50,21 @@ class CostTracker(models.Model):
 class DoadDocument(models.Model):
     """
     Model for DOAD (Defence Operations and Activities Directive) documents.
-    
+
     Maps to the 'doad' table in the shared database.
     Each record represents a chunk of a DOAD document with metadata.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     text_chunk = models.TextField(help_text="Content chunk of the DOAD document")
     metadata = models.JSONField(
-        null=True, 
-        blank=True, 
+        null=True,
+        blank=True,
         help_text="Document metadata including title, section, etc."
     )
     created_at = models.DateTimeField(help_text="When this chunk was created")
     doad_number = models.TextField(
-        null=True, 
-        blank=True, 
+        null=True,
+        blank=True,
         help_text="DOAD number identifier (e.g., '1000-1')"
     )
 
@@ -94,15 +94,15 @@ class DoadDocument(models.Model):
 class LeaveDocument(models.Model):
     """
     Model for Leave policy documents.
-    
+
     Maps to the 'leave_2025' table in the shared database.
     Each record represents a chunk of leave policy documentation.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     text_chunk = models.TextField(help_text="Content chunk of the leave document")
     metadata = models.JSONField(
-        null=True, 
-        blank=True, 
+        null=True,
+        blank=True,
         help_text="Document metadata including chapter info, etc."
     )
     created_at = models.DateTimeField(help_text="When this chunk was created")
