@@ -2,8 +2,17 @@
 Development settings for caf_gpt project.
 These settings extend and override base.py for the development environment.
 """
-from pathlib import Path
-from .base import *  # Import all base settings
+import os
+from .base import (
+    DEBUG,
+    ALLOWED_HOSTS,
+    INSTALLED_APPS,
+    MIDDLEWARE,
+    ROOT_URLCONF,
+    TEMPLATES,
+    WSGI_APPLICATION,
+    DATABASES,
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
