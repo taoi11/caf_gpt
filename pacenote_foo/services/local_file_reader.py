@@ -36,14 +36,9 @@ def get_competency_list(rank: str) -> str:
     """
     try:
         # Build path to the competency file
-        prompts_dir = (
-            pathlib.Path(__file__).parent.parent /
-            "prompts" /
-            "competencies"
-        )
-        competency_file = (
-            prompts_dir / f"{rank.lower()}.md"
-        )
+        current_file = pathlib.Path(__file__)
+        prompts_dir = current_file.parent.parent / "prompts" / "competencies"
+        competency_file = prompts_dir / f"{rank.lower()}.md"
 
         if not competency_file.exists():
             logger.error(f"Competency file not found for rank {rank}: {competency_file}")
@@ -76,11 +71,8 @@ def get_examples() -> str:
     """
     try:
         # Build path to the examples file
-        prompts_dir = (
-            pathlib.Path(__file__).parent.parent /
-            "prompts" /
-            "competencies"
-        )
+        current_file = pathlib.Path(__file__)
+        prompts_dir = current_file.parent.parent / "prompts" / "competencies"
         examples_file = prompts_dir / "examples.md"
 
         if not examples_file.exists():
@@ -114,13 +106,9 @@ def get_base_prompt() -> str:
     """
     try:
         # Build path to the base prompt file
-        prompts_dir = (
-            pathlib.Path(__file__).parent.parent /
-            "prompts"
-        )
-        base_file = (
-            prompts_dir / "base.md"
-        )
+        current_file = pathlib.Path(__file__)
+        prompts_dir = current_file.parent.parent / "prompts"
+        base_file = prompts_dir / "base.md"
 
         if not base_file.exists():
             logger.error(f"Base prompt file not found: {base_file}")

@@ -52,11 +52,11 @@ def generate_pace_note(user_input: str, rank: str) -> dict:
         pace_note_content = open_router_service.generate_completion(prompt=messages)
 
         # Check if the response indicates an error
-        if (isinstance(pace_note_content, str) and
-            (pace_note_content.startswith("OpenRouter API error") or
-             pace_note_content.startswith("Error"))):
-            logger.error(f"PaceNote generation failed: {pace_note_content}")
-            return {'status': 'error', 'message': pace_note_content}
+        if isinstance(pace_note_content, str):
+            error_prefixes = ["OpenRouter API error", "Error"]
+            if any(pace_note_content.startswith(prefix) for prefix in error_prefixes):
+                logger.error(f"PaceNote generation failed: {pace_note_content}")
+                return {'status': 'error', 'message': pace_note_content}
 
         return {'status': 'success', 'pace_note': pace_note_content}
 
