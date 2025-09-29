@@ -34,6 +34,16 @@ Holds common components used by other applications to ensure consistency and reu
     INSERT INTO cost_tracker (id, total_usage) VALUES (1, 0.0) ON CONFLICT (id) DO NOTHING;
     ```
 
+- **DatabaseService**: Database operations and ORM utilities
+  - Query optimization and batch processing
+  - Transaction management
+  - Custom query builders
+
+- **S3Service**: S3-compatible storage integration (not currently used)
+  - File upload and download operations
+  - Presigned URL generation
+  - Metadata management
+
 ### Views
 - **Landing page**: Entry point with links to all applications
 - **Health check**: System status endpoint
@@ -55,4 +65,14 @@ Holds common components used by other applications to ensure consistency and reu
 - Content Security Policy (CSP) implementation
 - WhiteNoise for static file serving with compression
 - Security headers configuration
+- Cloudflare Turnstile integration for bot protection
+
+### Utilities
+- **turnstile_utils.py**: Helper functions for Turnstile token validation
+- **database_utils.py**: Database connection and migration utilities
+
+### Models
+- **CostTracker**: Tracks total LLM usage cost
+- **DoadDocument**: Unmanaged model for DOAD documents from external Postgres
+- **LeaveDocument**: Unmanaged model for Leave policy documents from external Postgres
 

@@ -9,9 +9,10 @@ Generate professional feedback notes for CAF members based on user observations 
 - **PaceNoteView**: Main interface for pace note generation
   - Renders the interactive form interface
   - Handles GET requests for the main page
+  - Integrates Cloudflare Turnstile for bot protection
 - **PaceNoteGeneratorView**: API endpoint handling LLM requests
   - Input validation and sanitization
-  - Rate limiting integration via RateLimitService
+  - Turnstile token validation for bot protection
   - Error handling with appropriate status codes
   - Integration with OpenRouterService for LLM generation
 
@@ -40,15 +41,15 @@ Generate professional feedback notes for CAF members based on user observations 
   - Session storage for form persistence
 - **paceNote.css**: Custom styling for the interface
 
-### Models (Placeholder)
+### Models
 - **PaceNote**: Model for storing generated notes (future use)
 
 ### External Resources
-- **S3 Stored Data**:
+- **Local Prompt Files**:
   - Rank-specific competency lists (cpl.md, mcpl.md, sgt.md, wo.md)
   - Example pace notes (examples.md)
-- **Prompt Template**:
-  - base.md with competency and example variables
+  - Base prompt template (base.md)
+- **LLM Integration**: Uses OpenRouterService for pace note generation
 
 ## Feature Details
 
@@ -68,6 +69,7 @@ Generate professional feedback notes for CAF members based on user observations 
 - Visual feedback during generation
 - Error handling with user-friendly messages
 - Mobile-responsive design
+- Cloudflare Turnstile integration for bot protection
 
 ## Usage Example
 

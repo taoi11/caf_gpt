@@ -46,6 +46,7 @@ Orchestrator -> Router
 - Fallback strategies when no relevant documents are found
 - Timeout management for LLM calls
 - Proper error messaging for user feedback
+- Integration with Cloudflare Turnstile for bot protection
 
 ## Performance Considerations
 
