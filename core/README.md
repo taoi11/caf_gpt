@@ -39,7 +39,7 @@ Holds common components used by other applications to ensure consistency and reu
   - Transaction management
   - Custom query builders
 
-- **S3Service**: S3-compatible storage integration
+- **S3Service**: S3-compatible storage integration (not currently used)
   - File upload and download operations
   - Presigned URL generation
   - Metadata management

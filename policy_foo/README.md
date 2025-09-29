@@ -57,7 +57,7 @@ policy_foo/
 - Shares rate limiting approach with PaceNoteFoo
   * Increments rate limit usage for final message to user, not agent calls
 - Uses `base` CSS and JS to maintain UI consistency
-- Integrates with S3Service from core app for document storage
+- Integrates with S3Service from core app for document storage (not currently used)
   * Each `<policy_set>_foo` makes S3 calls as needed
 - Utilizes shared logging infrastructure
 - Leverages OpenRouterService for LLM interactions

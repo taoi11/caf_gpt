@@ -84,10 +84,10 @@ caf_gpt/
 - `DATABASE_URL`: Database connection URL (PostgreSQL)
 - `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
 - `OPENROUTER_API_KEY`: API key for OpenRouter LLM service
-- `S3_ENDPOINT_URL`: S3-compatible storage endpoint
-- `S3_ACCESS_KEY`: S3 access key
-- `S3_SECRET_KEY`: S3 secret key
-- `S3_BUCKET_NAME`: S3 bucket name
+- `S3_ENDPOINT_URL`: S3-compatible storage endpoint (not currently used)
+- `S3_ACCESS_KEY`: S3 access key (not currently used)
+- `S3_SECRET_KEY`: S3 secret key (not currently used)
+- `S3_BUCKET_NAME`: S3 bucket name (not currently used)
 - `TURNSTILE_SITE_KEY`: Cloudflare Turnstile site key
 - `TURNSTILE_SECRET_KEY`: Cloudflare Turnstile secret key
 
