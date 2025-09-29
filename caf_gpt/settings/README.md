@@ -30,6 +30,8 @@ The following environment variables are used:
 ### Optional
 - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`: Email server configuration (used in production)
 - `DEFAULT_FROM_EMAIL`: Default sender address for emails
+- `TURNSTILE_SITE_KEY`: Cloudflare Turnstile site key
+- `TURNSTILE_SECRET_KEY`: Cloudflare Turnstile secret key
 
 ## Using Different Settings Modules
 
@@ -44,6 +46,8 @@ export DJANGO_ENV=development
 export DJANGO_ENV=production
 export DJANGO_SECRET_KEY='your-secure-secret-key'
 export ALLOWED_HOSTS='example.com,www.example.com'
+export TURNSTILE_SITE_KEY='your-turnstile-site-key'
+export TURNSTILE_SECRET_KEY='your-turnstile-secret-key'
 ```
 
 ## Django Management Commands

@@ -28,27 +28,42 @@ caf_gpt/
 │   ├── views.py          # Landing page and health check views
 │   ├── urls.py           # Core URL configuration
 │   ├── middleware.py     # Custom middleware
-│   └── services/         # Shared services
-│       ├── open_router_service.py # LLM integration
-│       ├── s3_service.py # S3 storage integration
-│       ├── rate_limit_service.py # Rate limiting
-│       └── cost_tracker_service.py # LLM cost tracking
+│   ├── services/         # Shared services
+│   │   ├── open_router_service.py # LLM integration
+│   │   ├── s3_service.py # S3 storage integration
+│   │   ├── database_service.py # Database operations
+│   │   ├── cost_tracker_service.py # LLM cost tracking
+│   │   └── turnstile_service.py # Cloudflare Turnstile integration
+│   ├── templates/        # Core templates
+│   │   └── base/         # Base templates
+│   ├── static/           # Core static files
+│   └── utils/            # Utility functions
 ├── pacenote_foo/         # PaceNote app
 │   ├── models.py         # Chat session models
 │   ├── views.py          # Chat interface views
 │   ├── urls.py           # PaceNote URL configuration
-│   └── services/         # App-specific services
-│       └── prompt_service.py # Prompt template management
+│   ├── services/         # App-specific services
+│   │   ├── prompt_service.py # Prompt template management
+│   │   └── local_file_reader.py # Local file content reading
+│   ├── prompts/          # Prompt templates
+│   │   ├── base.md       # Base prompt template
+│   │   └── competencies/ # Rank-specific competency templates
+│   ├── templates/        # PaceNote templates
+│   ├── static/           # PaceNote static files
+│   └── management/       # Custom management commands
 ├── policy_foo/           # Policy app
 │   ├── models.py         # Policy document models
 │   ├── urls.py           # Policy URL configuration
-│   └── views/            # Organized view modules
-│       ├── router.py     # Policy routing logic
-│       ├── rate_limits.py # Rate limiting checks
-│       └── doad_foo/     # DOAD policy handler
-│           ├── finder.py # Document finder
-│           ├── reader.py # Document reader
-│           └── main.py   # Response synthesizer
+│   ├── views/            # Organized view modules
+│   │   ├── router.py     # Policy routing logic
+│   │   ├── rate_limits.py # Rate limiting checks
+│   │   └── doad_foo/     # DOAD policy handler
+│   │       ├── finder.py # Document finder
+│   │       ├── reader.py # Document reader
+│   │       └── main.py   # Response synthesizer
+│   ├── templates/        # Policy templates
+│   ├── static/           # Policy static files
+│   └── prompts/          # Policy prompt templates
 ├── static/               # Static files
 │   ├── css/              # CSS files
 │   ├── js/               # JavaScript files
@@ -73,6 +88,8 @@ caf_gpt/
 - `S3_ACCESS_KEY`: S3 access key
 - `S3_SECRET_KEY`: S3 secret key
 - `S3_BUCKET_NAME`: S3 bucket name
+- `TURNSTILE_SITE_KEY`: Cloudflare Turnstile site key
+- `TURNSTILE_SECRET_KEY`: Cloudflare Turnstile secret key
 
 ## Environment Setup
 

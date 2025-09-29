@@ -45,6 +45,7 @@ policy_foo/
 - Implements shared rate limiting with core services
 - Counts only final responses to users, not internal agent calls
 - Configurable limits per policy set
+- Integrates Cloudflare Turnstile for bot protection
 
 ### Policy Handlers
 - Modular design with separate handlers for each policy set
@@ -66,3 +67,4 @@ policy_foo/
 - Rate limiting to prevent abuse
 - Error handling with appropriate status codes
 - CSP compliance
+- Cloudflare Turnstile integration for bot protection
