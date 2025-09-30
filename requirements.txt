@@ -17,8 +17,6 @@ django-cors-headers==4.4.0
 # Utilities
 requests==2.32.3
 
-# AWS - Removed boto3 dependency (migrated to database)
-
 # CSP
 django-csp==3.8
 

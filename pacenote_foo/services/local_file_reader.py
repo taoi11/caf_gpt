@@ -1,8 +1,7 @@
 """
 Local file reader service for pace note data.
 
-This module provides functions to read prompt data from local filesystem files,
-replacing the previous database/S3-based storage system.
+This module provides functions to read prompt data from local filesystem files.
 """
 import logging
 import pathlib

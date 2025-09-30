@@ -54,17 +54,12 @@ policy_foo/
 
 ## Integration Points
 - Uses the shared base template from Core app
-- Shares rate limiting approach with PaceNoteFoo
-  * Increments rate limit usage for final message to user, not agent calls
 - Uses `base` CSS and JS to maintain UI consistency
-- Integrates with S3Service from core app for document storage (not currently used)
-  * Each `<policy_set>_foo` makes S3 calls as needed
 - Utilizes shared logging infrastructure
 - Leverages OpenRouterService for LLM interactions
 
 ## Security Features
 - Input validation and sanitization
-- Rate limiting to prevent abuse
 - Error handling with appropriate status codes
 - CSP compliance
 - Cloudflare Turnstile integration for bot protection

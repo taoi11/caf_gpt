@@ -1,8 +1,8 @@
 """
-Database service for shared SvelteKit database integration.
+Database service for shared database integration.
 
 This module provides services for retrieving document content from the shared
-PostgreSQL database, replacing the previous S3-based document storage.
+PostgreSQL database.
 """
 import logging
 from typing import List, Optional, Dict, Any
@@ -88,8 +88,7 @@ class DoadDatabaseService(BasePolicyDatabaseService):
     """
     Service for DOAD (Defence Operations and Activities Directive) document operations.
 
-    Provides methods to retrieve DOAD documents from the database,
-    replacing the previous S3-based storage.
+    Provides methods to retrieve DOAD documents from the database.
     """
 
     def get_doad_content(self, doad_number: str) -> str:
@@ -176,8 +175,7 @@ class PaceNoteDatabaseService(BasePolicyDatabaseService):
     """
     Service for pace note document operations.
 
-    Provides methods to retrieve pace note content from the database,
-    replacing the previous S3-based storage.
+    Provides methods to retrieve pace note content from the database.
     """
 
     # Mapping from rank to chapter identifiers in the database

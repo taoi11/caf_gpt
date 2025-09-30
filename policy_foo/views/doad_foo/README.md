@@ -11,7 +11,7 @@ The main orchestration logic resides in `policy_foo/views/doad_foo/__init__.py`.
    - Returns specific DOAD numbers or "none" if no relevant documents found
    - Uses focused prompting to ensure accurate document identification
 
-2. **Reader (`reader.py`):** For a given DOAD number, retrieves the document content from S3 and uses an LLM call to extract relevant information (in XML format).
+2. **Reader (`reader.py`):** For a given DOAD number, retrieves the document content from the database and uses an LLM call to extract relevant information (in XML format).
    - Multiple instances might be called by the orchestrator for different documents
    - Processes document content to extract only relevant sections
    - Formats extracted information in structured XML format
@@ -31,7 +31,7 @@ Orchestrator -> finder.py
 finder.py -> LLM Service (OpenRouterService)
 finder.py -> Orchestrator (returns DOAD numbers or "none")
 Orchestrator -> reader.py (for each DOAD number)
-reader.py -> S3 Service (retrieves document content)
+reader.py -> Database Service (retrieves document content)
 reader.py -> LLM Service (extracts relevant information)
 reader.py -> Orchestrator (returns XML snippet)
 Orchestrator -> main.py (Synthesizer) (with combined XML)
