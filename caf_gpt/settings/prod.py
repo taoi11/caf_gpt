@@ -3,11 +3,7 @@ Production settings for caf_gpt project.
 These settings extend and override base.py for the production environment.
 """
 import os
-from .base import (
-    DEBUG,
-    ALLOWED_HOSTS,
-    INSTALLED_APPS,
-)
+from .base import INSTALLED_APPS
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
