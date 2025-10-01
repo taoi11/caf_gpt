@@ -78,14 +78,22 @@ caf_gpt/
 
 ## Environment Variables
 
-- `DJANGO_ENV`: Environment to use (development or production)
-- `DJANGO_SECRET_KEY`: Secret key for production
-- `DATABASE_URL`: Database connection URL (PostgreSQL)
-- `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
-- `OPENROUTER_API_KEY`: API key for OpenRouter LLM service
+The following environment variables are used:
 
+### Required in All Environments
+- `DATABASE_URL`: Connection string for the PostgreSQL database
+
+### Required in Production Only
+- `DJANGO_SECRET_KEY`: A secure secret key
+- `ALLOWED_HOSTS`: Comma-separated list of allowed hostnames
+
+### Optional
+- `DJANGO_ENV`: Environment to use (development or production) - Default: development
+- `OPENROUTER_API_KEY`: API key for OpenRouter LLM service
 - `TURNSTILE_SITE_KEY`: Cloudflare Turnstile site key
 - `TURNSTILE_SECRET_KEY`: Cloudflare Turnstile secret key
+- `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`: Email server configuration (used in production)
+- `DEFAULT_FROM_EMAIL`: Default sender address for emails
 
 ## Environment Setup
 
