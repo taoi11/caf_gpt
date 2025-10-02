@@ -69,7 +69,7 @@ Generate professional feedback notes for CAF members based on user observations 
 - Visual feedback during generation
 - Error handling with user-friendly messages
 - Mobile-responsive design
-- Cloudflare Turnstile integration for bot protection
+- Cloudflare Turnstile integration for bot protection (see core/README.md for implementation details)
 
 ## Usage Example
 

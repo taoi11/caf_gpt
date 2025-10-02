@@ -62,4 +62,4 @@ policy_foo/
 - Input validation and sanitization
 - Error handling with appropriate status codes
 - CSP compliance
-- Cloudflare Turnstile integration for bot protection
+- Cloudflare Turnstile integration for bot protection (see core/README.md for implementation details)

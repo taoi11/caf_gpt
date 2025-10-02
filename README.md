@@ -95,6 +95,12 @@ The following environment variables are used:
 - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`: Email server configuration (used in production)
 - `DEFAULT_FROM_EMAIL`: Default sender address for emails
 
+## Security Features
+- Input validation and sanitization
+- Error handling with appropriate status codes
+- CSP compliance
+- Cloudflare Turnstile integration for bot protection (see core/README.md for implementation details)
+
 ## Environment Setup
 
 ### Django Settings Configuration

@@ -5,13 +5,14 @@ max-chat-history-tokens: 32768
 restore-chat-history: false
 read:
   - "README.md"
+  - "caf_gpt/settings/README.md"
   - "core/README.md"
   - "pacenote_foo/README.md"
   - "policy_foo/README.md"
 
 # file:
 
-auto-commits: true
+auto-commits: false
 attribute-commit-message-author: true
 auto-lint: true
 lint-cmd: 
