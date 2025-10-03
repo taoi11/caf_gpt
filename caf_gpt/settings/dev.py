@@ -3,7 +3,8 @@ Development settings for caf_gpt project.
 These settings extend and override base.py for the development environment.
 """
 import os
-from .base import INSTALLED_APPS, MIDDLEWARE
+from .base import *  # noqa: F403, F401
+from .base import INSTALLED_APPS, MIDDLEWARE  # noqa: F401
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

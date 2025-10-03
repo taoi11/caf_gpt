@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile # Explicitly state the Dockerfile name
-    # image: your-image:latest # Remove or comment out the image line
+    image: caf_gpt
     restart: always
     ports:
       - "8000:8000"
