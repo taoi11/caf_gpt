@@ -31,7 +31,6 @@ caf_gpt/
 │   ├── services/         # Shared services
 │   │   ├── open_router_service.py # LLM integration
 │   │   ├── database_service.py # Database operations
-│   │   ├── cost_tracker_service.py # LLM cost tracking
 │   │   └── turnstile_service.py # Cloudflare Turnstile integration
 │   ├── templates/        # Core templates
 │   │   └── base/         # Base templates

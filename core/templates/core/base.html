@@ -34,11 +34,7 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.app_name == 'policy_foo' %}active{% endif %}" href="{% url 'policy_foo:chat_interface' %}">PolicyFoo</a>
                         </li>
-                        <li class="nav-item nav-cost-display" title="Accrued cost this month (USD)">
-                            <span class="nav-link">
-                                Cost: ${{ current_total_usage_cost|floatformat:4 }}
-                            </span>
-                        </li>
+                        
                     </ul>
                 </div>
             </div>

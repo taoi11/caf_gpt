@@ -5,7 +5,6 @@ import os
 import json
 import logging
 import requests
-from .cost_tracker_service import CostTrackerService
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,6 @@ class OpenRouterService:
             raise ValueError("LLM model must be explicitly specified")
 
         self.model = model
-        self.cost_tracker = CostTrackerService()
 
     def generate_completion(self, prompt, temperature=0.3):
         """
@@ -86,18 +84,13 @@ class OpenRouterService:
                 if 'error' in result:
                     error_code = result['error'].get('code')
                     error_message = result['error'].get('message')
-                    logger.error(f"OpenRouter API error {error_code}: {error_message}")
+                    logger.error(f"OpenRouter API error {error_code} (id: {gen_id}): {error_message}")
                     return f"OpenRouter API error {error_code}: {error_message}"
 
                 # Only try to access 'choices' if there's no error
                 if 'choices' in result:
                     generated_text = result['choices'][0]['message']['content']
-                    if gen_id:
-                        self.cost_tracker.track_cost(gen_id)
-                        logger.info(f"Cost tracking initiated for gen_id: {gen_id}")
-                    else:
-                        logger.warning("No gen_id found in successful response, skipping cost tracking.")
-                    logger.info("Successfully generated completion from Open Router API")
+                    logger.info(f"Successfully generated completion from Open Router API (id: {gen_id})")
                     return generated_text
                 else:
                     logger.error(f"Unexpected response format: {result}")

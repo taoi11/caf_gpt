@@ -18,21 +18,7 @@ Holds common components used by other applications to ensure consistency and reu
   - Rate limiting through human verification
   - Configurable site and secret keys
 
-- **CostTrackerService**: Cost tracking for LLM usage
-  - Integration with `OpenRouterService` for real-time tracking
-  - Calls https://openrouter.ai/api/v1/generation?id=gen-######
-  - Gets `gen_id` from `OpenRouterService` API return
-  - Half second delay after return of `gen_id` from `OpenRouterService`
-  - Stores the total accumulated cost in a database table (`cost_tracker`)
-  - Table creation SQL:
-    ```sql
-    CREATE TABLE cost_tracker (
-        id INTEGER PRIMARY KEY,
-        total_usage DOUBLE PRECISION NOT NULL DEFAULT 0.0,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-    );
-    INSERT INTO cost_tracker (id, total_usage) VALUES (1, 0.0) ON CONFLICT (id) DO NOTHING;
-    ```
+ 
 
 - **DatabaseService**: Database operations and ORM utilities
   - Query optimization and batch processing
@@ -45,7 +31,7 @@ Holds common components used by other applications to ensure consistency and reu
 - **CSP report**: Content Security Policy violation reporting endpoint
 
 ### Context Processors
-- **cost_context**: Provides cost tracking data to all templates
+ 
 
 ### Templates
 - **base.html**: Main template with custom CSS
@@ -102,7 +88,6 @@ The following environment variables are required for Turnstile integration:
 - **database_utils.py**: Database connection and migration utilities
 
 ### Models
-- **CostTracker**: Tracks total LLM usage cost
 - **DoadDocument**: Unmanaged model for DOAD documents from external Postgres
 - **LeaveDocument**: Unmanaged model for Leave policy documents from external Postgres
 
