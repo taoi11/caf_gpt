@@ -24,13 +24,16 @@ class PaceNoteView(TemplateView):
 
     def get_context_data(self, **kwargs):
         """
-        Adds Turnstile configuration to the template context.
+        Adds Turnstile configuration and CSP nonce to the template context.
         """
         context = super().get_context_data(**kwargs)
 
         # Add Turnstile site key for frontend integration
         from django.conf import settings
         context['turnstile_site_key'] = getattr(settings, 'TURNSTILE_SITE_KEY', '')
+        
+        # Add CSP nonce for inline scripts
+        context['csp_nonce'] = self.request.csp_nonce if hasattr(self.request, 'csp_nonce') else None
 
         return context
 

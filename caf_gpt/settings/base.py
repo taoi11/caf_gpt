@@ -159,6 +159,7 @@ CSP_FONT_SRC = ("'none'",)  # Block external fonts
 # These are good restrictions to keep - allow Turnstile API calls
 CSP_CONNECT_SRC = ("'self'", "https://challenges.cloudflare.com")
 CSP_FRAME_ANCESTORS = ("'none'",)  # Prevent framing
+CSP_FRAME_SRC = ("'self'", "https://challenges.cloudflare.com")  # Allow Turnstile iframes
 CSP_FORM_ACTION = ("'self'",)
 CSP_BASE_URI = ("'self'",)
 CSP_OBJECT_SRC = ("'none'",)
@@ -169,7 +170,7 @@ CSP_OBJECT_SRC = ("'none'",)
 CSP_REPORT_URI = reverse_lazy('csp_report_view')
 
 # The nonces feature is good if you have any inline scripts or styles
-CSP_INCLUDE_NONCE_IN = ['script-src', 'style-src']
+CSP_INCLUDE_NONCE_IN = ['script-src', 'script-src-elem', 'style-src']
 # --------------------------------------------------------------------------
 
 # Security settings

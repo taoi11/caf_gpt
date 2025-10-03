@@ -101,9 +101,21 @@ class PolicyChat {
         const csrfToken = this.getCSRFToken();
 
         try {
-            // Get fresh Turnstile token
-            if (!window.turnstileManager || !window.turnstileManager.isInitialized()) {
-                throw new Error('Turnstile not initialized. Please refresh the page.');
+            // Check if Turnstile manager exists
+            if (!window.turnstileManager) {
+                throw new Error('Security verification system not loaded. Please refresh the page.');
+            }
+            
+            // Wait for Turnstile to be initialized
+            let retries = 0;
+            const maxRetries = 5;
+            while (!window.turnstileManager.isInitialized() && retries < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                retries++;
+            }
+            
+            if (!window.turnstileManager.isInitialized()) {
+                throw new Error('Security verification failed to initialize. Please refresh the page and try again.');
             }
             
             const turnstileToken = await window.turnstileManager.getToken();
@@ -131,13 +143,24 @@ class PolicyChat {
 
         } catch (error) {
             console.error('Error sending message:', error);
-            if (error.message.includes('Turnstile')) {
-                this.displayError('Security verification failed. Please refresh the page and try again.');
+            
+            // Provide specific error messages based on the error type
+            let errorMessage;
+            if (error.message.includes('Security verification')) {
+                errorMessage = error.message;
+            } else if (error.message.includes('Turnstile')) {
+                errorMessage = 'Security verification failed. Please refresh the page and try again.';
+            } else if (error.message.includes('timeout')) {
+                errorMessage = 'Security verification timed out. Please check your connection and try again.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Network error. Please check your internet connection and try again.';
             } else {
-                this.displayError(`Failed to get response: ${error.message}`);
+                errorMessage = `Failed to get response: ${error.message}`;
             }
+            
+            this.displayError(errorMessage);
             // Add the error message as an assistant response in history to avoid resending the user query immediately
-             this.messageHistory.push({ role: 'assistant', content: `Error: ${error.message}` });
+            this.messageHistory.push({ role: 'assistant', content: `Error: ${errorMessage}` });
         } finally {
             this.setLoadingState(false);
         }

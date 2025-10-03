@@ -65,11 +65,24 @@ class PaceNotesGenerator {
         this.setLoadingState(true);
         
         try {
-            // Get fresh Turnstile token
-            if (!window.turnstileManager || !window.turnstileManager.isInitialized()) {
-                throw new Error('Turnstile not initialized. Please refresh the page.');
+            // Check if Turnstile manager exists
+            if (!window.turnstileManager) {
+                throw new Error('Security verification system not loaded. Please refresh the page.');
             }
             
+            // Wait for Turnstile to be initialized
+            let retries = 0;
+            const maxRetries = 5;
+            while (!window.turnstileManager.isInitialized() && retries < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                retries++;
+            }
+            
+            if (!window.turnstileManager.isInitialized()) {
+                throw new Error('Security verification failed to initialize. Please refresh the page and try again.');
+            }
+            
+            // Get fresh Turnstile token
             const turnstileToken = await window.turnstileManager.getToken();
             
             const response = await fetch(this.apiEndpoint, {
@@ -94,10 +107,18 @@ class PaceNotesGenerator {
             }
         } catch (error) {
             console.error('Error:', error);
-            if (error.message.includes('Turnstile')) {
+            
+            // Provide specific error messages based on the error type
+            if (error.message.includes('Security verification')) {
+                this.showError(error.message);
+            } else if (error.message.includes('Turnstile')) {
                 this.showError('Security verification failed. Please refresh the page and try again.');
+            } else if (error.message.includes('timeout')) {
+                this.showError('Security verification timed out. Please check your connection and try again.');
+            } else if (error.message.includes('Failed to fetch')) {
+                this.showError('Network error. Please check your internet connection and try again.');
             } else {
-                this.showError('Connection error. Please check your network and try again.');
+                this.showError('An unexpected error occurred. Please try again later.');
             }
         } finally {
             this.setLoadingState(false);

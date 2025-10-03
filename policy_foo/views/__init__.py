@@ -12,4 +12,6 @@ class ChatInterfaceView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['turnstile_site_key'] = settings.TURNSTILE_SITE_KEY
+        # Add CSP nonce for inline scripts
+        context['csp_nonce'] = self.request.csp_nonce if hasattr(self.request, 'csp_nonce') else None
         return context
