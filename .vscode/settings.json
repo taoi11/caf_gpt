@@ -8,5 +8,8 @@
   "chat.promptFilesLocations": {
     ".ai/rules": true
   },
-  "typos.config": ".vscode/typos.toml"
+  "typos.config": ".vscode/typos.toml",
+  "github.copilot.chat.newWorkspace.useContext7": true,
+  "github.copilot.chat.responsesApiReasoningEffort": "high",
+  "github.copilot.chat.useResponsesApi": true
 }

@@ -5,6 +5,7 @@ import os
 import json
 import logging
 import requests
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,17 @@ class OpenRouterService:
                 # Only try to access 'choices' if there's no error
                 if 'choices' in result:
                     generated_text = result['choices'][0]['message']['content']
+
+                    # Strip out any <think>...</think> blocks if present (for "thinking" models)
+                    # This ensures only the assistant's final answer is returned to the frontend.
+                    if isinstance(generated_text, str):
+                        try:
+                            # Use DOTALL so newlines are matched inside the think tags
+                            generated_text = re.sub(r"<think>[\s\S]*?</think>", "", generated_text, flags=re.IGNORECASE)
+                            generated_text = generated_text.strip()
+                        except Exception as clean_ex:
+                            logger.warning(f"Failed to strip <think> blocks: {clean_ex}")
+
                     logger.info(f"Successfully generated completion from Open Router API (id: {gen_id})")
                     return generated_text
                 else:

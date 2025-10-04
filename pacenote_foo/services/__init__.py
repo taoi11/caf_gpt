@@ -7,8 +7,7 @@ import logging
 from .local_file_reader import get_competency_list, get_examples
 from .prompt_service import PromptService
 from core.services.open_router_service import OpenRouterService
-
-LLM_MODEL = "openai/gpt-4.1"
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ def generate_pace_note(user_input: str, rank: str) -> dict:
     try:
         # Initialize services
         prompt_service = PromptService()
-        open_router_service = OpenRouterService(model=LLM_MODEL)
+        open_router_service = OpenRouterService(model=settings.PACENOTE_MODEL)
 
         # Get competency list and examples from local files
         try:

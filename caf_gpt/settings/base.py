@@ -181,3 +181,8 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 # Cloudflare Turnstile settings
 TURNSTILE_SITE_KEY = os.getenv('TURNSTILE_SITE_KEY')
 TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY')
+
+# AI model settings
+# --------------------------------------------------------------------------
+# Primary model used for generating pace notes. Can be overridden via env.
+PACENOTE_MODEL = os.getenv('PACENOTE_MODEL', 'openai/gpt-5-mini')

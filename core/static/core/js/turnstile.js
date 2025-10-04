@@ -13,6 +13,7 @@ class TurnstileManager {
         this.currentToken = null;
         this.isReady = false;
         this.initPromise = null;
+        this._pending = null; // { resolve, reject, timeoutId }
         
         // Wait for Turnstile API to be ready
         this.waitForTurnstile().then(() => {
@@ -81,18 +82,9 @@ class TurnstileManager {
                 sitekey: this.siteKey,
                 theme: 'light',
                 size: 'invisible',
-                callback: (token) => {
-                    this.currentToken = token;
-                    console.log('Turnstile token received');
-                },
-                'error-callback': (error) => {
-                    console.error('Turnstile error:', error);
-                    this.currentToken = null;
-                },
-                'expired-callback': () => {
-                    console.log('Turnstile token expired');
-                    this.currentToken = null;
-                }
+                callback: (token) => this._onToken(token),
+                'error-callback': (error) => this._onError(error),
+                'expired-callback': () => this._onExpired()
             });
             
             this.isReady = true;
@@ -105,6 +97,48 @@ class TurnstileManager {
         }
     }
     
+    /**
+     * Internal: handle successful token issuance
+     */
+    _onToken(token) {
+        this.currentToken = token;
+        console.log('Turnstile token received');
+        if (this._pending) {
+            const { resolve, timeoutId } = this._pending;
+            clearTimeout(timeoutId);
+            this._pending = null;
+            resolve(token);
+        }
+    }
+
+    /**
+     * Internal: handle widget error
+     */
+    _onError(error) {
+        console.error('Turnstile error:', error);
+        this.currentToken = null;
+        if (this._pending) {
+            const { reject, timeoutId } = this._pending;
+            clearTimeout(timeoutId);
+            this._pending = null;
+            reject(new Error('Turnstile error'));
+        }
+    }
+
+    /**
+     * Internal: handle token expiration
+     */
+    _onExpired() {
+        console.log('Turnstile token expired');
+        this.currentToken = null;
+        if (this._pending) {
+            const { reject, timeoutId } = this._pending;
+            clearTimeout(timeoutId);
+            this._pending = null;
+            reject(new Error('Turnstile token expired'));
+        }
+    }
+
     /**
      * Get a fresh token for API calls
      * This method ensures we always have a valid token for each submission
@@ -120,33 +154,26 @@ class TurnstileManager {
         }
         
         try {
-            // Check if the widget element exists before trying to reset it
-            if (!this.widgetExists()) {
-                console.warn('Turnstile widget element not found, re-initializing...');
-                await this.reinitialize();
-                if (!this.isReady) {
-                    throw new Error('Failed to re-initialize Turnstile');
-                }
+            // If a previous token request is pending, cancel it
+            if (this._pending) {
+                const { reject, timeoutId } = this._pending;
+                clearTimeout(timeoutId);
+                this._pending = null;
+                // Reject the older pending request to avoid leaks
+                reject(new Error('Superseded by a new token request'));
             }
-            
-            // Reset the widget to get a fresh token
+
+            // Reset the widget to get a fresh token and return a promise for the next callback
             window.turnstile.reset(this.widgetId);
-            
-            // Execute the challenge to get a new token
+
             return new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => {
+                const timeoutId = setTimeout(() => {
+                    this._pending = null;
                     reject(new Error('Turnstile token timeout'));
-                }, 10000); // 10 second timeout
+                }, 15000); // 15 second timeout to be generous on slow networks
 
-                // Create a new callback to capture the token
-                const tokenCallback = (token) => {
-                    clearTimeout(timeout);
-                    this.currentToken = token;
-                    resolve(token);
-                };
-
-                // Safely set the callback
-                this.setWidgetCallback(tokenCallback);
+                // Keep handles so the render callback can resolve/reject
+                this._pending = { resolve, reject, timeoutId };
 
                 // Execute the challenge
                 window.turnstile.execute(this.widgetId);
@@ -154,41 +181,6 @@ class TurnstileManager {
         } catch (error) {
             console.error('Failed to get Turnstile token:', error);
             throw error;
-        }
-    }
-    
-    /**
-     * Check if the widget element exists in the DOM
-     */
-    widgetExists() {
-        try {
-            // Check if the widget container exists
-            const container = document.getElementById('turnstile-widget');
-            if (!container) return false;
-            
-            // Check if the widget is in the renderedWidgets object
-            if (!window.turnstile.renderedWidgets) return false;
-            
-            // Check if our specific widget exists
-            return !!window.turnstile.renderedWidgets[this.widgetId];
-        } catch (error) {
-            console.error('Error checking widget existence:', error);
-            return false;
-        }
-    }
-    
-    /**
-     * Safely set the widget callback
-     */
-    setWidgetCallback(callback) {
-        try {
-            if (window.turnstile.renderedWidgets && window.turnstile.renderedWidgets[this.widgetId]) {
-                window.turnstile.renderedWidgets[this.widgetId].callback = callback;
-            } else {
-                console.error('Cannot set callback: widget not found in renderedWidgets');
-            }
-        } catch (error) {
-            console.error('Error setting widget callback:', error);
         }
     }
     
@@ -221,7 +213,8 @@ class TurnstileManager {
      * Check if Turnstile is ready
      */
     isInitialized() {
-        return this.isReady && this.widgetId !== null && this.widgetExists();
+        // Avoid relying on undocumented internals; if we've rendered and marked ready, consider it initialized
+        return this.isReady && this.widgetId !== null;
     }
 }
 
