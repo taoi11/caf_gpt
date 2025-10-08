@@ -31,7 +31,7 @@ class PaceNoteView(TemplateView):
         # Add Turnstile site key for frontend integration
         from django.conf import settings
         context['turnstile_site_key'] = getattr(settings, 'TURNSTILE_SITE_KEY', '')
-        
+
         # Add CSP nonce for inline scripts
         context['csp_nonce'] = self.request.csp_nonce if hasattr(self.request, 'csp_nonce') else None
 

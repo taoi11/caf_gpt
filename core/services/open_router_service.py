@@ -31,6 +31,34 @@ class OpenRouterService:
 
         self.model = model
 
+    def _process_response(self, result):
+        """Process the API response and extract generated text."""
+        gen_id = result.get('id')
+        if 'error' in result:
+            error_code = result['error'].get('code')
+            error_message = result['error'].get('message')
+            logger.error(f"OpenRouter API error {error_code} (id: {gen_id}): {error_message}")
+            return f"OpenRouter API error {error_code}: {error_message}"
+
+        if 'choices' in result:
+            generated_text = result['choices'][0]['message']['content']
+            generated_text = self._strip_think_blocks(generated_text)
+            logger.info(f"Successfully generated completion from Open Router API (id: {gen_id})")
+            return generated_text
+
+        logger.error(f"Unexpected response format: {result}")
+        return "Unexpected response format from API"
+
+    def _strip_think_blocks(self, text):
+        """Strip out <think>...</think> blocks from the generated text."""
+        if isinstance(text, str):
+            try:
+                text = re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.IGNORECASE)
+                text = text.strip()
+            except Exception as clean_ex:
+                logger.warning(f"Failed to strip <think> blocks: {clean_ex}")
+        return text
+
     def generate_completion(self, prompt, temperature=0.3):
         """
         Generate a completion using the Open Router API.
@@ -79,34 +107,7 @@ class OpenRouterService:
 
             if response.status_code == 200:
                 result = response.json()
-
-                # Check if the response contains an error
-                gen_id = result.get('id')  # Extract the generation ID
-                if 'error' in result:
-                    error_code = result['error'].get('code')
-                    error_message = result['error'].get('message')
-                    logger.error(f"OpenRouter API error {error_code} (id: {gen_id}): {error_message}")
-                    return f"OpenRouter API error {error_code}: {error_message}"
-
-                # Only try to access 'choices' if there's no error
-                if 'choices' in result:
-                    generated_text = result['choices'][0]['message']['content']
-
-                    # Strip out any <think>...</think> blocks if present (for "thinking" models)
-                    # This ensures only the assistant's final answer is returned to the frontend.
-                    if isinstance(generated_text, str):
-                        try:
-                            # Use DOTALL so newlines are matched inside the think tags
-                            generated_text = re.sub(r"<think>[\s\S]*?</think>", "", generated_text, flags=re.IGNORECASE)
-                            generated_text = generated_text.strip()
-                        except Exception as clean_ex:
-                            logger.warning(f"Failed to strip <think> blocks: {clean_ex}")
-
-                    logger.info(f"Successfully generated completion from Open Router API (id: {gen_id})")
-                    return generated_text
-                else:
-                    logger.error(f"Unexpected response format: {result}")
-                    return "Unexpected response format from API"
+                return self._process_response(result)
             else:
                 logger.error(f"Error from Open Router API: {response.status_code} - {response.text}")
                 return f"Error generating completion. Status code: {response.status_code}"
