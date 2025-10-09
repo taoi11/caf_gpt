@@ -1,5 +1,22 @@
 # PaceNote App
 
+## Directory Structure
+```
+pacenote_foo/
+├── models.py         # Chat session models
+├── views.py          # Chat interface views
+├── urls.py           # PaceNote URL configuration
+├── services/         # App-specific services
+│   ├── prompt_service.py # Prompt template management
+│   └── local_file_reader.py # Local file content reading
+├── prompts/          # Prompt templates
+│   ├── base.md       # Base prompt template
+│   └── competencies/ # Rank-specific competency templates
+├── templates/        # PaceNote templates
+├── static/           # PaceNote static files
+└── management/       # Custom management commands
+```
+
 ## Purpose
 Generate professional feedback notes for CAF members based on user observations and rank-specific competencies.
 

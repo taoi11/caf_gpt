@@ -4,6 +4,23 @@
 Foundation module providing shared functionality, services, and utilities across the CAF GPT platform.
 Holds common components used by other applications to ensure consistency and reusability.
 
+## Directory Structure
+```
+core/
+├── models.py         # Base models
+├── views.py          # Landing page and health check views
+├── urls.py           # Core URL configuration
+├── middleware.py     # Custom middleware
+├── services/         # Shared services
+│   ├── open_router_service.py # LLM integration
+│   ├── database_service.py # Database operations
+│   └── turnstile_service.py # Cloudflare Turnstile integration
+├── templates/        # Core templates
+│   └── base/         # Base templates
+├── static/           # Core static files
+└── utils/            # Utility functions
+```
+
 ## Key Components
 
 ### Services

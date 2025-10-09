@@ -3,6 +3,23 @@
 ## Purpose
 LLM workflow for answering policy/regulation questions with citations from authoritative sources.
 
+## Directory Structure
+```
+policy_foo/
+├── models.py         # Policy document models
+├── urls.py           # Policy URL configuration
+├── views/            # Organized view modules
+│   ├── router.py     # Policy routing logic
+│   ├── rate_limits.py # Rate limiting checks
+│   └── doad_foo/     # DOAD policy handler
+│       ├── finder.py # Document finder
+│       ├── reader.py # Document reader
+│       └── main.py   # Response synthesizer
+├── templates/        # Policy templates
+├── static/           # Policy static files
+└── prompts/          # Policy prompt templates
+```
+
 ## Workflow
    1. User sends a question + `policy_set` parameter from the frontend
    2. Router receives the `user` message only as its the first message
@@ -16,21 +33,6 @@ LLM workflow for answering policy/regulation questions with citations from autho
    9. Router validates the `policy_set` parameter
    10. Router selects the appropriate `<policy_set>_foo` based on the `policy_set` and sends the `user` + `assistant` message sequence to the `<policy_set>_foo`
    ...
-
-## Directory Structure
-```
-policy_foo/
-├── views/
-│   ├── __init__.py          # Exports views for easy importing
-│   ├── router.py            # PolicyRouterView implementation
-│   ├── rate_limits.py       # Checks for rate limits compliance
-│   ├── doad_foo/            # DOAD policy handler
-│   │   ├── README.md        # Documentation for DOAD_foo sub agents
-│   │   ├── __init__.py      # Orchestration logic for DOAD handlers
-│   │   ├── finder.py        # Identifies relevant DOAD documents
-│   │   ├── reader.py        # Retrieves and processes document content
-│   │   └── main.py          # Synthesizes final response
-```
 
 ## Components
 
