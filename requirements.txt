@@ -1,25 +1,25 @@
 # Web Framework
-fastapi==0.115.6
-uvicorn[standard]==0.32.1
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
 
 # Data Validation and Settings
-pydantic==2.10.5
-pydantic-settings==2.7.1
-python-dotenv==1.0.1
+pydantic==2.11.7
+pydantic-settings==2.10.1
+python-dotenv==1.1.1
 
 # HTTP Requests
-requests==2.32.3
+requests==2.32.5
 
 # Email Handling
 email-validator==2.2.0
 
 # Storage
-boto3==1.35.89
+boto3==1.40.18
 
 # Logging
-structlog==24.4.0
+structlog==25.5.0
 
 # Development
-black==24.10.0
-mypy==1.14.1
-pytest==8.3.4
+black==25.1.0
+mypy==1.17.1
+pytest==8.4.2
