@@ -1,11 +1,15 @@
+version: "3.9"
+
 services:
-  web:
+  app:
     build:
       context: .
-      dockerfile: Dockerfile # Explicitly state the Dockerfile name
-    image: caf_gpt
+      dockerfile: Dockerfile
+    image: caf_gpt:latest
     restart: always
     ports:
       - "8000:8000"
     env_file:
       - .env
+    volumes:
+      - .:/code:cached
