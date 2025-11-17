@@ -1,27 +1,30 @@
-# Aider
-.aider*
-!.aider.conf.yml
-prompt.md
-
-# Editor directories and files
-.idea/
-
 # Environment
 .env
 .direnv
 
 # Python
-__pycache__
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Django
-logs/
+# Editor directories and files
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
-staticfiles/
-media/
-
-# Databases
-*.sqlite3
-*.sqlite3-journal
+logs/
 
 # Deployment
 data/

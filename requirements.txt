@@ -1,24 +1,25 @@
-# Django and related packages
-Django==4.2.19
-django-debug-toolbar==4.4.6
+# Web Framework
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
 
-# Database
-psycopg2-binary==2.9.9
-
-# Environment variables
+# Data Validation and Settings
+pydantic==2.10.5
+pydantic-settings==2.7.1
 python-dotenv==1.0.1
 
-# WSGI server
-gunicorn==23.0.0
-
-# Security
-django-cors-headers==4.4.0
-
-# Utilities
+# HTTP Requests
 requests==2.32.3
 
-# CSP
-django-csp==3.8
+# Email Handling
+email-validator==2.2.0
 
-# Static files
-whitenoise[brotli]
+# Storage
+boto3==1.35.89
+
+# Logging
+structlog==24.4.0
+
+# Development
+black==24.10.0
+mypy==1.14.1
+pytest==8.3.4
