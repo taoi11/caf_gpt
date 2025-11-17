@@ -1,40 +1,31 @@
-import asyncio
 from contextlib import asynccontextmanager
+import logging
 import threading
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from src.config import config
+from src.email_code.simple_email_handler import SimpleEmailProcessor
 
-# TODO: Import EmailQueueProcessor once implemented
-# from src.email.email_queue_processor import EmailQueueProcessor
+logging.basicConfig(level=logging.INFO)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan management."""
-    # Startup
-    email_processor = None
+    email_processor = SimpleEmailProcessor(config.email)
+    processor_thread = threading.Thread(
+        target=email_processor.run_loop,
+        daemon=True
+    )
+    processor_thread.start()
+
     try:
-        # TODO: Uncomment once EmailQueueProcessor is implemented
-        # email_processor = EmailQueueProcessor(config.email)
-        # processor_thread = threading.Thread(
-        #     target=email_processor.start_queue_processing,
-        #     daemon=True  # Thread dies with main process
-        # )
-        # processor_thread.start()
-
         yield
-
-    except KeyboardInterrupt:
-        pass
     finally:
-        # Shutdown
-        if email_processor:
-            # TODO: Implement graceful shutdown in EmailQueueProcessor
-            # email_processor.stop_processing()
-            pass
+        email_processor.stop()
+        processor_thread.join(timeout=5)
 
 
 app = FastAPI(
@@ -56,9 +47,9 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
-        "main:app",
+        "src.main:app",
         host="0.0.0.0",
         port=8000,
         reload=config.dev_mode

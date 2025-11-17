@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import List, Mapping, Optional
 
 from pydantic import Field, model_validator
-from pydantic_settings import BaseSettings, ConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class EmailConfig(BaseSettings):
@@ -12,13 +11,13 @@ class EmailConfig(BaseSettings):
     imap_port: int = 993
     imap_username: str
     imap_password: str
-    agent_email: str
+    agent_email: Optional[str] = None
     agent_emails: List[str] = Field(default_factory=list)
 
     delete_after_process: bool = True
     email_process_interval: int = 30
 
-    model_config = ConfigDict(env_prefix="EMAIL__", extra="ignore")
+    model_config = SettingsConfigDict(env_prefix="EMAIL__", extra="ignore")
 
     @model_validator(mode="before")
     def _normalize_agent_emails(cls, values: Mapping[str, object]) -> Mapping[str, object]:
@@ -38,7 +37,7 @@ class LLMConfig(BaseSettings):
     temperature: float = 0.2
     request_timeout_seconds: float = 60.0
 
-    model_config = ConfigDict(env_prefix="LLM__", extra="ignore")
+    model_config = SettingsConfigDict(env_prefix="LLM__", extra="ignore")
 
 
 class StorageConfig(BaseSettings):
@@ -49,7 +48,7 @@ class StorageConfig(BaseSettings):
     s3_region: str = ""
     use_path_style_endpoint: bool = False
 
-    model_config = ConfigDict(env_prefix="STORAGE__", extra="ignore")
+    model_config = SettingsConfigDict(env_prefix="STORAGE__", extra="ignore")
 
 
 class AppConfig(BaseSettings):
@@ -58,7 +57,7 @@ class AppConfig(BaseSettings):
     llm: LLMConfig
     storage: StorageConfig
 
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
