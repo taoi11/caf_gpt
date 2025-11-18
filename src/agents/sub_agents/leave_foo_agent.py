@@ -14,8 +14,8 @@ from typing import List, Optional
 
 from ..base_agent import BaseAgent
 from ..types import Message
-# Assuming DocumentRetriever will be imported from storage once implemented
-# from ...storage.document_retriever import DocumentRetriever
+# Import DocumentRetriever from storage module
+from ...storage.document_retriever import DocumentRetriever
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class LeaveFooAgent(BaseAgent):
         # Initialize parent BaseAgent and store prompt manager for loading leave_foo prompt
         super().__init__(api_key)
         self.prompt_manager = prompt_manager
-        # self.document_retriever = DocumentRetriever()  # Will be initialized later
+        self.document_retriever = DocumentRetriever()  # Initialize the document retriever
 
     def research(self, query: str) -> str:
         # Main entry for leave policy research: retrieve policy, build prompt, call LLM
@@ -43,12 +43,14 @@ class LeaveFooAgent(BaseAgent):
             return "I'm sorry, but I couldn't retrieve the leave policy information at this time."
 
     def _retrieve_leave_policy(self) -> str:
-        # Fetch leave policy from storage (placeholder until DocumentRetriever is implemented)
-        # Placeholder: In real implementation, use DocumentRetriever
-        # policy_content = self.document_retriever.get_document("leave_policy", "leave_policy.pdf")
-        # return policy_content.decode('utf-8') if isinstance(policy_content, bytes) else policy_content
-        logger.info("Retrieving leave policy document")
-        return "Placeholder leave policy content. Please implement document retrieval."
+        # Fetch leave policy from storage using DocumentRetriever
+        policy_content = self.document_retriever.get_document("leave_policy", "leave_policy.pdf")
+        if policy_content is None:
+            logger.warning("Leave policy document not found in storage.")
+            return "I'm sorry, but I couldn't retrieve the leave policy information at this time."
+
+        logger.info("Successfully retrieved leave policy document")
+        return policy_content
 
     def _build_leave_foo_prompt(self, policy: str, question: str) -> List[Message]:
         # Load leave_foo prompt, inject policy via {{leave_policy}} placeholder, construct messages
