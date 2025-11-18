@@ -19,24 +19,39 @@ from fastapi.responses import JSONResponse
 from src.config import config
 from src.email_code.simple_email_handler import SimpleEmailProcessor
 
-logging.basicConfig(level=logging.INFO)
 
+from src.logging import setup_logging
+
+from src.logging import setup_logging
+
+setup_logging(config)
+
+
+logger = structlog.get_logger()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Async context manager for application lifespan: starts email processor thread on startup, stops on shutdown
+    # Manages daemon thread for continuous email polling with graceful shutdown
+    logger.info("starting email processor")
     email_processor = SimpleEmailProcessor(config.email)
     processor_thread = threading.Thread(
         target=email_processor.run_loop,
         daemon=True
     )
     processor_thread.start()
+    logger.info("email processor thread started", thread_id=processor_thread.ident)
 
     try:
         yield
     finally:
+        logger.info("stopping email processor")
         email_processor.stop()
         processor_thread.join(timeout=5)
+        if processor_thread.is_alive():
+            logger.warning("processor thread did not stop within timeout")
+        else:
+            logger.info("email processor stopped gracefully")
 
 
 app = FastAPI(
@@ -45,11 +60,13 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan
 )
+# FastAPI application instance with title, description, version, and lifespan context manager
 
 
 @app.get("/health")
 async def health_check():
     # Health check endpoint returning JSON status for application monitoring
+    # Used for container orchestration and load balancer health checks
     return JSONResponse(
         content={"status": "healthy", "version": "0.1.0"},
         status_code=200

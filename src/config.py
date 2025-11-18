@@ -68,12 +68,23 @@ class StorageConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="STORAGE__", extra="ignore")
 
 
+
+class LogConfig(BaseSettings):
+    # Pydantic settings for logging configuration
+    log_level: str = "INFO"
+    json_logging: bool = False
+
+    model_config = SettingsConfigDict(env_prefix="LOG__", extra="ignore")
+
+
+
 class AppConfig(BaseSettings):
     # Main aggregated configuration class loading sub-configs from environment variables and .env file
     dev_mode: bool = False
     email: EmailConfig
     llm: LLMConfig
     storage: StorageConfig
+    log: LogConfig
 
     model_config = SettingsConfigDict(
         env_file=".env",

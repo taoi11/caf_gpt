@@ -19,7 +19,8 @@ from src.config import EmailConfig
 
 
 class IMAPConnectorError(Exception):
-    # Custom exception raised when IMAP operations fail, wrapping imaplib errors
+    """Custom exception raised when IMAP operations fail, wrapping imaplib errors"""
+    pass
 
 class IMAPConnector:
     # IMAP client wrapper using imaplib.IMAP4_SSL for secure connections, authentication, and email retrieval
