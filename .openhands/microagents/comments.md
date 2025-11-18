@@ -49,22 +49,23 @@ Top-level declarations:
 
 ## Function/Class Comments (Required)
 
-Every top-level function or class must have a docstring immediately after its definition that:
-1. Expands on the short description from the module docstring
-2. Provides additional context about its purpose or behavior
+Every top-level function or class must have inline # comments immediately after its definition that:
+1. Expand on the short description from the module docstring
+2. Provide additional context about its purpose or behavior
 
 ### Format:
 ```python
 def my_function():
-    # More detailed description expanding on the reference from file header
+    # Brief description expanding on the module docstring reference
+    # Additional context about purpose or behavior
     ...
 ```
 
 ### Important Notes:
-- **ALWAYS** use docstrings (triple quotes) for top of file comments
-- **NEVER** rely solely on inline comments to describe public APIs
-- Docstring should be descriptive but concise
-- Docstring should add value beyond what the function name provides
+- **ALWAYS** use docstrings (triple quotes) only for top of file comments
+- Use inline # comments for all other comments, including function/class descriptions
+- Comments should be descriptive but concise
+- Comments should add value beyond what the function name provides
 
 ## Inline Comments (Minimal)
 
