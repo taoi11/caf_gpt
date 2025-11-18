@@ -28,3 +28,5 @@ logs/
 
 # Deployment
 data/
+.aider*
+!.aider.conf.yml

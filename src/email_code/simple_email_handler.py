@@ -13,6 +13,8 @@ from typing import Optional
 
 from src.config import EmailConfig
 from src.email_code.imap_connector import IMAPConnector, IMAPConnectorError
+from src.email.components.email_parser import EmailParser
+from src.email.types import ParsedEmailData
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +29,7 @@ class LoggedEmail:
 
 
 class SimpleEmailProcessor:
-    """Basic IMAP polling processor that logs incoming messages."""
+    """Basic IMAP polling processor that parses and logs incoming messages using EmailParser."""
 
     def __init__(self, config: EmailConfig) -> None:
         self._config = config
@@ -67,41 +69,29 @@ class SimpleEmailProcessor:
         for uid in uids:
             try:
                 raw_message = self._connector.fetch_email_bytes(uid)
-                parsed = self._parser.parsebytes(raw_message)
-                logged_email = self._build_log_entry(uid, parsed)
+                parsed_data = EmailParser.parse_email(raw_message)
+                logged_email = self._build_log_entry(uid, parsed_data)
                 self._log_email(logged_email)
+            except ValueError as error:  # From parser validation
+                logger.error("invalid email data", uid=uid, exc_info=error)
             except IMAPConnectorError as error:
-                logger.error("error processing message", uid=uid, exc_info=error)
+                logger.error("error fetching message", uid=uid, exc_info=error)
             except Exception as error:
                 logger.exception("unexpected error while parsing email", uid=uid, exc_info=error)
 
-    def _build_log_entry(self, uid: str, message) -> LoggedEmail:
-        sender = self._extract_header(message, "From") or "<unknown>"
-        subject = self._extract_header(message, "Subject") or "<no subject>"
-        preview = self._extract_body_preview(message)
+    def _build_log_entry(self, uid: str, data: ParsedEmailData) -> LoggedEmail:
+        sender = data.from_addr
+        subject = data.subject or "<no subject>"
+        if data.text_body:
+            preview = data.text_body.strip()[:200]
+        elif data.html_body:
+            import re
+            # Remove HTML tags for preview
+            text = re.sub(r'<[^>]+>', '', data.html_body)
+            preview = text.strip()[:200]
+        else:
+            preview = ""
         return LoggedEmail(uid=uid, sender=sender, subject=subject, preview=preview)
-
-    @staticmethod
-    def _extract_header(message, name: str) -> Optional[str]:
-        header = message[name]
-        if header is None:
-            return None
-        return str(header)
-
-    @staticmethod
-    def _extract_body_preview(message) -> str:
-        if message.is_multipart():
-            for part in message.walk():
-                if part.get_content_type() == "text/plain" and part.get_content_disposition() in (None, "inline"):
-                    return SimpleEmailProcessor._truncate(part.get_content())
-            return SimpleEmailProcessor._truncate(message.get_body(preferencelist=("plain",)) or "")
-        return SimpleEmailProcessor._truncate(message.get_content())
-
-    @staticmethod
-    def _truncate(body: Optional[str]) -> str:
-        if not body:
-            return ""
-        return body.strip()[:200]
 
     @staticmethod
     def _log_email(entry: LoggedEmail) -> None:
