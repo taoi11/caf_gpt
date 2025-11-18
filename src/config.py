@@ -1,3 +1,16 @@
+"""
+src/config.py
+
+Centralized configuration management using Pydantic for the application, including email, LLM, and storage settings.
+
+Top-level declarations:
+- EmailConfig: Configuration for IMAP email access and processing
+- LLMConfig: Settings for the LLM model and API
+- StorageConfig: S3 storage configuration
+- AppConfig: Main application configuration aggregating sub-configs
+- config: Global instance of AppConfig
+"""
+
 from __future__ import annotations
 
 from typing import List, Mapping, Optional
@@ -7,6 +20,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class EmailConfig(BaseSettings):
+    # Pydantic settings for IMAP email configuration, including host, credentials, and processing options
     imap_host: str
     imap_port: int = 993
     imap_username: str
@@ -21,6 +35,7 @@ class EmailConfig(BaseSettings):
 
     @model_validator(mode="before")
     def _normalize_agent_emails(cls, values: Mapping[str, object]) -> Mapping[str, object]:
+        # Normalize agent_emails input: split comma-separated string into list or set empty list if None
         agent_emails = values.get("agent_emails")
         if isinstance(agent_emails, str):
             values = dict(values)
@@ -32,6 +47,7 @@ class EmailConfig(BaseSettings):
 
 
 class LLMConfig(BaseSettings):
+    # Pydantic settings for LLM configuration, including API key, model selection, temperature, and timeout
     openrouter_api_key: str
     model: str = "openai/gpt-4o-mini"
     temperature: float = 0.2
@@ -41,6 +57,7 @@ class LLMConfig(BaseSettings):
 
 
 class StorageConfig(BaseSettings):
+    # Pydantic settings for S3-compatible storage, including bucket, credentials, endpoint, and path style options
     s3_bucket_name: str
     s3_endpoint_url: str = ""
     s3_access_key: str
@@ -52,6 +69,7 @@ class StorageConfig(BaseSettings):
 
 
 class AppConfig(BaseSettings):
+    # Main aggregated configuration class loading sub-configs from environment variables and .env file
     dev_mode: bool = False
     email: EmailConfig
     llm: LLMConfig

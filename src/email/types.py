@@ -1,3 +1,12 @@
+"""
+src/email/types.py
+
+Pydantic models for representing parsed email data structures.
+
+Top-level declarations:
+- ParsedEmailData: Model holding extracted email fields like sender, recipients, subject, and body content
+"""
+
 from __future__ import annotations
 
 from typing import List, Optional

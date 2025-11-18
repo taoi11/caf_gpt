@@ -1,3 +1,14 @@
+"""
+src/main.py
+
+Main FastAPI application entry point, handling lifespan management for email processing and providing a health check endpoint.
+
+Top-level declarations:
+- lifespan: Async context manager to start and stop the email processor thread
+- app: FastAPI application instance with title, description, and lifespan
+- health_check: GET endpoint returning application health status
+"""
+
 from contextlib import asynccontextmanager
 import logging
 import threading
@@ -13,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan management."""
+    # Async context manager for application lifespan: starts email processor thread on startup, stops on shutdown
     email_processor = SimpleEmailProcessor(config.email)
     processor_thread = threading.Thread(
         target=email_processor.run_loop,
@@ -38,7 +49,7 @@ app = FastAPI(
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for monitoring."""
+    # Health check endpoint returning JSON status for application monitoring
     return JSONResponse(
         content={"status": "healthy", "version": "0.1.0"},
         status_code=200

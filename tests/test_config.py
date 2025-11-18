@@ -1,3 +1,13 @@
+"""
+tests/test_config.py
+
+Unit tests for configuration validation, focusing on EmailConfig parsing and default behaviors.
+
+Top-level declarations:
+- test_agent_emails_string_is_split_into_list: Verify agent_emails string splits into list correctly
+- test_defaults_are_set: Confirm default values for processing options and empty lists
+"""
+
 from __future__ import annotations
 
 import os
@@ -16,6 +26,7 @@ from src.config import EmailConfig
 
 
 def test_agent_emails_string_is_split_into_list() -> None:
+    # Verify that comma-separated agent_emails string is correctly split and stripped into a list
     config = EmailConfig(
         imap_host="imap.test",
         imap_username="user",
@@ -28,6 +39,7 @@ def test_agent_emails_string_is_split_into_list() -> None:
 
 
 def test_defaults_are_set() -> None:
+    # Confirm that default values are applied correctly for processing flags and empty agent_emails list
     config = EmailConfig(
         imap_host="imap.test",
         imap_username="user",

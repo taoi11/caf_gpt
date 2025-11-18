@@ -1,3 +1,13 @@
+"""
+src/email_code/imap_connector.py
+
+IMAP client wrapper for connecting to email servers, searching unseen messages, fetching email content, and managing flags.
+
+Top-level declarations:
+- IMAPConnectorError: Custom exception for IMAP operation failures
+- IMAPConnector: Main class handling IMAP connections and email retrieval
+"""
+
 # Note: This directory is named 'email_code' to avoid shadowing Python's standard 'email' module.
 from __future__ import annotations
 
@@ -9,11 +19,11 @@ from src.config import EmailConfig
 
 
 class IMAPConnectorError(Exception):
-    """Raised when an IMAP operation fails."""
-
+    # Custom exception raised when IMAP operations fail, wrapping imaplib errors
 
 class IMAPConnector:
-    """Simple helper for connecting to an IMAP server and fetching emails."""
+    # IMAP client wrapper using imaplib.IMAP4_SSL for secure connections, authentication, and email retrieval
+    # Handles connection lifecycle, searching unseen UIDs, fetching raw message bytes, and marking as seen
 
     def __init__(self, config: EmailConfig) -> None:
         self._config = config
