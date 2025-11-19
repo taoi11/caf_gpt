@@ -14,7 +14,6 @@ from typing import List, Optional
 
 from ..base_agent import BaseAgent
 from ..types import Message
-# Import DocumentRetriever from storage module
 from ...storage.document_retriever import DocumentRetriever
 
 logger = logging.getLogger(__name__)
@@ -44,7 +43,8 @@ class LeaveFooAgent(BaseAgent):
 
     def _retrieve_leave_policy(self) -> str:
         # Fetch leave policy from storage using DocumentRetriever
-        policy_content = self.document_retriever.get_document("leave_policy", "leave_policy.pdf")
+        # Updated to use new file path: leave/leave_policy_2025.md in the 'policies' bucket
+        policy_content = self.document_retriever.get_document("leave", "leave_policy_2025.md")
         if policy_content is None:
             logger.warning("Leave policy document not found in storage.")
             return "I'm sorry, but I couldn't retrieve the leave policy information at this time."

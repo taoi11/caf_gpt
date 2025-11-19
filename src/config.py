@@ -58,7 +58,7 @@ class LLMConfig(BaseSettings):
 
 class StorageConfig(BaseSettings):
     # Pydantic settings for S3-compatible storage, including bucket, credentials, endpoint, and path style options
-    s3_bucket_name: str
+    s3_bucket_name: str = "policies"  # Default to 'policies' bucket
     s3_endpoint_url: str = ""
     s3_access_key: str
     s3_secret_key: str
