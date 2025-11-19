@@ -18,6 +18,23 @@ from typing import List, Mapping, Optional
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Email address for policy-related agents (prime_foo)
+# Only emails sent to this address should trigger the prime_foo agent workflow
+POLICY_AGENT_EMAIL = "policy@caf-gpt.com"
+
+
+def should_trigger_agent(to_addresses: List[str]) -> bool:
+    """
+    Determine if an email should trigger the prime_foo agent based on its recipient address.
+
+    Args:
+        to_addresses: List of email addresses the message was sent to
+
+    Returns:
+        True if the email was sent to the policy agent address, False otherwise
+    """
+    return POLICY_AGENT_EMAIL in to_addresses
+
 
 class EmailConfig(BaseSettings):
     # Pydantic settings for IMAP email configuration, including host, credentials, and processing options
@@ -25,25 +42,11 @@ class EmailConfig(BaseSettings):
     imap_port: int = 993
     imap_username: str
     imap_password: str
-    agent_email: Optional[str] = None
-    agent_emails: List[str] = Field(default_factory=list)
 
     delete_after_process: bool = True
     email_process_interval: int = 30
 
     model_config = SettingsConfigDict(env_prefix="EMAIL__", extra="ignore")
-
-    @model_validator(mode="before")
-    def _normalize_agent_emails(cls, values: Mapping[str, object]) -> Mapping[str, object]:
-        # Normalize agent_emails input: split comma-separated string into list or set empty list if None
-        agent_emails = values.get("agent_emails")
-        if isinstance(agent_emails, str):
-            values = dict(values)
-            values["agent_emails"] = [w.strip() for w in agent_emails.split(",") if w.strip()]
-        elif agent_emails is None:
-            values = dict(values)
-            values["agent_emails"] = []
-        return values
 
 
 class LLMConfig(BaseSettings):
@@ -68,7 +71,6 @@ class StorageConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="STORAGE__", extra="ignore")
 
 
-
 class LogConfig(BaseSettings):
     # Pydantic settings for logging configuration
     log_level: str = "INFO"
@@ -77,14 +79,13 @@ class LogConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="LOG__", extra="ignore")
 
 
-
 class AppConfig(BaseSettings):
     # Main aggregated configuration class loading sub-configs from environment variables and .env file
     dev_mode: bool = False
     email: EmailConfig
     llm: LLMConfig
     storage: StorageConfig
-    log: LogConfig
+    log: LogConfig = Field(default_factory=LogConfig)
 
     model_config = SettingsConfigDict(
         env_file=".env",
