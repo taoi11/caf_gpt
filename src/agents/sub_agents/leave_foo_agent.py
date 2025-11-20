@@ -12,16 +12,14 @@ Top-level declarations:
 import logging
 from typing import List, Optional
 
-from ..base_agent import BaseAgent
 from ..types import Message
 from ...storage.document_retriever import DocumentRetriever
+from src.llm_interface import llm_client
 
 logger = logging.getLogger(__name__)
 
-class LeaveFooAgent(BaseAgent):
-    def __init__(self, api_key: str, prompt_manager: Optional['PromptManager'] = None):
-        # Initialize parent BaseAgent and store prompt manager for loading leave_foo prompt
-        super().__init__(api_key)
+class LeaveFooAgent:
+    def __init__(self, prompt_manager: Optional['PromptManager'] = None):
         self.prompt_manager = prompt_manager
         self.document_retriever = DocumentRetriever()  # Initialize the document retriever
 
@@ -65,6 +63,7 @@ class LeaveFooAgent(BaseAgent):
         return [system_message, user_message]
 
     def _call_with_context(self, messages: List[Message]) -> str:
-        # Invoke parent call_openrouter with leave-specific model and low temperature for accuracy
-        return self.call_openrouter(messages, model="anthropic/claude-3.5-sonnet", temperature=0.3)
+        # Convert messages to dicts and call llm_client with temperature
+        formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
+        return llm_client.generate_response(formatted_messages, temperature=0.3)
 

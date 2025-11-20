@@ -9,27 +9,26 @@ Top-level declarations:
 """
 
 import logging
-from typing import Dict
+from typing import Dict, Any
 import xml.etree.ElementTree as ET
 
-from .base_agent import BaseAgent
+
 from .prompt_manager import PromptManager
 from .types import AgentResponse, PrimeFooResponse, ResearchRequest
 from .sub_agents.leave_foo_agent import LeaveFooAgent
+from src.llm_interface import llm_client
 
 logger = logging.getLogger(__name__)
 
 class AgentCoordinator:
-    def __init__(self, api_key: str, prompt_manager: PromptManager):
-        # Initialize with API key and prompt manager; set up base agent and load sub-agents
-        self.base_agent = BaseAgent(api_key)
+    def __init__(self, prompt_manager: PromptManager):
         self.prompt_manager = prompt_manager
-        self.sub_agents: Dict[str, 'BaseAgent'] = {}
+        self.sub_agents: Dict[str, Any] = {}
         self._load_sub_agents()
 
     def _load_sub_agents(self):
         # Dynamically load sub-agents like LeaveFooAgent with prompt manager access
-        self.sub_agents['leave_foo'] = LeaveFooAgent(self.base_agent.api_key, self.prompt_manager)
+        self.sub_agents['leave_foo'] = LeaveFooAgent(self.prompt_manager)
 
     def process_email_with_prime_foo(self, email_context: str) -> AgentResponse:
         # Main coordination loop: send to prime_foo, parse response, handle research/reply/no_response iteratively
@@ -39,7 +38,7 @@ class AgentCoordinator:
                 {"role": "system", "content": prime_prompt},
                 {"role": "user", "content": email_context}
             ]
-            response = self.base_agent.call_openrouter(messages)
+            response = llm_client.generate_response(messages)
             parsed = self.parse_prime_foo_response(response)
 
             while True:
@@ -54,7 +53,7 @@ class AgentCoordinator:
                         {"role": "assistant", "content": response},
                         {"role": "user", "content": f"Research results: {research_result}"}
                     ]
-                    response = self.base_agent.call_openrouter(follow_up_messages)
+                    response = llm_client.generate_response(follow_up_messages)
                     parsed = self.parse_prime_foo_response(response)
                 else:
                     return self.get_generic_error_response()
