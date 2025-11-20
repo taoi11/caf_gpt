@@ -4,10 +4,15 @@ watch-files: true
 max-chat-history-tokens: 32768
 restore-chat-history: false
 read:
-  - "README.md"
-  - "rewrite.md"
+  - README.md
+  - rewrite.md
+  - .env.example
 
-# file:
+file:
+  - src/main.py
+  - src/config.py
+  - src/app_logging.py
+  - src/llm_interface.py
 
 auto-commits: false
 attribute-commit-message-author: true
