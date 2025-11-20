@@ -38,7 +38,7 @@ class AgentCoordinator:
                 {"role": "system", "content": prime_prompt},
                 {"role": "user", "content": email_context}
             ]
-            response = llm_client.generate_response(messages, model="openai/gpt-4o-mini")
+            response = llm_client.generate_response(messages, ollama_model="llama3", openrouter_model="openai/gpt-4o-mini")
             parsed = self.parse_prime_foo_response(response)
 
             while True:
@@ -53,7 +53,7 @@ class AgentCoordinator:
                         {"role": "assistant", "content": response},
                         {"role": "user", "content": f"Research results: {research_result}"}
                     ]
-                    response = llm_client.generate_response(follow_up_messages, model="openai/gpt-4o-mini")
+                    response = llm_client.generate_response(follow_up_messages, ollama_model="llama3", openrouter_model="openai/gpt-4o-mini")
                     parsed = self.parse_prime_foo_response(response)
                 else:
                     return self.get_generic_error_response()

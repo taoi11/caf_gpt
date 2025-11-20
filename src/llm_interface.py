@@ -31,7 +31,8 @@ class LLMInterface:
         self, 
         messages: List[Dict[str, str]], 
         temperature: Optional[float] = None,
-        model: Optional[str] = None
+        ollama_model: Optional[str] = None,
+        openrouter_model: Optional[str] = None
     ) -> str:
         """
         Generate a response from the LLM using the two-tier strategy.
@@ -39,6 +40,8 @@ class LLMInterface:
         Args:
             messages: List of message dicts (role, content)
             temperature: Optional override for temperature
+            ollama_model: Optional override for Ollama model
+            openrouter_model: Optional override for OpenRouter model
             
         Returns:
             The generated text response
@@ -48,7 +51,7 @@ class LLMInterface:
         # Tier 1: Try Ollama
         if self._check_ollama_health():
             try:
-                return self._call_ollama(messages, temp)
+                return self._call_ollama(messages, temp, ollama_model)
             except Exception as e:
                 logger.warning("ollama_call_failed", error=str(e))
                 # Fall through to Tier 2
@@ -56,7 +59,7 @@ class LLMInterface:
             logger.info("ollama_unavailable_skipping")
 
         # Tier 2: OpenRouter Fallback
-        return self._call_openrouter(messages, temp)
+        return self._call_openrouter(messages, temp, openrouter_model)
 
     def _check_ollama_health(self) -> bool:
         """
