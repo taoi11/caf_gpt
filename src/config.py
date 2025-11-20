@@ -61,7 +61,7 @@ class LLMConfig(BaseSettings):
     ollama_model: str = "llama3"
     
     # Common
-    temperature: float = 0.2
+    temperature: float = 0.7
     request_timeout_seconds: float = 120.0  # Increased to 2 min for Ollama
 
     model_config = SettingsConfigDict(env_prefix="LLM__", extra="ignore")

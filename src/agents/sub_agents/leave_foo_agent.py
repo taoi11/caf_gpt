@@ -65,5 +65,5 @@ class LeaveFooAgent:
     def _call_with_context(self, messages: List[Message]) -> str:
         # Convert messages to dicts and call llm_client with temperature
         formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
-        return llm_client.generate_response(formatted_messages, temperature=0.3)
+        return llm_client.generate_response(formatted_messages, temperature=0.3, model="openai/gpt-4o-mini")
 

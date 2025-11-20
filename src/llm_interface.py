@@ -30,7 +30,8 @@ class LLMInterface:
     def generate_response(
         self, 
         messages: List[Dict[str, str]], 
-        temperature: Optional[float] = None
+        temperature: Optional[float] = None,
+        model: Optional[str] = None
     ) -> str:
         """
         Generate a response from the LLM using the two-tier strategy.
@@ -70,11 +71,12 @@ class LLMInterface:
         except requests.RequestException:
             return False
 
-    def _call_ollama(self, messages: List[Dict[str, str]], temperature: float) -> str:
+    def _call_ollama(self, messages: List[Dict[str, str]], temperature: float, model: Optional[str] = None) -> str:
         """
         Call the local Ollama instance.
         """
-        logger.info("calling_ollama", model=self.config.ollama_model)
+        use_model = model if model else self.config.ollama_model
+        logger.info("calling_ollama", model=use_model)
         
         # The ollama library handles the request. 
         # Note: The library doesn't strictly enforce a client-side timeout in the chat() call 
@@ -83,7 +85,7 @@ class LLMInterface:
         # but ensure stream=False as requested.
         
         response = self.ollama_client.chat(
-            model=self.config.ollama_model,
+            model=use_model,
             messages=messages,
             options={
                 "temperature": temperature,
@@ -93,11 +95,12 @@ class LLMInterface:
         
         return response['message']['content']
 
-    def _call_openrouter(self, messages: List[Dict[str, str]], temperature: float) -> str:
+    def _call_openrouter(self, messages: List[Dict[str, str]], temperature: float, model: Optional[str] = None) -> str:
         """
         Call the OpenRouter API as a fallback.
         """
-        logger.info("calling_openrouter", model=self.config.openrouter_model)
+        use_model = model if model else self.config.openrouter_model
+        logger.info("calling_openrouter", model=use_model)
         
         headers = {
             "Authorization": f"Bearer {self.config.openrouter_api_key}",
@@ -107,7 +110,7 @@ class LLMInterface:
         }
         
         payload = {
-            "model": self.config.openrouter_model,
+            "model": use_model,
             "messages": messages,
             "temperature": temperature,
             "stream": False
