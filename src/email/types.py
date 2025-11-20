@@ -13,6 +13,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr
 
+
 class ParsedEmailData(BaseModel):
     from_addr: EmailStr
     to_addrs: List[EmailStr]

@@ -112,7 +112,8 @@ class SimpleEmailProcessor:
             preview = data.text_body.strip()[:200]
         elif data.html_body:
             import re
-            text = re.sub(r'<[^>]+>', '', data.html_body)
+
+            text = re.sub(r"<[^>]+>", "", data.html_body)
             preview = text.strip()[:200]
         else:
             preview = ""
@@ -125,5 +126,5 @@ class SimpleEmailProcessor:
             uid=entry.uid,
             from_addr=entry.sender,
             subject=entry.subject,
-            preview=entry.preview[:50] + "..."
+            preview=entry.preview[:50] + "...",
         )

@@ -20,7 +20,9 @@ from src.config import EmailConfig
 
 class IMAPConnectorError(Exception):
     """Custom exception raised when IMAP operations fail, wrapping imaplib errors"""
+
     pass
+
 
 class IMAPConnector:
     # IMAP client wrapper using imaplib.IMAP4_SSL for secure connections, authentication, and email retrieval
@@ -35,10 +37,7 @@ class IMAPConnector:
             return
 
         try:
-            self._client = imaplib.IMAP4_SSL(
-                self._config.imap_host,
-                self._config.imap_port
-            )
+            self._client = imaplib.IMAP4_SSL(self._config.imap_host, self._config.imap_port)
             self._client.login(self._config.imap_username, self._config.imap_password)
         except imaplib.IMAP4.error as error:
             raise IMAPConnectorError("unable to authenticate with IMAP server") from error

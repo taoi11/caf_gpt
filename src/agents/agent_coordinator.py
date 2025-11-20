@@ -1,4 +1,3 @@
-
 """
 /workspace/caf_gpt/src/agents/agent_coordinator.py
 
@@ -20,6 +19,7 @@ from src.llm_interface import llm_client
 
 logger = logging.getLogger(__name__)
 
+
 class AgentCoordinator:
     def __init__(self, prompt_manager: PromptManager):
         self.prompt_manager = prompt_manager
@@ -28,7 +28,7 @@ class AgentCoordinator:
 
     def _load_sub_agents(self):
         # Dynamically load sub-agents like LeaveFooAgent with prompt manager access
-        self.sub_agents['leave_foo'] = LeaveFooAgent(self.prompt_manager)
+        self.sub_agents["leave_foo"] = LeaveFooAgent(self.prompt_manager)
 
     def process_email_with_prime_foo(self, email_context: str) -> AgentResponse:
         # Main coordination loop: send to prime_foo, parse response, handle research/reply/no_response iteratively
@@ -36,9 +36,11 @@ class AgentCoordinator:
             prime_prompt = self.prompt_manager.get_prompt("prime_foo")
             messages = [
                 {"role": "system", "content": prime_prompt},
-                {"role": "user", "content": email_context}
+                {"role": "user", "content": email_context},
             ]
-            response = llm_client.generate_response(messages, ollama_model="llama3", openrouter_model="x-ai/grok-4")
+            response = llm_client.generate_response(
+                messages, ollama_model="llama3", openrouter_model="x-ai/grok-4"
+            )
             parsed = self.parse_prime_foo_response(response)
 
             while True:
@@ -51,9 +53,11 @@ class AgentCoordinator:
                     # Send research results back to prime_foo
                     follow_up_messages = messages + [
                         {"role": "assistant", "content": response},
-                        {"role": "user", "content": f"Research results: {research_result}"}
+                        {"role": "user", "content": f"Research results: {research_result}"},
                     ]
-                    response = llm_client.generate_response(follow_up_messages, ollama_model="llama3", openrouter_model="x-ai/grok-4")
+                    response = llm_client.generate_response(
+                        follow_up_messages, ollama_model="llama3", openrouter_model="x-ai/grok-4"
+                    )
                     parsed = self.parse_prime_foo_response(response)
                 else:
                     return self.get_generic_error_response()
@@ -64,6 +68,7 @@ class AgentCoordinator:
     def parse_prime_foo_response(self, response: str) -> PrimeFooResponse:
         # Parse XML or fallback string for prime_foo responses, extracting type, content, and research details
         from typing import List  # For queries list
+
         try:
             root = ET.fromstring(response)
             type_ = root.tag
@@ -109,14 +114,16 @@ class AgentCoordinator:
                         break
                     q_end = response.find("</query>", q_start + 7)
                     if q_end > q_start:
-                        query_text = response[q_start + 7:q_end].strip()
+                        query_text = response[q_start + 7 : q_end].strip()
                         if query_text:
                             queries.append(query_text)
                     start = q_end + 8
                 agent_type = "leave_foo"  # Default assumption
                 if queries:
                     research = ResearchRequest(queries=queries, agent_type=agent_type)
-                return PrimeFooResponse(type="research", research=research if 'research' in locals() else None)
+                return PrimeFooResponse(
+                    type="research", research=research if "research" in locals() else None
+                )
 
     def handle_research_request(self, research: ResearchRequest) -> str:
         # Delegate multiple queries to sub-agent and aggregate responses for follow-up
@@ -124,15 +131,17 @@ class AgentCoordinator:
         if not agent:
             logger.warning(f"No sub-agent found for {research.agent_type}")
             return "No specialized agent available for this query."
-        
+
         results = []
         for query in research.queries:
             result = agent.research(query)
             results.append(f"Query: {query}\nResponse: {result}")
-        
+
         # Aggregate results
         aggregated = "\n\n---\n\n".join(results)
-        logger.info(f"Aggregated {len(research.queries)} research results for {research.agent_type}")
+        logger.info(
+            f"Aggregated {len(research.queries)} research results for {research.agent_type}"
+        )
         return aggregated
 
     def handle_no_response(self) -> AgentResponse:

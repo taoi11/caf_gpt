@@ -1,5 +1,3 @@
-
-
 """
 /workspace/caf_gpt/src/agents/prompt_manager.py
 
@@ -17,6 +15,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 PROMPTS_DIR = Path("/workspace/caf_gpt/src/agents/prompts")
+
 
 class PromptManager:
     def __init__(self, prompts_dir: Optional[Path] = None):
@@ -51,4 +50,3 @@ class PromptManager:
     def _get_default_prompt(self, prompt_name: str) -> str:
         # Return fallback prompt if file loading fails
         return f"Default system prompt for {prompt_name}. Please provide the actual prompt."
-

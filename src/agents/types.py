@@ -14,10 +14,12 @@ Top-level declarations:
 from typing import List, Union, Optional
 from pydantic import BaseModel
 
+
 class Message(BaseModel):
     # Single chat message (role, content)
     role: str
     content: str
+
 
 class AgentResponse(BaseModel):
     # Final response from coordinator (reply, no_response, or error)
@@ -25,16 +27,19 @@ class AgentResponse(BaseModel):
     no_response: bool = False
     error: Optional[str] = None
 
+
 class PrimeFooResponse(BaseModel):
     # Parsed prime_foo response structure
     type: str  # 'no_response', 'research', 'reply'
     content: Optional[str] = None
-    research: Optional['ResearchRequest'] = None
+    research: Optional["ResearchRequest"] = None
+
 
 class ResearchRequest(BaseModel):
     # Sub-agent research query with multiple queries and agent type
     queries: List[str]
     agent_type: str  # e.g., 'leave_foo'
+
 
 class SubAgentQuery(BaseModel):
     # Individual sub-agent question with optional context

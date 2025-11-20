@@ -15,6 +15,7 @@ import html
 
 from src.email.types import ParsedEmailData
 
+
 class EmailParser:
     # Class for parsing raw email messages into structured data using standard email library
 
@@ -37,7 +38,7 @@ class EmailParser:
             cc_addrs=cc_addrs,
             subject=subject,
             text_body=text_body,
-            html_body=html_body
+            html_body=html_body,
         )
 
     @staticmethod
@@ -71,15 +72,25 @@ class EmailParser:
                     continue
                 if content_type == "text/plain":
                     raw_payload = part.get_payload(decode=True)
-                    text_body = raw_payload.decode(part.get_content_charset() or "utf-8") if raw_payload else ""
+                    text_body = (
+                        raw_payload.decode(part.get_content_charset() or "utf-8")
+                        if raw_payload
+                        else ""
+                    )
                 elif content_type == "text/html":
                     raw_payload = part.get_payload(decode=True)
-                    html_body = raw_payload.decode(part.get_content_charset() or "utf-8") if raw_payload else ""
+                    html_body = (
+                        raw_payload.decode(part.get_content_charset() or "utf-8")
+                        if raw_payload
+                        else ""
+                    )
             if not html_body and text_body:
                 html_body = f"<pre>{html.escape(text_body)}</pre>"
         else:
             raw_payload = msg.get_payload(decode=True)
-            text_body = raw_payload.decode(msg.get_content_charset() or "utf-8") if raw_payload else ""
+            text_body = (
+                raw_payload.decode(msg.get_content_charset() or "utf-8") if raw_payload else ""
+            )
             html_body = f"<pre>{html.escape(text_body)}</pre>" if text_body else None
 
         return text_body, html_body

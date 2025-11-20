@@ -1,4 +1,3 @@
-
 """
 src/app_logging.py
 
@@ -17,6 +16,7 @@ import logging
 
 from src.config import AppConfig
 
+
 def setup_logging(config: AppConfig) -> None:
     # Configure structlog and standard library logging based on app config
     # Supports JSON or console output based on config.log.json_logging
@@ -25,10 +25,7 @@ def setup_logging(config: AppConfig) -> None:
 
     if config.log.json_logging:
         configure(
-            processors=[
-                TimeStamper(fmt="iso"),
-                JSONRenderer()
-            ],
+            processors=[TimeStamper(fmt="iso"), JSONRenderer()],
             logger_factory=LoggerFactory(),
             cache_logger_on_first_use=True,
         )
@@ -40,6 +37,5 @@ def setup_logging(config: AppConfig) -> None:
         )
 
     logging.basicConfig(
-        level=getattr(logging, effective_log_level.upper()),
-        handlers=[logging.StreamHandler()]
+        level=getattr(logging, effective_log_level.upper()), handlers=[logging.StreamHandler()]
     )

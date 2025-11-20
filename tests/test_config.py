@@ -45,9 +45,7 @@ def test_should_trigger_agent_without_policy_email() -> None:
 
 def test_defaults_are_set() -> None:
     # Confirm that default values are applied correctly for processing flags
-    config = EmailConfig(
-        imap_host="imap.test", imap_username="user", imap_password="secret"
-    )
+    config = EmailConfig(imap_host="imap.test", imap_username="user", imap_password="secret")
 
     assert config.delete_after_process is True
     assert config.email_process_interval == 30
