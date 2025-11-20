@@ -1,63 +1,46 @@
 
 """
-/workspace/caf_gpt/src/agents/base_agent.py
+src/agents/base_agent.py
 
-Base class for all agents with OpenRouter API integration and logging.
-
-Top-level declarations:
-- BaseAgent: Base class handling API calls to OpenRouter
+Base class for all agents, delegating LLM interactions to the centralized LLMInterface.
 """
 
-import logging
-import requests
-from typing import List
+import structlog
+from typing import List, Optional
 from .types import Message
+from src.llm_interface import llm_client
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 class BaseAgent:
-    def __init__(self, api_key: str, base_url: str = "https://openrouter.ai/api/v1"):
-        # Initialize with API key and optional base URL; set up headers for authentication
-        self.api_key = api_key
-        self.base_url = base_url
-        self.headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
+    """
+    Base class for agents.
+    Delegates actual LLM calls to the global llm_client.
+    """
+    
+    def __init__(self):
+        # No longer need to pass api_key or base_url here, 
+        # as llm_client handles configuration globally.
+        pass
 
-    def call_openrouter(
-        self, messages: List[Message], model: str = "anthropic/claude-3.5-sonnet", temperature: float = 0.7
+    def call_llm(
+        self, 
+        messages: List[Message], 
+        model: Optional[str] = None, 
+        temperature: Optional[float] = None
     ) -> str:
-        # Make LLM API calls to OpenRouter with error handling for requests and response parsing
-        try:
-            payload = self._build_request(messages, model, temperature)
-            response = requests.post(
-                f"{self.base_url}/chat/completions",
-                headers=self.headers,
-                json=payload,
-                timeout=30,
-            )
-            response.raise_for_status()
-            data = response.json()
-            return data["choices"][0]["message"]["content"]
-        except requests.exceptions.RequestException as e:
-            logger.error(f"API request failed: {e}")
-            return self._handle_api_error(e)
-        except KeyError as e:
-            logger.error(f"Unexpected response format: {e}")
-            return self._handle_api_error(e)
-
-    def _build_request(self, messages: List[Message], model: str, temperature: float):
-        # Construct OpenRouter request payload from messages, model, and temperature
+        """
+        Unified entry point for LLM calls.
+        Delegates to llm_client.generate_response.
+        """
+        # Convert Pydantic Message objects to dicts for the interface
         formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
-        return {
-            "model": model,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": 4096,
-        }
-
-    def _handle_api_error(self, error):
-        # Handle API failures gracefully with logging and fallback message
-        logger.error(f"Handling API error: {error}")
-        return "I'm sorry, but I encountered an error processing your request. Please try again later."
+        
+        try:
+            return llm_client.generate_response(
+                messages=formatted_messages,
+                temperature=temperature
+            )
+        except Exception as e:
+            logger.error("agent_llm_call_failed", error=str(e))
+            return "I'm sorry, but I encountered an error processing your request. Please try again later."

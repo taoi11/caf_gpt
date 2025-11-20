@@ -145,9 +145,15 @@ Handles the inbound, composition and outbound of emails by this app.
 The agents module maintains the hierarchical AI architecture with coordinator and specialized sub-agents.
 
 ### AI Service Provider
-**OpenRouter API** - Direct API calls
+**Primary: Ollama** - Local LLM instance.
+**Secondary: OpenRouter API** - Fallback cloud provider.
 
 ### AI Libraries
+
+#### **ollama** - Python Client for Ollama
+- Official Python library for Ollama
+- Used for primary LLM interactions
+- Supports custom timeouts and streaming options
 
 #### **requests** - HTTP Client
 - Standard library HTTP client for synchronous operations
@@ -161,17 +167,32 @@ The agents module maintains the hierarchical AI architecture with coordinator an
 - If we want a more structured agent framework
 - For now, keeping it simple with direct API calls like the TS version
 
+### Core Services
+
+#### **LLMInterface** (`src/llm_interface.py`)
+**Responsibility**: Centralized service for all LLM interactions. Handles the two-tier dispatch logic, timeouts, and fallbacks.
+
+**Key Functions**:
+- `generate_response(messages: List[Message], model: str, temperature: float) -> str` - Public API for agents.
+- `_call_ollama(...)` - Primary attempt using local Ollama instance.
+- `_call_openrouter(...)` - Fallback attempt using OpenRouter cloud API.
+- `_check_ollama_health() -> bool` - Connectivity check (ping).
+
+**Logic**:
+1. **Ping Ollama**: Send a simple ping to the local Ollama instance.
+2. **Primary Call**: If ping succeeds, send request to Ollama with a 2-minute timeout and `stream=False`.
+3. **Fallback**: If ping fails or Ollama request times out/fails, fallback to OpenRouter.
+
+**Libraries Used**: ollama, requests
+
 ### Agent Component Structure
 
 #### **BaseAgent** (`src/agents/base_agent.py`)
-**Responsibility**: Base class with OpenRouter integration and logging
+**Responsibility**: Base class for agents, handling logging and common state. Uses `LLMInterface` for actual generation.
 
 **Key Functions**:
-- `call_openrouter(messages: List[Message], model: str, temperature: float) -> str` - Make LLM API calls
-- `_build_request(...)` - Construct OpenRouter request payload
-- `_handle_api_error(...)` - Handle API failures gracefully
-
-**Libraries Used**: requests, pydantic for message models
+- `__init__` - Initialize with `LLMInterface` instance.
+- `get_completion(...)` - Wrapper around `LLMInterface.generate_response` with agent-specific context/logging.
 
 #### **AgentCoordinator** (`src/agents/agent_coordinator.py`)
 **Responsibility**: Orchestrate prime_foo and sub-agent interactions
