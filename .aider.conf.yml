@@ -1,7 +1,7 @@
 architect: true
 
 watch-files: true
-max-chat-history-tokens: 32768
+max-chat-history-tokens: "32768"
 restore-chat-history: false
 read:
   - README.md
@@ -17,10 +17,10 @@ file:
 auto-commits: false
 attribute-commit-message-author: true
 auto-lint: true
-# lint-cmd: 
-#   - "autopep8 --in-place --recursive --aggressive --aggressive --max-line-length 200 . && flake8"
+lint-cmd:
+  - "black src/ tests/ && mypy src/"
 
-map-tokens: 2048
+map-tokens: "2048"
 map-refresh: always
 
 editor: neovim

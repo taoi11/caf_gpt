@@ -54,7 +54,7 @@ class LLMConfig(BaseSettings):
     
     # OpenRouter (Secondary)
     openrouter_api_key: str
-    openrouter_model: str = "openai/gpt-4o-mini"
+    openrouter_model: str = "x-ai/grok-code-fast-1"
     
     # Ollama (Primary)
     ollama_base_url: str = "http://localhost:11434"

@@ -15,17 +15,13 @@ import threading
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+import structlog
 
 from src.config import config
 from src.email_code.simple_email_handler import SimpleEmailProcessor
-
-
-from src.logging import setup_logging
-
-from src.logging import setup_logging
+from src.app_logging import setup_logging
 
 setup_logging(config)
-
 
 logger = structlog.get_logger()
 
@@ -53,7 +49,6 @@ async def lifespan(app: FastAPI):
         else:
             logger.info("email processor stopped gracefully")
 
-
 app = FastAPI(
     title="CAF-GPT Email Agent",
     description="AI-powered email response system",
@@ -61,7 +56,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 # FastAPI application instance with title, description, version, and lifespan context manager
-
 
 @app.get("/health")
 async def health_check():
@@ -71,7 +65,6 @@ async def health_check():
         content={"status": "healthy", "version": "0.1.0"},
         status_code=200
     )
-
 
 if __name__ == "__main__":
     import uvicorn

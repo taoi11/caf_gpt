@@ -44,7 +44,7 @@ class LeaveFooAgent:
         # Updated to use new file path: leave/leave_policy_2025.md in the 'policies' bucket
         policy_content = self.document_retriever.get_document("leave", "leave_policy_2025.md")
         if policy_content is None:
-            logger.warning("Leave policy document not found in storage.")
+            logger.error("Leave policy document not found in storage.")
             return "I'm sorry, but I couldn't retrieve the leave policy information at this time."
 
         logger.info("Successfully retrieved leave policy document")
@@ -65,5 +65,4 @@ class LeaveFooAgent:
     def _call_with_context(self, messages: List[Message]) -> str:
         # Convert messages to dicts and call llm_client with temperature
         formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
-        return llm_client.generate_response(formatted_messages, temperature=0.3, ollama_model="llama3", openrouter_model="x-ai/grok-4.1-fast")
-
+        return llm_client.generate_response(formatted_messages, ollama_model="llama3", openrouter_model="x-ai/grok-4.1-fast")
