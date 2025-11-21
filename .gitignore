@@ -29,4 +29,4 @@ logs/
 # Deployment
 data/
 .aider*
-!.aider.conf.yml
+!.aider.conf.yml*.egg-info/

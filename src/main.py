@@ -10,42 +10,72 @@ Top-level declarations:
 """
 
 from contextlib import asynccontextmanager
-import logging
 import threading
+import time
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import structlog
 
 from src.config import config
-from src.email_code.simple_email_handler import SimpleEmailProcessor
-from src.app_logging import setup_logging
+from src.app_logging import setup_logging, get_logger
+
+from src.llm_interface import LLMInterface
+from src.agents.agent_coordinator import AgentCoordinator
+from src.agents.prompt_manager import PromptManager
+from src.email.simple_email_handler import SimpleEmailHandler
+from src.email.email_queue_processor import EmailQueueProcessor
 
 setup_logging(config)
 
-logger = structlog.get_logger()
+logger = get_logger(__name__)
+
+
+class StoppableThread:
+    """Helper to run stoppable loop in thread."""
+    def __init__(self, target, args=()):
+        self.target = target
+        self.args = args
+        self.stop_event = threading.Event()
+        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
+
+    def _run(self):
+        while not self.stop_event.wait(timeout=1):  # Check every second
+            self.target(*self.args)
+
+    def stop(self):
+        self.stop_event.set()
+        self.thread.join(timeout=5)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Async context manager for application lifespan: starts email processor thread on startup, stops on shutdown
-    # Manages daemon thread for continuous email polling with graceful shutdown
-    logger.info("starting email processor")
-    email_processor = SimpleEmailProcessor(config.email)
-    processor_thread = threading.Thread(target=email_processor.run_loop, daemon=True)
-    processor_thread.start()
-    logger.info("email processor thread started", thread_id=processor_thread.ident)
+    # Startup: Initialize components and start email queue processor in background thread
+    logger.info("Application starting up")
+
+    # Initialize LLM and agents
+    llm_interface = LLMInterface(config.llm)
+    prompt_manager = PromptManager(config.agents.prompts_dir if hasattr(config.agents, 'prompts_dir') else "src/agents/prompts")
+    coordinator = AgentCoordinator(llm_interface, prompt_manager)
+
+    # Initialize email handler and processor
+    handler = SimpleEmailHandler(config, coordinator)
+    processor = EmailQueueProcessor(config, handler)
+
+    # Start processor in stoppable thread
+    processor_thread = StoppableThread(target=processor.process_next_email)  # Call process_next_email in loop via helper
+    logger.info("Email queue processor thread started", thread_id=processor_thread.thread.ident)
 
     try:
         yield
     finally:
-        logger.info("stopping email processor")
-        email_processor.stop()
-        processor_thread.join(timeout=5)
-        if processor_thread.is_alive():
-            logger.warning("processor thread did not stop within timeout")
+        logger.info("Application shutting down")
+        processor_thread.stop()
+        if processor_thread.thread.is_alive():
+            logger.warning("Processor thread did not stop within timeout")
         else:
-            logger.info("email processor stopped gracefully")
+            logger.info("Email queue processor stopped gracefully")
 
 
 app = FastAPI(
@@ -54,13 +84,10 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
-# FastAPI application instance with title, description, version, and lifespan context manager
 
 
 @app.get("/health")
 async def health_check():
-    # Health check endpoint returning JSON status for application monitoring
-    # Used for container orchestration and load balancer health checks
     return JSONResponse(content={"status": "healthy", "version": "0.1.0"}, status_code=200)
 
 

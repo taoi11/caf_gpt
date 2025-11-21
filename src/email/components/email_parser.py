@@ -1,96 +1,108 @@
 """
 src/email/components/email_parser.py
 
-Utility for parsing raw email messages into structured ParsedEmailData objects, handling headers, bodies, and attachments.
-
-Top-level declarations:
-- EmailParser: Class providing static methods to parse email bytes and extract components
+Basic EmailParser for prototype: Parse raw email bytes to ParsedEmailData using stdlib email module.
+Extracts essentials: message_id, from, recipients, subject, body (text preferred), thread_id.
+For prototype: Focus on text/plain body; simple validation.
 """
-
-from __future__ import annotations
 
 import email
 from typing import Optional, List
-import html
+import re
+from html import unescape
 
-from src.email.types import ParsedEmailData
+from src.app_logging import get_logger
+from src.email.types import ParsedEmailData, EmailRecipients
 
+logger = get_logger(__name__)
 
 class EmailParser:
-    # Class for parsing raw email messages into structured data using standard email library
-
     @staticmethod
     def parse_email(raw_message: bytes) -> ParsedEmailData:
-        # Parse a raw email message and extract key fields like sender, recipients, subject, and body content
-        # Handles both single-part and multipart messages, prioritizing HTML over text
-        msg = email.message_from_bytes(raw_message)
+        """
+        Parse raw email message into structured data.
+        For prototype: Extract text body, basic headers. Validate sender email format.
+        """
+        try:
+            msg = email.message_from_bytes(raw_message)
+            logger.debug("Email parsed successfully", message_size=len(raw_message))
 
-        from_addr = EmailParser._parse_address(msg.get("From"))
-        to_addrs = EmailParser._extract_email_addresses(msg.get("To", ""))
-        cc_addrs = EmailParser._extract_email_addresses(msg.get("Cc", ""))
-        subject = msg.get("Subject", "")
+            # Extract headers
+            message_id = msg.get("Message-ID", "") or ""
+            from_addr = EmailParser._extract_email(msg.get("From", ""))
+            to_header = msg.get("To", "")
+            cc_header = msg.get("Cc", "")
+            subject = msg.get("Subject", "")
+            in_reply_to = msg.get("In-Reply-To", "")
 
-        text_body, html_body = EmailParser._extract_bodies(msg)
+            # Recipients
+            to_addrs = EmailParser._extract_emails(to_header)
+            cc_addrs = EmailParser._extract_emails(cc_header)
+            recipients = EmailRecipients(to=to_addrs, cc=cc_addrs, bcc=[])
 
-        return ParsedEmailData(
-            from_addr=from_addr,
-            to_addrs=to_addrs,
-            cc_addrs=cc_addrs,
-            subject=subject,
-            text_body=text_body,
-            html_body=html_body,
-        )
+            # Body: Prefer text/plain, fallback to html stripped
+            text_body = EmailParser._get_text_body(msg)
+            body = text_body or EmailParser._strip_html(msg.get_payload(decode=True).decode('utf-8', errors='ignore') if msg.get_payload(decode=True) else "")
+
+            # Thread ID: Use In-Reply-To or Message-ID
+            thread_id = in_reply_to.strip('<>') if in_reply_to else message_id.strip('<>')
+
+            parsed = ParsedEmailData(
+                message_id=message_id,
+                from_addr=from_addr,
+                recipients=recipients,
+                subject=subject,
+                body=body,
+                thread_id=thread_id
+            )
+
+            # Basic validation: Ensure from_addr is valid email (Pydantic handles, but check non-empty)
+            if not from_addr:
+                logger.warning("Invalid or missing From address", message_id=message_id)
+                raise ValueError("Invalid or missing From address")
+
+            logger.info("Email parsing completed", message_id=message_id, from_addr=from_addr, subject=subject[:50])
+            return parsed
+        except Exception as e:
+            logger.error("Failed to parse email", error=str(e), message_size=len(raw_message))
+            raise
 
     @staticmethod
-    def _parse_address(address: Optional[str]) -> str:
-        # Parse a single email address from the From header, extracting the email part
-        if not address:
+    def _extract_email(address_header: str) -> str:
+        """Extract email from header like 'Name <email@domain.com>'."""
+        if not address_header:
             return ""
-        # Use email.utils.parseaddr to extract the email address reliably
-        return email.utils.parseaddr(address)[1] or address
+        parsed = email.utils.parseaddr(address_header)
+        return parsed[1] or ""
 
     @staticmethod
-    def _extract_email_addresses(header: str) -> List[str]:
-        # Extract list of email addresses from To or Cc header using email.utils.getaddresses for robust parsing
+    def _extract_emails(header: str) -> List[str]:
+        """Extract list of emails from To/Cc header."""
         if not header:
             return []
-        return [addr for name, addr in email.utils.getaddresses([header])]
+        addrs = email.utils.getaddresses([header])
+        return [addr[1] for addr in addrs if addr[1]]
 
     @staticmethod
-    def _extract_bodies(msg: email.message.Message) -> tuple[Optional[str], Optional[str]]:
-        # Extract text and HTML body content from email message, handling multipart and single-part cases
-        # Prioritizes HTML, falls back to escaped text in <pre> if no HTML
-        text_body = None
-        html_body = None
-
+    def _get_text_body(msg: email.Message) -> Optional[str]:
+        """Extract text/plain body, handling multipart."""
         if msg.is_multipart():
             for part in msg.walk():
-                content_type = part.get_content_type()
-                content_disposition = str(part.get("Content-Disposition"))
-
-                if "attachment" in content_disposition:
-                    continue
-                if content_type == "text/plain":
-                    raw_payload = part.get_payload(decode=True)
-                    text_body = (
-                        raw_payload.decode(part.get_content_charset() or "utf-8")
-                        if raw_payload
-                        else ""
-                    )
-                elif content_type == "text/html":
-                    raw_payload = part.get_payload(decode=True)
-                    html_body = (
-                        raw_payload.decode(part.get_content_charset() or "utf-8")
-                        if raw_payload
-                        else ""
-                    )
-            if not html_body and text_body:
-                html_body = f"<pre>{html.escape(text_body)}</pre>"
+                if part.get_content_type() == "text/plain":
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        charset = part.get_content_charset() or "utf-8"
+                        return payload.decode(charset, errors="ignore")
         else:
-            raw_payload = msg.get_payload(decode=True)
-            text_body = (
-                raw_payload.decode(msg.get_content_charset() or "utf-8") if raw_payload else ""
-            )
-            html_body = f"<pre>{html.escape(text_body)}</pre>" if text_body else None
+            if msg.get_content_type() == "text/plain":
+                payload = msg.get_payload(decode=True)
+                if payload:
+                    return payload.decode(msg.get_content_charset() or "utf-8", errors="ignore")
+        return None
 
-        return text_body, html_body
+    @staticmethod
+    def _strip_html(html: str) -> str:
+        """Basic HTML stripping for fallback body."""
+        # Simple regex to remove tags; unescape entities
+        clean = re.sub(r'<[^>]+>', '', html)
+        return unescape(clean).strip()
