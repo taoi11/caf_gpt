@@ -35,6 +35,8 @@ class EmailComposer:
             msg = EmailMessage()
             msg["From"] = agent_email
             msg["To"] = ", ".join(reply_data.to)
+            if reply_data.cc:
+                msg["Cc"] = ", ".join(reply_data.cc)
             msg["Subject"] = EmailComposer._format_subject(reply_data.subject, original.subject)
             
             # Threading headers
@@ -48,7 +50,7 @@ class EmailComposer:
             full_body = f"{reply_data.body}\n\n{quoted}"
             msg.set_content(full_body)
 
-            logger.debug("Reply composed successfully", subject=msg["Subject"], to=", ".join(reply_data.to))
+            logger.debug("Reply composed successfully", subject=msg["Subject"], to=", ".join(reply_data.to), cc_count=len(reply_data.cc or []))
             return msg
         except Exception as e:
             logger.error("Failed to compose reply", error=str(e), subject=reply_data.subject)

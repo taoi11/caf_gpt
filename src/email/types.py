@@ -21,6 +21,7 @@ class ParsedEmailData(BaseModel):
 
 class ReplyData(BaseModel):
     to: List[EmailStr]
+    cc: List[EmailStr] = Field(default_factory=list)
     subject: str
     body: str
     in_reply_to: Optional[str] = None

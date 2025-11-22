@@ -71,29 +71,38 @@ class SimpleEmailHandler:
             raise
 
     def _send_reply_for_parsed(self, parsed: ParsedEmailData, reply_text: str) -> None:
-        """Build and send reply for parsed email."""
+        """Build and send reply for parsed email (reply-all: include original To/CC, exclude self)."""
         try:
             # Threading headers
             threading_headers = EmailThreadManager.build_threading_headers(parsed)
 
-            # Reply data
+            # Reply-all recipients: To = From + original To (exclude self), CC = original CC (exclude self)
+            reply_to = [parsed.from_addr] + [addr for addr in parsed.recipients.to if addr != self.agent_email]
+            reply_cc = [addr for addr in parsed.recipients.cc if addr != self.agent_email]
+            if not reply_to:  # Fallback if no valid recipients
+                reply_to = [parsed.from_addr]
+                self.logger.warning("No valid To recipients; falling back to From", message_id=parsed.message_id)
+
             reply_subject = f"Re: {parsed.subject}" if parsed.subject else "Re:"
             reply_data = ReplyData(
-                to=[parsed.from_addr],
+                to=reply_to,
+                cc=reply_cc,
                 subject=reply_subject,
                 body=reply_text,
                 in_reply_to=threading_headers.get("In-Reply-To"),
                 references=threading_headers.get("References")
             )
 
+            self.logger.debug("Reply-all recipients computed", to_count=len(reply_to), cc_count=len(reply_cc), message_id=parsed.message_id)
+
             # Compose
             msg = EmailComposer.compose_reply(reply_data, parsed, self.agent_email)
 
             # Send
             self._send_smtp(msg)
-            self.logger.info("Reply sent successfully", message_id=parsed.message_id, to=parsed.from_addr, reply_length=len(reply_text))
+            self.logger.info("Reply-all sent successfully", message_id=parsed.message_id, to_count=len(reply_to), cc_count=len(reply_cc), reply_length=len(reply_text))
         except Exception as e:
-            self.logger.error("Failed to send reply", error=str(e), message_id=parsed.message_id, to=parsed.from_addr)
+            self.logger.error("Failed to send reply-all", error=str(e), message_id=parsed.message_id)
             raise
 
     def _send_smtp(self, msg: EmailMessage) -> None:
