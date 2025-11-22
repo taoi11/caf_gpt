@@ -1,7 +1,5 @@
-
-
 """
-src/email/components/email_composer.py
+src/email_code/components/email_composer.py
 
 Basic EmailComposer for prototype: Compose properly formatted reply emails using stdlib.
 Builds EmailMessage with headers, quoted original content.
@@ -13,7 +11,7 @@ from typing import Optional
 from email.message import EmailMessage
 
 from src.app_logging import get_logger
-from src.email.types import ReplyData, ParsedEmailData
+from src.email_code.types import ReplyData, ParsedEmailData
 
 logger = get_logger(__name__)
 
@@ -91,5 +89,3 @@ class EmailComposer:
         except Exception as e:
             logger.error("Reply data validation failed", error=str(e))
             raise
-
-

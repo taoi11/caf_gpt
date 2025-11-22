@@ -1,7 +1,5 @@
-
-
 """
-src/email/components/email_thread_manager.py
+src/email_code/components/email_thread_manager.py
 
 Basic EmailThreadManager for prototype: Manage RFC 5322 compliant email threading.
 Generates In-Reply-To and References headers for replies.
@@ -12,7 +10,7 @@ import re
 from typing import Optional, Dict, List
 
 from src.app_logging import get_logger
-from src.email.types import ParsedEmailData  # For message_id
+from src.email_code.types import ParsedEmailData  # For message_id
 
 logger = get_logger(__name__)
 
@@ -91,4 +89,3 @@ class EmailThreadManager:
         except Exception as e:
             logger.error("Error validating Message-ID", message_id=message_id, error=str(e))
             return False
-

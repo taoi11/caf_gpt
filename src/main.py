@@ -23,8 +23,7 @@ from src.app_logging import setup_logging, get_logger
 from src.llm_interface import LLMInterface
 from src.agents.agent_coordinator import AgentCoordinator
 from src.agents.prompt_manager import PromptManager
-from src.email.simple_email_handler import SimpleEmailHandler
-from src.email.email_queue_processor import EmailQueueProcessor
+from src.email_code.simple_email_handler import SimpleEmailProcessor
 
 setup_logging(config)
 
@@ -54,23 +53,18 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize components and start email queue processor in background thread
     logger.info("Application starting up")
 
-    # Initialize LLM and agents
-    llm_interface = LLMInterface(config.llm)
-    prompt_manager = PromptManager(config.agents.prompts_dir if hasattr(config.agents, 'prompts_dir') else "src/agents/prompts")
-    coordinator = AgentCoordinator(llm_interface, prompt_manager)
-
-    # Initialize email handler and processor
-    handler = SimpleEmailHandler(config, coordinator)
-    processor = EmailQueueProcessor(config, handler)
+    # Initialize email processor with imap_tools
+    processor = SimpleEmailProcessor(config)
 
     # Start processor in stoppable thread
-    processor_thread = StoppableThread(target=processor.process_next_email)  # Call process_next_email in loop via helper
+    processor_thread = StoppableThread(target=processor.run_loop)
     logger.info("Email queue processor thread started", thread_id=processor_thread.thread.ident)
 
     try:
         yield
     finally:
         logger.info("Application shutting down")
+        processor.stop()
         processor_thread.stop()
         if processor_thread.thread.is_alive():
             logger.warning("Processor thread did not stop within timeout")
