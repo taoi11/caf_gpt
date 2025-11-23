@@ -48,42 +48,34 @@ def sample_mail_message():
     return msg
 
 
+# Deprecated: search_unseen_uids - test removed as method is deprecated
+
+
 @patch('src.email_code.imap_connector.MailBox')
-def test_imap_connector_search_unseen(mock_mailbox, mock_config):
-    """Test IMAP connector searches for unseen emails using imap_tools."""
+def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
+    """Test IMAP connector batch fetches and sorts unseen emails using imap_tools."""
     # Mock MailBox context manager
     mock_mb = MagicMock()
     mock_mailbox.return_value.__enter__.return_value = mock_mb
     
-    # Mock fetch to return test messages
-    mock_msg = MagicMock()
-    mock_msg.uid = "1"
-    mock_mb.fetch.return_value = [mock_msg]
+    # Mock fetch to return test messages with dates
+    mock_msg1 = MagicMock()
+    mock_msg1.uid = "2"
+    mock_msg1.date = datetime(2023, 1, 2)
+    mock_msg2 = MagicMock()
+    mock_msg2.uid = "1"
+    mock_msg2.date = datetime(2023, 1, 1)  # Older
+    mock_mb.fetch.return_value = [mock_msg1, mock_msg2]
     
     connector = IMAPConnector(mock_config)
-    uids = connector.search_unseen_uids()
+    msgs = connector.fetch_unseen_sorted()
     
-    assert uids == ["1"]
-    mock_mb.fetch.assert_called_once_with("UNSEEN")
+    assert len(msgs) == 2
+    assert msgs[0].uid == "1"  # Oldest first
+    assert msgs[1].uid == "2"
+    mock_mb.fetch.assert_called_once_with("UNSEEN", mark_seen=False)
 
-
-@patch('src.email_code.imap_connector.MailBox')
-def test_imap_connector_fetch_message(mock_mailbox, mock_config):
-    """Test IMAP connector fetches email message using imap_tools."""
-    # Mock MailBox context manager
-    mock_mb = MagicMock()
-    mock_mailbox.return_value.__enter__.return_value = mock_mb
-    
-    # Mock fetch to return test message
-    mock_msg = MagicMock()
-    mock_msg.uid = "test123"
-    mock_mb.fetch.return_value = [mock_msg]
-    
-    connector = IMAPConnector(mock_config)
-    result = connector.fetch_email_message("test123")
-    
-    assert result.uid == "test123"
-    mock_mb.fetch.assert_called_once_with("UID test123")
+# Deprecated: fetch_email_message - test removed as method is deprecated
 
 
 # Removed duplicate test

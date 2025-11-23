@@ -17,6 +17,7 @@ import time
 
 from dataclasses import dataclass
 from typing import Optional
+from datetime import datetime
 from imap_tools import MailMessage
 
 from src.config import EmailConfig
@@ -59,32 +60,34 @@ class SimpleEmailProcessor:
         self._stop_event.set()
 
     def process_unseen_emails(self) -> None:
-        """Search for unseen UIDs, fetch and parse each email, log it"""
+        """Fetch all unseen emails using connector, sort by date (oldest first), process sequentially"""
         try:
-            uids = self._connector.search_unseen_uids()
-            logger.info("found unseen emails", count=len(uids))
+            unseen_msgs = self._connector.fetch_unseen_sorted()
+            if not unseen_msgs:
+                logger.debug("no unseen emails to process")
+                return
+
+            logger.info("found unseen emails", count=len(unseen_msgs))
+
+            for msg in unseen_msgs:
+                uid = msg.uid
+                with logger.bind(uid=uid):
+                    try:
+                        # Parse and log
+                        parsed_data = self._adapt_mail_message(msg)
+                        logged_email = self._build_log_entry(uid, parsed_data)
+                        self._log_email(logged_email)
+                        logger.info("email processed successfully")
+
+                        # Mark as seen immediately after processing (prevents re-processing)
+                        self._connector.mark_seen(uid)
+                        # TODO: If full processing (e.g., AI reply) succeeds, optionally: self._connector.delete_email(uid)
+
+                    except Exception as error:
+                        logger.exception("error processing email", exc_info=error)
+                        # Optionally mark as seen even on error to avoid infinite loops, or leave unseen for retry
         except IMAPConnectorError as error:
-            logger.error("failed to search unseen emails", exc_info=error)
-            return
-
-        if not uids:
-            logger.debug("no unseen emails to process")
-            return
-
-        for uid in uids:
-            with logger.bind(uid=uid):
-                try:
-                    # Use imap_tools to fetch and parse email
-                    msg = self._connector.fetch_email_message(uid)
-                    parsed_data = self._adapt_mail_message(msg)
-                    logged_email = self._build_log_entry(uid, parsed_data)
-                    self._log_email(logged_email)
-                    logger.info("email processed successfully")
-                    # TODO: Delete email after full processing (including AI response)
-                except IMAPConnectorError as error:
-                    logger.error("error fetching message", exc_info=error)
-                except Exception as error:
-                    logger.exception("unexpected error while parsing email", exc_info=error)
+            logger.error("failed to process unseen emails", exc_info=error)
 
     def _adapt_mail_message(self, msg: MailMessage) -> ParsedEmailData:
         """Adapt imap_tools MailMessage to our ParsedEmailData format"""
