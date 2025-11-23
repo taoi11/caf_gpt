@@ -14,6 +14,11 @@ ENV/
 env.bak/
 venv.bak/
 
+
+
+# Egg info
+**/*.egg-info/
+
 # Editor directories and files
 .vscode/
 .idea/
