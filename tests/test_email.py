@@ -41,7 +41,6 @@ def sample_mail_message():
     msg.from_ = "test@example.com"
     msg.to = ["agent@caf.com"]
     msg.cc = []
-    msg.bcc = []
     msg.subject = "Test Subject"
     msg.text = "Hello, this is a test body."
     msg.html = "<p>Hello, this is a test body.</p>"
@@ -132,8 +131,6 @@ def test_simple_email_processor_process_unseen(mock_connector_class, mock_config
     """Test SimpleEmailProcessor processes unseen emails using mocked IMAP connector."""
     # Mock connector and its methods
     mock_connector = MagicMock()
-    mock_connector.search_unseen_uids.return_value = ["1"]
-    
     mock_msg = MagicMock()
     mock_msg.uid = "1"
     mock_msg.from_ = "test@example.com"
@@ -141,7 +138,7 @@ def test_simple_email_processor_process_unseen(mock_connector_class, mock_config
     mock_msg.cc = []
     mock_msg.subject = "Test"
     mock_msg.text = "Body"
-    mock_connector.fetch_email_message.return_value = mock_msg
+    mock_connector.fetch_unseen_sorted.return_value = [mock_msg]
     
     mock_connector_class.return_value = mock_connector
     
@@ -149,8 +146,8 @@ def test_simple_email_processor_process_unseen(mock_connector_class, mock_config
     processor.process_unseen_emails()
     
     # Verify the connector was called correctly
-    mock_connector.search_unseen_uids.assert_called_once()
-    mock_connector.fetch_email_message.assert_called_once_with("1")
+    mock_connector.fetch_unseen_sorted.assert_called_once()
+    mock_connector.mark_seen.assert_called_once_with("1")
 
 
 def test_email_adapter_adapts_mail_message(sample_mail_message):
@@ -164,7 +161,6 @@ def test_email_adapter_adapts_mail_message(sample_mail_message):
     assert parsed.message_id == "test123"
     assert parsed.recipients.to == ["agent@caf.com"]
     assert parsed.recipients.cc == []
-    assert parsed.recipients.bcc == []
     assert parsed.thread_id == "test123"
 
 

@@ -4,7 +4,6 @@ from pydantic import BaseModel, EmailStr, validator, Field
 class EmailRecipients(BaseModel):
     to: List[EmailStr] = Field(default_factory=list)
     cc: List[EmailStr] = Field(default_factory=list)
-    bcc: List[EmailStr] = Field(default_factory=list)
 
 class ParsedEmailData(BaseModel):
     message_id: str

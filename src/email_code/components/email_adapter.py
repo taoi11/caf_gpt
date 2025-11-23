@@ -19,8 +19,7 @@ class EmailAdapter:
         # Recipients
         recipients = EmailRecipients(
             to=list(msg.to) if msg.to else [],
-            cc=list(msg.cc) if msg.cc else [],
-            bcc=list(msg.bcc) if msg.bcc else []
+            cc=list(msg.cc) if msg.cc else []
         )
         
         # Body: prefer text, fallback to HTML stripped
