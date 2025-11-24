@@ -6,77 +6,111 @@ Builds EmailMessage with headers, quoted original content.
 For prototype: Plain text only, simple "Re:" subject, "> " quoting.
 """
 
-import email.message
-from typing import Optional
-from email.message import EmailMessage
+from typing import Dict, List, Optional
+import jinja2
+from pathlib import Path
 
 from src.app_logging import get_logger
+from src.config import config
 from src.email_code.types import ReplyData, ParsedEmailData
 
 logger = get_logger(__name__)
 
 class EmailComposer:
-    @staticmethod
-    def compose_reply(reply_data: ReplyData, original: ParsedEmailData, agent_email: str) -> EmailMessage:
+    def __init__(self):
+        """Initialize Jinja environment with template dir from config."""
+        template_dir = Path(config.email.template_dir)
+        if not template_dir.exists():
+            raise ValueError(f"Template directory not found: {template_dir}")
+        self.jinja_env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader(template_dir),
+            autoescape=True,
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+
+    def compose_reply(self, reply_data: ReplyData, original: ParsedEmailData, agent_email: str) -> Dict:
         """
-        Compose complete reply email with threading headers and quoted content.
-        :param reply_data: Structured reply info
-        :param original: Original parsed email for quoting
-        :param agent_email: Bot's email address (from config)
-        :return: Ready-to-send EmailMessage
+        Compose professional HTML reply using Jinja template for Redmail.
+        Includes formatted HTML body with quoting, threading headers, and validation.
+        :param reply_data: Structured reply info (body, to, cc, subject, in_reply_to, references)
+        :param original: Original parsed email for quoting and threading
+        :param agent_email: Bot's email address (for From header)
+        :return: Dict with keys: subject, to, cc, html_body, in_reply_to, references
         """
         try:
             # Validate inputs
-            EmailComposer._validate_reply_data(reply_data)
+            self._validate_reply_data(reply_data)
 
-            # Create message
-            msg = EmailMessage()
-            msg["From"] = agent_email
-            msg["To"] = ", ".join(reply_data.to)
-            if reply_data.cc:
-                msg["Cc"] = ", ".join(reply_data.cc)
-            msg["Subject"] = EmailComposer._format_subject(reply_data.subject, original.subject)
-            
-            # Threading headers
-            if reply_data.in_reply_to:
-                msg["In-Reply-To"] = reply_data.in_reply_to
-            if reply_data.references:
-                msg["References"] = reply_data.references
+            # Format subject
+            subject = self._format_subject(reply_data.subject, original.subject)
 
-            # Body: Reply + quoted original
-            quoted = EmailComposer._format_quoted_content(original.body, original.from_addr, original.subject)
-            full_body = f"{reply_data.body}\n\n{quoted}"
-            msg.set_content(full_body)
+            # Prepare original data for template (as dict for Jinja)
+            original_dict = {
+                "from_addr": original.from_addr,
+                "date": original.date or "Unknown date",
+                "to": original.recipients.to,
+                "subject": original.subject,
+                "body": original.body,
+            }
 
-            logger.debug("Reply composed successfully", subject=msg["Subject"], to=", ".join(reply_data.to), cc_count=len(reply_data.cc or []))
-            return msg
+            # Render HTML template
+            template = self.jinja_env.get_template("reply.html.jinja")
+            html_body = template.render(
+                reply_body=reply_data.body,
+                original=original_dict,
+            )
+
+            # Prepare recipients
+            to = reply_data.to
+            cc = reply_data.cc or []
+
+            # Threading
+            in_reply_to = reply_data.in_reply_to or original.message_id
+            references = reply_data.references or original.message_id
+
+            reply_dict = {
+                "subject": subject,
+                "to": to,
+                "cc": cc,
+                "html_body": html_body,
+                "in_reply_to": in_reply_to,
+                "references": references,
+            }
+
+            logger.debug(
+                "Jinja-templated HTML reply composed",
+                subject=subject,
+                to=", ".join(to),
+                cc_count=len(cc),
+                body_preview=reply_data.body[:100] + "..." if len(reply_data.body) > 100 else reply_data.body,
+            )
+            return reply_dict
+        except jinja2.TemplateNotFound as e:
+            logger.error(f"Jinja template not found: {e}")
+            raise
         except Exception as e:
             logger.error("Failed to compose reply", error=str(e), subject=reply_data.subject)
             raise
 
     @staticmethod
-    def _format_subject(reply_subject: str, original_subject: str) -> str:
-        """Add 'Re:' prefix if not present."""
+    def _format_subject(reply_subject: Optional[str], original_subject: str) -> str:
+        """Format subject with 'Re:' prefix if not present, preferring reply_subject."""
         try:
             if reply_subject:
+                # Ensure 'Re:' if replying but not present
+                if not reply_subject.startswith("Re:") and original_subject:
+                    return f"Re: {reply_subject}"
                 return reply_subject
-            if original_subject and not original_subject.startswith("Re:"):
-                return f"Re: {original_subject}"
-            return original_subject or "Re:"
+            # Fallback to original with Re:
+            if original_subject:
+                if not original_subject.startswith("Re:"):
+                    return f"Re: {original_subject}"
+                return original_subject
+            return "Re:"
         except Exception as e:
             logger.error("Failed to format subject", error=str(e), original_subject=original_subject)
             return "Re:"
-
-    @staticmethod
-    def _format_quoted_content(body: str, from_addr: str, subject: str) -> str:
-        """Create simple quoted original: Attribution + '> ' prefixed body."""
-        try:
-            attribution = f"\n--- Original message ---\nFrom: {from_addr}\nSubject: {subject}\n\n"
-            quoted_body = "\n".join([f"> {line}" for line in body.splitlines()])
-            return f"{attribution}{quoted_body}"
-        except Exception as e:
-            logger.error("Failed to format quoted content", error=str(e), from_addr=from_addr)
-            return body  # Fallback to original body
 
     @staticmethod
     def _validate_reply_data(data: ReplyData) -> None:

@@ -99,13 +99,14 @@ def test_email_thread_manager_builds_headers():
 
 
 def test_email_composer_composes_reply():
-    """Test EmailComposer builds a valid EmailMessage."""
+    """Test EmailComposer builds a professional HTML reply dict for Redmail."""
     parsed = ParsedEmailData(
         message_id="<test123@domain.com>",
         from_addr="test@example.com",
         recipients=EmailRecipients(to=["agent@caf.com"]),
         subject="Test Subject",
         body="Test body",
+        date="2023-01-01",
         thread_id="test123"
     )
     
@@ -117,13 +118,17 @@ def test_email_composer_composes_reply():
         references="<test123@domain.com>"
     )
     
-    msg = EmailComposer.compose_reply(reply_data, parsed, "agent@caf.com")
-    assert isinstance(msg, EmailMessage)
-    assert msg["From"] == "agent@caf.com"
-    assert msg["To"] == "test@example.com"
-    assert msg["Subject"].startswith("Re: Test Subject")
-    assert "Reply body" in msg.get_content()
-    assert "Original message" in msg.get_content()
+    composed = EmailComposer.compose_reply(reply_data, parsed, "agent@caf.com")
+    assert isinstance(composed, dict)
+    assert "subject" in composed
+    assert "to" in composed
+    assert "html_body" in composed
+    assert composed["subject"].startswith("Re: Test Subject")
+    assert "Reply body" in composed["html_body"]
+    assert "Original message" in composed["html_body"]  # From fallback or HTML
+    assert "CAF-GPT Email Agent" in composed["html_body"]
+    assert composed["to"] == ["test@example.com"]
+    assert composed["in_reply_to"] == "<test123@domain.com>"
 
 
 @patch('src.email_code.simple_email_handler.IMAPConnector')
@@ -188,3 +193,67 @@ def test_simple_email_processor_uses_adapter(sample_mail_message):
     assert "test body" in parsed.body
     assert parsed.message_id == "test123"
     assert parsed.recipients.to == ["agent@caf.com"]
+
+
+
+def test_email_sender_sends_reply(mock_redmail, mock_composed_reply, sample_parsed_data):
+    """Test EmailSender composes and sends a reply using Redmail mock."""
+    sender = EmailSender()
+    reply_data = ReplyData(
+        to=["test@example.com"],
+        body="Test reply body",
+        cc=["cc@example.com"],
+        subject=None,
+        in_reply_to="<test123@domain.com>",
+        references="<test123@domain.com>"
+    )
+    
+    # Mock compose_reply to return our composed dict
+    with patch.object(EmailComposer, 'compose_reply', return_value=mock_composed_reply):
+        sent = sender.send_reply(reply_data, sample_parsed_data, "agent@caf.com")
+    
+    assert sent is True
+    mock_redmail.send.assert_called_once()
+    call_args = mock_redmail.send.call_args[1]
+    assert call_args["sender"] == "agent@caf.com"
+    assert call_args["receivers"] == ["test@example.com"]
+    assert call_args["cc"] == ["cc@example.com"]
+    assert call_args["subject"] == "Re: Test Subject"
+    assert "Test reply body" in call_args["html"]
+    assert "In-Reply-To" in call_args.get("extra_headers", {})
+
+@pytest.fixture
+def mock_redmail():
+    """Mock Redmail Mail instance."""
+    with patch('src.email_code.components.email_sender.Mail') as mock_mail:
+        instance = mock_mail.return_value
+        instance.send.return_value = None  # Simulate successful send
+        yield instance
+
+@pytest.fixture
+def mock_composed_reply():
+    """Mock composed reply dict from EmailComposer."""
+    return {
+        "subject": "Re: Test Subject",
+        "to": ["test@example.com"],
+        "cc": ["cc@example.com"],
+        "html_body": "<html><body>Test reply body<br><blockquote>Original</blockquote></body></html>",
+        "in_reply_to": "<test123@domain.com>",
+        "references": "<test123@domain.com>",
+    }
+
+@pytest.fixture
+def sample_parsed_data():
+    """Sample ParsedEmailData for testing."""
+    return ParsedEmailData(
+        message_id="<test123@domain.com>",
+        from_addr="test@example.com",
+        recipients=EmailRecipients(to=["agent@caf.com"], cc=[]),
+        subject="Test Subject",
+        body="Test body",
+        date="2023-01-01",
+        thread_id="test123"
+    )
+
+
+
