@@ -25,6 +25,7 @@ from src.email_code.imap_connector import IMAPConnector, IMAPConnectorError
 from src.email_code.types import ParsedEmailData, ReplyData
 from src.email_code.components.email_adapter import EmailAdapter
 from src.email_code.components.email_sender import EmailSender
+from src.email_code.components.email_thread_manager import EmailThreadManager
 from src.agents.prompt_manager import PromptManager
 from src.agents.agent_coordinator import AgentCoordinator
 
@@ -101,14 +102,25 @@ class SimpleEmailProcessor:
                             agent_response = self.coordinator.process_email_with_prime_foo(email_context)
                             
                             if agent_response.reply:
+                                # Connect Thread Manager for Headers
+                                threading_headers = EmailThreadManager.build_threading_headers(parsed_data)
+                                
+                                # Calculate "Reply All" recipients (excluding self)
+                                # TO: Original Sender + (Original TO - Me)
+                                reply_to = {parsed_data.from_addr}
+                                reply_to.update(addr for addr in parsed_data.recipients.to if addr != POLICY_AGENT_EMAIL)
+                                
+                                # CC: Original CC - Me
+                                reply_cc = [addr for addr in parsed_data.recipients.cc if addr != POLICY_AGENT_EMAIL]
+
                                 # Prepare reply data
                                 reply_data = ReplyData(
                                     body=agent_response.reply,
-                                    to=parsed_data.recipients.to,
-                                    cc=parsed_data.recipients.cc,
+                                    to=list(reply_to),
+                                    cc=reply_cc,
                                     subject=None,  # Will auto-format
-                                    in_reply_to=parsed_data.message_id,
-                                    references=parsed_data.message_id,
+                                    in_reply_to=threading_headers.get("In-Reply-To"),
+                                    references=threading_headers.get("References"),
                                 )
                                 
                                 # Send reply

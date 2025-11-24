@@ -7,7 +7,7 @@ Top-level declarations:
 - setup_logging: Configure structlog and stdlib logging based on app config
 """
 
-from structlog import configure
+from structlog import configure, get_logger
 from structlog.processors import JSONRenderer, TimeStamper
 from structlog.stdlib import LoggerFactory
 from structlog.dev import ConsoleRenderer

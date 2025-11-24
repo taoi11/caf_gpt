@@ -26,6 +26,10 @@
           black
           mypy
           pytest
+          imap-tools
+          redmail
+          jinja2
+          ollama
         ];
 
         pythonWithPackages = python.withPackages pythonPackages;
