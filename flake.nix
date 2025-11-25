@@ -13,6 +13,21 @@
 
         python = pkgs.python312;
 
+        yagmail = python.buildPythonPackage rec {
+          pname = "yagmail";
+          version = "0.15.293";
+          src = python.fetchPypi {
+            inherit pname version;
+            sha256 = "947a0864e4a64452c8e6b58c80b5bf45389bf8842d779701febfd34fa09649c7";
+          };
+          propagatedBuildInputs = with pkgs.python312Packages; [
+            keyring
+            keyrings.alt
+            secure-smtplib
+          ];
+          doCheck = false;
+        };
+
         pythonPackages = pypkgs: with pypkgs; [
           fastapi
           uvicorn
@@ -27,7 +42,7 @@
           mypy
           pytest
           imap-tools
-          redmail
+          yagmail
           jinja2
           ollama
         ];
