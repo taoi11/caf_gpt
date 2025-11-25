@@ -78,70 +78,70 @@ class SimpleEmailProcessor:
 
             for msg in unseen_msgs:
                 uid = msg.uid
-                with logger.bind(uid=uid):
-                    try:
-                        # Parse
-                        parsed_data = self._adapt_mail_message(msg)
-                        logged_email = self._build_log_entry(uid, parsed_data)
-                        self._log_email(logged_email)
+                log = logger.bind(uid=uid)
+                try:
+                    # Parse
+                    parsed_data = self._adapt_mail_message(msg)
+                    logged_email = self._build_log_entry(uid, parsed_data)
+                    self._log_email(logged_email)
 
-                        # Check if should trigger agent
-                        if should_trigger_agent(parsed_data.recipients.to):
-                            # Build email context for agent
-                            email_context = f"""
-                            Subject: {parsed_data.subject or '<no subject>'}
-                            From: {parsed_data.from_addr}
-                            To: {', '.join(parsed_data.recipients.to)}
-                            Date: {parsed_data.date or 'Unknown'}
+                    # Check if should trigger agent
+                    if should_trigger_agent(parsed_data.recipients.to):
+                        # Build email context for agent
+                        email_context = f"""
+                        Subject: {parsed_data.subject or '<no subject>'}
+                        From: {parsed_data.from_addr}
+                        To: {', '.join(parsed_data.recipients.to)}
+                        Date: {parsed_data.date or 'Unknown'}
+                        
+                        Body:
+                        {parsed_data.body}
+                        """
+                        
+                        # Process with agent coordinator
+                        agent_response = self.coordinator.process_email_with_prime_foo(email_context)
+                        
+                        if agent_response.reply:
+                            # Connect Thread Manager for Headers
+                            threading_headers = EmailThreadManager.build_threading_headers(parsed_data)
                             
-                            Body:
-                            {parsed_data.body}
-                            """
+                            # Calculate "Reply All" recipients (excluding self)
+                            # TO: Original Sender + (Original TO - Me)
+                            reply_to = {parsed_data.from_addr}
+                            reply_to.update(addr for addr in parsed_data.recipients.to if addr != POLICY_AGENT_EMAIL)
                             
-                            # Process with agent coordinator
-                            agent_response = self.coordinator.process_email_with_prime_foo(email_context)
-                            
-                            if agent_response.reply:
-                                # Connect Thread Manager for Headers
-                                threading_headers = EmailThreadManager.build_threading_headers(parsed_data)
-                                
-                                # Calculate "Reply All" recipients (excluding self)
-                                # TO: Original Sender + (Original TO - Me)
-                                reply_to = {parsed_data.from_addr}
-                                reply_to.update(addr for addr in parsed_data.recipients.to if addr != POLICY_AGENT_EMAIL)
-                                
-                                # CC: Original CC - Me
-                                reply_cc = [addr for addr in parsed_data.recipients.cc if addr != POLICY_AGENT_EMAIL]
+                            # CC: Original CC - Me
+                            reply_cc = [addr for addr in parsed_data.recipients.cc if addr != POLICY_AGENT_EMAIL]
 
-                                # Prepare reply data
-                                reply_data = ReplyData(
-                                    body=agent_response.reply,
-                                    to=list(reply_to),
-                                    cc=reply_cc,
-                                    subject=None,  # Will auto-format
-                                    in_reply_to=threading_headers.get("In-Reply-To"),
-                                    references=threading_headers.get("References"),
-                                )
-                                
-                                # Send reply
-                                sent = self.sender.send_reply(reply_data, parsed_data, POLICY_AGENT_EMAIL)
-                                if sent:
-                                    logger.info("Agent reply sent successfully")
-                                    if self._config.delete_after_process:
-                                        self._connector.delete_email(uid)
-                                else:
-                                    logger.error("Failed to send agent reply")
-                                    self._connector.mark_seen(uid)
+                            # Prepare reply data
+                            reply_data = ReplyData(
+                                body=agent_response.reply,
+                                to=list(reply_to),
+                                cc=reply_cc,
+                                subject="Re: " + (parsed_data.subject or ""),  # Will auto-format
+                                in_reply_to=threading_headers.get("In-Reply-To"),
+                                references=threading_headers.get("References"),
+                            )
+                            
+                            # Send reply
+                            sent = self.sender.send_reply(reply_data, parsed_data, POLICY_AGENT_EMAIL)
+                            if sent:
+                                log.info("Agent reply sent successfully")
+                                if self._config.delete_after_process:
+                                    self._connector.delete_email(uid)
                             else:
-                                logger.info("No reply generated by agent")
+                                log.error("Failed to send agent reply")
                                 self._connector.mark_seen(uid)
                         else:
-                            logger.debug("Email does not trigger agent workflow")
+                            log.info("No reply generated by agent")
                             self._connector.mark_seen(uid)
+                    else:
+                        log.debug("Email does not trigger agent workflow")
+                        self._connector.mark_seen(uid)
 
-                    except Exception as error:
-                        logger.exception("error processing email", exc_info=error)
-                        self._connector.mark_seen(uid)  # Mark seen to avoid loops
+                except Exception as error:
+                    log.exception("error processing email", exc_info=error)
+                    self._connector.mark_seen(uid)  # Mark seen to avoid loops
         except IMAPConnectorError as error:
             logger.error("failed to process unseen emails", exc_info=error)
 

@@ -11,6 +11,7 @@ class ParsedEmailData(BaseModel):
     recipients: EmailRecipients = Field(default_factory=EmailRecipients)
     subject: str
     body: str  # For prototype: prefer text_body, fallback to html_body stripped
+    date: Optional[str] = None
     thread_id: Optional[str] = None
 
     @validator('body', pre=True)
