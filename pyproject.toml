@@ -6,6 +6,28 @@ build-backend = "setuptools.build_meta"
 name = "caf-gpt"
 version = "0.1.0"
 description = "CAF-GPT Email Agent - FastAPI app for AI email responses"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "pydantic",
+  "pydantic-settings",
+  "python-dotenv",
+  "requests",
+  "email-validator",
+  "boto3",
+  "structlog",
+  "imap-tools",
+  "yagmail",
+  "jinja2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black",
+  "mypy",
+  "pytest",
+]
 
 [tool.black]
 line-length = 100

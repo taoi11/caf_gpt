@@ -10,53 +10,22 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-
-        python = pkgs.python312;
-
-        yagmail = python.buildPythonPackage rec {
-          pname = "yagmail";
-          version = "0.15.293";
-          src = python.fetchPypi {
-            inherit pname version;
-            sha256 = "947a0864e4a64452c8e6b58c80b5bf45389bf8842d779701febfd34fa09649c7";
-          };
-          propagatedBuildInputs = with pkgs.python312Packages; [
-            keyring
-            keyrings.alt
-            secure-smtplib
-          ];
-          doCheck = false;
-        };
-
-        pythonPackages = pypkgs: with pypkgs; [
-          fastapi
-          uvicorn
-          pydantic
-          pydantic-settings
-          python-dotenv
-          requests
-          email-validator
-          boto3
-          structlog
-          black
-          mypy
-          pytest
-          imap-tools
-          yagmail
-          jinja2
-        ];
-
-        pythonWithPackages = python.withPackages pythonPackages;
-
       in {
         devShell = pkgs.mkShell {
           packages = [
-            pythonWithPackages
+            pkgs.python312
             pkgs.git
           ];
 
           shellHook = ''
             echo "CAF-GPT Email Agent development environment"
+            echo "Setting up Python virtual environment..."
+            if [ ! -d venv ]; then
+              python -m venv venv
+            fi
+            source venv/bin/activate
+            echo "Virtual environment activated"
+            echo "Run 'pip install -e .' to install dependencies"
             echo "Run 'python src/main.py' to start the application"
           '';
         };

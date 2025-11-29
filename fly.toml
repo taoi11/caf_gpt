@@ -1,12 +1,12 @@
+# fly.toml app configuration file generated for caf-gpt on 2025-11-28T19:54:14-07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = 'caf-gpt'
-primary_region = 'yul'
+primary_region = 'yyz'
 
 [build]
-  dockerfile = "Dockerfile"
-
-[env]
-  DEBUG = 'false'
-  AWS_S3_ENDPOINT_URL = 'https://gateway.storjshare.io'
 
 [http_service]
   internal_port = 8000
@@ -16,17 +16,21 @@ primary_region = 'yul'
   min_machines_running = 0
   processes = ['app']
 
-  # [[http_service.checks]]
-  #   grace_period = "10s"
-  #   interval = "30s"
-  #   method = "GET"
-  #   timeout = "5s"
-  #   path = "/health/"
+[env]
+  EMAIL__IMAP_HOST = "imap.purelymail.com"
+  EMAIL__IMAP_PORT = "993"
+  EMAIL__IMAP_USERNAME = "app@caf-gpt.com"
+  EMAIL__SMTP_HOST = "smtp.purelymail.com"
+  EMAIL__SMTP_PORT = "587"
+  EMAIL__SMTP_USERNAME = "app@caf-gpt.com"
+  EMAIL__DELETE_AFTER_PROCESS = "true"
+  EMAIL__EMAIL_PROCESS_INTERVAL = "30"
+  EMAIL__AGENT_EMAILS='["pacenote@caf-gpt.com","policy@caf-gpt.com"]'
+  STORAGE__S3_BUCKET_NAME = "policies"
+  STORAGE__S3_ENDPOINT_URL = "https://7101c0eb0cce7925fd15056c805c97eb.r2.cloudflarestorage.com"
+  STORAGE__S3_REGION = "auto"
+  DEV_MODE = "false"
 
 [[vm]]
   size = 'shared-cpu-1x'
-  count = 1
-
-# [mounts]
-#   source = "caf_gpt_data"
-#   destination = "/code/data"
+  memory = '256mb'
