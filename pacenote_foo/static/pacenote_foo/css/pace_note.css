@@ -1,0 +1,170 @@
+/* PaceNote specific styles */
+:root {
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --secondary-color: #6c757d;
+    --error-color: #721c24;
+    --error-bg: #f8d7da;
+    --error-border: #f5c6cb;
+}
+
+.input-box {
+    width: 100%;
+    min-height: 150px;
+    padding: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+.submit-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Unused class - we use #rank-select instead */
+.rank-select {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+/* Rank selector dropdown - clean, simple design aligned with overall UI */
+#rank-select {
+    appearance: none;
+    padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    background-color: #fff;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+    width: 100%;
+}
+
+#rank-select:hover {
+    border-color: var(--primary-color);
+}
+
+#rank-select:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Wrapper for select to add custom styling */
+.form-group {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+/* Custom dropdown arrow - ONLY for the rank select dropdown */
+.form-group:has(#rank-select)::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-30%);
+    width: 0; 
+    height: 0; 
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #495057;
+    pointer-events: none;
+}
+
+/* Remove the dropdown indicator from label */
+.form-group label[for="rank-select"]::after {
+    content: "";
+}
+
+.output-card {
+    border: 1px solid #ddd;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    background-color: #fff;
+    overflow: hidden;
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+.output-header h5 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.output-content {
+    padding: 1rem;
+    white-space: pre-wrap;
+}
+
+/* Loading State */
+.loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--secondary-color);
+    position: relative;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+
+/* Error message styles */
+.error-message {
+    color: var(--error-color);
+    background-color: var(--error-bg);
+    border: 1px solid var(--error-border);
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+}
+
+/* Base button styles */
+.button {
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+}
+
+.button:hover {
+    background-color: var(--primary-hover);
+}
+
+.button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
