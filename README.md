@@ -12,10 +12,55 @@ A Django-based AI assistant platform with specialized assistants for different u
 
 The project follows a standard Django project structure with multiple apps:
 
-- caf_gpt/: Main project settings
-- core/: Core app with shared functionality
-- pacenote_foo/: PaceNote app for feedback notes
-- policy_foo/: Policy app for policy questions
+```
+caf_gpt/
+├── caf_gpt/              # Main project settings
+│   ├── settings/         # Settings configuration
+│   │   ├── base.py       # Base settings shared across environments
+│   │   ├── dev.py        # Development-specific settings
+│   │   ├── prod.py       # Production-specific settings
+│   │   └── __init__.py   # Environment selector based on DJANGO_ENV
+│   ├── urls.py           # Main URL configuration
+│   ├── asgi.py           # ASGI configuration
+│   └── wsgi.py           # WSGI configuration
+├── core/                 # Core app
+│   ├── models.py         # Base models
+│   ├── views.py          # Landing page and health check views
+│   ├── urls.py           # Core URL configuration
+│   ├── middleware.py     # Custom middleware
+│   └── services/         # Shared services
+│       ├── open_router_service.py # LLM integration
+│       ├── s3_service.py # S3 storage integration
+│       ├── rate_limit_service.py # Rate limiting
+│       └── cost_tracker_service.py # LLM cost tracking
+├── pacenote_foo/         # PaceNote app
+│   ├── models.py         # Chat session models
+│   ├── views.py          # Chat interface views
+│   ├── urls.py           # PaceNote URL configuration
+│   └── services/         # App-specific services
+│       └── prompt_service.py # Prompt template management
+├── policy_foo/           # Policy app
+│   ├── models.py         # Policy document models
+│   ├── urls.py           # Policy URL configuration
+│   └── views/            # Organized view modules
+│       ├── router.py     # Policy routing logic
+│       ├── rate_limits.py # Rate limiting checks
+│       └── doad_foo/     # DOAD policy handler
+│           ├── finder.py # Document finder
+│           ├── reader.py # Document reader
+│           └── main.py   # Response synthesizer
+├── static/               # Static files
+│   ├── css/              # CSS files
+│   ├── js/               # JavaScript files
+│   └── img/              # Image files
+├── templates/            # Project-wide templates
+│   └── base/             # Base templates
+├── staticfiles/          # Collected static files (production)
+├── manage.py             # Django management script
+├── requirements.txt      # Project dependencies
+├── Dockerfile            # Docker configuration for production
+└── docker-compose.yml    # Docker Compose configuration for local testing
+```
 
 ## Environment Variables
 
