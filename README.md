@@ -64,15 +64,28 @@ caf_gpt/
 
 ## Environment Variables
 
-- `DJANGO_ENV`: Environment to use (development or production)
-- `DJANGO_SECRET_KEY`: Secret key for production
-- `DATABASE_URL`: Database connection URL (PostgreSQL)
-- `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+The following environment variables are used:
+
+### Required in All Environments
+- `DATABASE_URL`: Connection string for the PostgreSQL database
+
+### Required in Production Only
+- `DJANGO_SECRET_KEY`: A secure secret key
+- `ALLOWED_HOSTS`: Comma-separated list of allowed hostnames
+
+### Optional
+- `DJANGO_ENV`: Environment to use (development or production) - Default: development
 - `OPENROUTER_API_KEY`: API key for OpenRouter LLM service
-- `S3_ENDPOINT_URL`: S3-compatible storage endpoint
-- `S3_ACCESS_KEY`: S3 access key
-- `S3_SECRET_KEY`: S3 secret key
-- `S3_BUCKET_NAME`: S3 bucket name
+- `TURNSTILE_SITE_KEY`: Cloudflare Turnstile site key
+- `TURNSTILE_SECRET_KEY`: Cloudflare Turnstile secret key
+- `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`: Email server configuration (used in production)
+- `DEFAULT_FROM_EMAIL`: Default sender address for emails
+
+## Security Features
+- Input validation and sanitization
+- Error handling with appropriate status codes
+- CSP compliance
+- Cloudflare Turnstile integration for bot protection (see core/README.md for implementation details)
 
 ## Environment Setup
 

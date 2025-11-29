@@ -2,6 +2,10 @@
 .git
 .gitignore
 .git/
+.ai/
+.openhands/
+.github/
+.shell.nix
 
 # Development
 data/
