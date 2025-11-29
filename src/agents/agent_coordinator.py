@@ -39,7 +39,7 @@ class AgentCoordinator:
                 {"role": "user", "content": email_context},
             ]
             response = llm_client.generate_response(
-                messages, ollama_model="llama3", openrouter_model="x-ai/grok-4"
+                messages, openrouter_model="x-ai/grok-4"
             )
             parsed = self.parse_prime_foo_response(response)
 
@@ -56,7 +56,7 @@ class AgentCoordinator:
                         {"role": "user", "content": f"Research results: {research_result}"},
                     ]
                     response = llm_client.generate_response(
-                        follow_up_messages, ollama_model="llama3", openrouter_model="x-ai/grok-4"
+                        follow_up_messages, openrouter_model="x-ai/grok-4"
                     )
                     parsed = self.parse_prime_foo_response(response)
                 else:

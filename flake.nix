@@ -44,7 +44,6 @@
           imap-tools
           yagmail
           jinja2
-          ollama
         ];
 
         pythonWithPackages = python.withPackages pythonPackages;

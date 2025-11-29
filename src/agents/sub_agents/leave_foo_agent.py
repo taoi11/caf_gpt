@@ -65,5 +65,5 @@ class LeaveFooAgent:
         # Convert messages to dicts and call llm_client with temperature
         formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
         return llm_client.generate_response(
-            formatted_messages, ollama_model="llama3", openrouter_model="x-ai/grok-4.1-fast"
+            formatted_messages, openrouter_model="x-ai/grok-4.1-fast"
         )

@@ -61,17 +61,13 @@ class EmailConfig(BaseSettings):
 class LLMConfig(BaseSettings):
     # Pydantic settings for LLM configuration, including API key, model selection, temperature, and timeout
 
-    # OpenRouter (Secondary)
+    # OpenRouter API
     openrouter_api_key: str
     openrouter_model: str = "x-ai/grok-code-fast-1"
 
-    # Ollama (Primary)
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3"
-
     # Common
     temperature: float = 0.7
-    request_timeout_seconds: float = 120.0  # Increased to 2 min for Ollama
+    request_timeout_seconds: float = 60.0
 
     model_config = SettingsConfigDict(env_prefix="LLM__", extra="ignore")
 
