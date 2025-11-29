@@ -31,6 +31,13 @@ primary_region = 'yyz'
   STORAGE__S3_REGION = "auto"
   DEV_MODE = "false"
 
+[secrets]
+  EMAIL__IMAP_PASSWORD = "EMAIL__IMAP_PASSWORD"
+  EMAIL__SMTP_PASSWORD = "EMAIL__SMTP_PASSWORD"
+  LLM__OPENROUTER_API_KEY = "LLM__OPENROUTER_API_KEY"
+  STORAGE__S3_ACCESS_KEY = "STORAGE__S3_ACCESS_KEY"
+  STORAGE__S3_SECRET_KEY = "STORAGE__S3_SECRET_KEY"
+
 [[vm]]
   size = 'shared-cpu-1x'
   memory = '256mb'
