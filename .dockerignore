@@ -5,10 +5,10 @@
 .ai/
 .openhands/
 .github/
-.shell.nix
 
 # Development
 data/
+.aider*
 
 # Python
 __pycache__/
@@ -35,9 +35,11 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-shell.nix
 .aider*
 fly.toml
+flake.nix
+flake.lock
+*.egg-info/
 
 # Editor directories and files
 .idea
