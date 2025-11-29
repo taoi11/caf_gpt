@@ -19,13 +19,11 @@ __pycache__/
 env/
 build/
 
-# Django
+# Logs and DB
 logs/
 *.log
 *.sqlite3
 *.sqlite3-journal
-media/
-staticfiles/
 
 # Environments
 .env

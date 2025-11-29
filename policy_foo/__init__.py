@@ -1,3 +1,0 @@
-"""
-PolicyFoo app initialization.
-"""
