@@ -1,0 +1,3 @@
+"""
+PolicyFoo app models.
+"""
