@@ -14,7 +14,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-PROMPTS_DIR = Path("/workspace/caf_gpt/src/agents/prompts")
+PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 
 class PromptManager:
