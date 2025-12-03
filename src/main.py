@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
     logger.info("Application starting up")
 
     # Initialize email processor with imap_tools
-    processor = SimpleEmailProcessor(config)
+    processor = SimpleEmailProcessor(config.email)
 
     # Start processor in stoppable thread
     processor_thread = StoppableThread(target=processor.run_loop)

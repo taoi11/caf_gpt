@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from typing import Generator, List, Optional
-from imap_tools import MailBox, BaseMailBox, MailMessage
+from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags
 from datetime import datetime
 from src.config import EmailConfig
 
@@ -62,7 +62,7 @@ class IMAPConnector:
         """Mark email as seen using direct UID flag (no fetch needed)"""
         try:
             with self.mailbox() as mb:
-                mb.seen(uid)
+                mb.flag([uid], [MailMessageFlags.SEEN], True)
         except Exception as error:
             raise IMAPConnectorError(f"failed to mark {uid} as seen: {error}") from error
 
@@ -70,7 +70,7 @@ class IMAPConnector:
         """Delete email using direct UID (no fetch needed)"""
         try:
             with self.mailbox() as mb:
-                mb.delete(uid)
+                mb.delete([uid])
         except Exception as error:
             raise IMAPConnectorError(f"failed to delete {uid}: {error}") from error
 
