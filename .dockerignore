@@ -8,7 +8,6 @@
 
 # Development
 data/
-.aider*
 
 # Python
 __pycache__/
@@ -35,7 +34,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.aider*
 fly.toml
 flake.nix
 flake.lock

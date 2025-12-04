@@ -34,6 +34,4 @@ logs/
 
 # Deployment
 data/
-.aider*
-!.aider.conf.yml
 *.egg-info/
