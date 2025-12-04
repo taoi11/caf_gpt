@@ -1,50 +1,33 @@
-# Git
-.git
-.gitignore
+# Git and CI
 .git/
-.ai/
-.openhands/
 .github/
 
-# Development
-data/
+# Local dev tools
+.openhands/
 
-# Python
+# Build artifacts
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
+**/*.egg-info/
 build/
+dist/
 
-# Logs and DB
+# Data, logs, DB
+data/
 logs/
 *.log
-*.sqlite3
-*.sqlite3-journal
+*.sqlite*
 
-# Environments
-.env
-.envrc
-.direnv
-.venv
+# Virtualenvs
 env/
 venv/
-ENV/
-env.bak/
-venv.bak/
+.venv/
+
+# Secrets and local config
+.env*
+.direnv
 fly.toml
-flake.nix
-flake.lock
-*.egg-info/
+flake.*
 
-# Editor directories and files
-.idea
-.vscode
-
-# Docker
-.dockerignore
-Dockerfile
-docker-compose.yml
-.flake8
+# IDE
+.vscode/
+.idea/
