@@ -5,6 +5,7 @@ triggers:
 - refactor
 - clean up
 - improve code
+- fine-tune
 - fine-tuning
 agent: CodeActAgent
 ---
