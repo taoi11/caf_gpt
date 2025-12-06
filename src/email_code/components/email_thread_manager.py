@@ -6,7 +6,6 @@ Generates In-Reply-To and References headers for replies.
 For prototype: Simple append/trim logic.
 """
 
-import re
 from typing import Dict, List
 
 from src.app_logging import get_logger

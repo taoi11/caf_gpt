@@ -15,7 +15,6 @@ import logging
 import threading
 
 from dataclasses import dataclass
-from typing import Optional
 from imap_tools import MailMessage
 
 from src.config import EmailConfig, should_trigger_agent, POLICY_AGENT_EMAIL
