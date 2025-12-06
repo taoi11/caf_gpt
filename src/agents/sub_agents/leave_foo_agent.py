@@ -8,9 +8,8 @@ Top-level declarations:
 """
 
 import logging
-from typing import List, Optional
+from typing import Dict, List, Optional
 
-from ..types import Message
 from ...storage.document_retriever import DocumentRetriever
 from src.llm_interface import llm_client
 
@@ -49,7 +48,7 @@ class LeaveFooAgent:
         logger.info("Successfully retrieved leave policy document")
         return policy_content
 
-    def _build_leave_foo_prompt(self, policy: str, question: str) -> List[Message]:
+    def _build_leave_foo_prompt(self, policy: str, question: str) -> List[Dict[str, str]]:
         # Load leave_foo prompt, inject policy via {{leave_policy}} placeholder, construct messages
         if self.prompt_manager is None:
             raise ValueError("PromptManager is required for LeaveFooAgent")
@@ -57,13 +56,13 @@ class LeaveFooAgent:
         leave_foo_prompt = self.prompt_manager.get_prompt("leave_foo")
         leave_foo_prompt = leave_foo_prompt.replace("{{leave_policy}}", policy)
 
-        system_message = Message(role="system", content=leave_foo_prompt)
-        user_message = Message(role="user", content=question)
-        return [system_message, user_message]
+        return [
+            {"role": "system", "content": leave_foo_prompt},
+            {"role": "user", "content": question},
+        ]
 
-    def _call_with_context(self, messages: List[Message]) -> str:
-        # Convert messages to dicts and call llm_client with temperature
-        formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
+    def _call_with_context(self, messages: List[Dict[str, str]]) -> str:
+        # Call llm_client with messages
         return llm_client.generate_response(
-            formatted_messages, openrouter_model="x-ai/grok-4.1-fast"
+            messages, openrouter_model="x-ai/grok-4.1-fast"
         )

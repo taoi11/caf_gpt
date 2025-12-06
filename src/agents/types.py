@@ -1,10 +1,9 @@
 """
 /workspace/caf_gpt/src/agents/types.py
 
-Pydantic models for agent messages, responses, and research requests.
+Pydantic models for agent responses and research requests.
 
 Top-level declarations:
-- Message: Single chat message with role and content
 - AgentResponse: Final response from coordinator (reply, no_response, or error)
 - PrimeFooResponse: Parsed prime_foo response structure
 - ResearchRequest: Sub-agent research query with multiple queries and agent type
@@ -12,12 +11,6 @@ Top-level declarations:
 
 from typing import List, Optional
 from pydantic import BaseModel
-
-
-class Message(BaseModel):
-    # Single chat message (role, content)
-    role: str
-    content: str
 
 
 class AgentResponse(BaseModel):

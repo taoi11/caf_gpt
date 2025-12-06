@@ -14,7 +14,6 @@ import threading
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-import structlog
 
 from src.config import config
 from src.app_logging import setup_logging, get_logger
@@ -54,7 +53,7 @@ async def lifespan(app: FastAPI):
 
     # Start processor in stoppable thread
     processor_thread = StoppableThread(target=processor.run_loop)
-    logger.info("Email queue processor thread started", thread_id=processor_thread.thread.ident)
+    logger.info(f"Email queue processor thread started, thread_id={processor_thread.thread.ident}")
 
     try:
         yield

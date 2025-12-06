@@ -6,7 +6,6 @@ Generates In-Reply-To and References headers for replies.
 For prototype: Simple append/trim logic.
 """
 
-import re
 from typing import Dict, List
 
 from src.app_logging import get_logger
@@ -25,7 +24,7 @@ class EmailThreadManager:
         try:
             message_id = original.message_id.strip('<>')
             if not message_id:
-                logger.warning("No Message-ID found for threading", thread_id=original.thread_id)
+                logger.warning(f"No Message-ID found for threading thread_id={original.thread_id}")
                 return {}
 
             in_reply_to = f"<{message_id}>"
@@ -35,10 +34,10 @@ class EmailThreadManager:
                 "In-Reply-To": in_reply_to,
                 "References": references
             }
-            logger.debug("Threading headers built", message_id=message_id, references_len=len(references))
+            logger.debug(f"Threading headers built message_id={message_id} references_len={len(references)}")
             return headers
         except Exception as e:
-            logger.error("Failed to build threading headers", error=str(e), message_id=original.message_id)
+            logger.error(f"Failed to build threading headers: {e} message_id={original.message_id}")
             return {}
 
     @staticmethod
@@ -67,7 +66,7 @@ class EmailThreadManager:
             for ref in refs:
                 test = f"{current} <{ref}>".strip()
                 if len(test) > max_length:
-                    logger.debug("References trimmed due to length limit", original_len=len(refs), trimmed_len=len(trimmed))
+                    logger.debug(f"References trimmed due to length limit original_len={len(refs)} trimmed_len={len(trimmed)}")
                     break
                 trimmed.append(ref)
                 current = test
