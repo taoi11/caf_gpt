@@ -36,28 +36,6 @@ class IMAPConnector:
         ) as mb:
             yield mb
 
-    # Deprecated: search_unseen_uids - replaced by batch fetch_unseen_sorted
-    # def search_unseen_uids(self) -> List[str]:
-    #     """Search for unseen email UIDs"""
-    #     try:
-    #         with self.mailbox() as mb:
-    #             uids = [msg.uid for msg in mb.fetch("UNSEEN")]
-    #             return uids
-    #     except Exception as error:
-    #         raise IMAPConnectorError(f"failed to search for unseen emails: {error}") from error
-
-    # Deprecated: fetch_email_message - replaced by batch fetch_unseen_sorted
-    # def fetch_email_message(self, uid: str) -> MailMessage:
-    #     """Fetch and parse email message"""
-    #     try:
-    #         with self.mailbox() as mb:
-    #             msgs = list(mb.fetch(f"UID {uid}"))
-    #             if not msgs:
-    #                 raise IMAPConnectorError(f"email {uid} not found")
-    #             return msgs[0]
-    #     except Exception as error:
-    #         raise IMAPConnectorError(f"failed to fetch email {uid}: {error}") from error
-
     def mark_seen(self, uid: str) -> None:
         """Mark email as seen using direct UID flag (no fetch needed)"""
         try:
@@ -85,9 +63,3 @@ class IMAPConnector:
                 return msgs
         except Exception as error:
             raise IMAPConnectorError(f"failed to fetch unseen emails: {error}") from error
-
-
-
-    def disconnect(self) -> None:
-        """Disconnect is handled automatically by context manager"""
-        pass

@@ -13,7 +13,7 @@ Top-level declarations:
 
 from __future__ import annotations
 
-from typing import List, Mapping, Optional
+from typing import List
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict

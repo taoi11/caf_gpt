@@ -5,7 +5,6 @@ Email adapter that converts imap_tools MailMessage objects to our internal Parse
 Handles the translation between external library objects and our domain models.
 """
 
-from typing import Optional
 from imap_tools import MailMessage
 
 from src.email_code.types import ParsedEmailData, EmailRecipients

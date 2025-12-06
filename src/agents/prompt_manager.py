@@ -19,10 +19,9 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 class PromptManager:
     def __init__(self, prompts_dir: Optional[Path] = None):
-        # Initialize with optional prompts directory; ensure dir exists and cache prompts
+        # Initialize with optional prompts directory; ensure dir exists
         self.prompts_dir = prompts_dir or PROMPTS_DIR
         self.prompts_dir.mkdir(exist_ok=True)
-        self._cache_prompts()
 
     @lru_cache(maxsize=32)
     def get_prompt(self, prompt_name: str) -> str:
@@ -41,11 +40,6 @@ class PromptManager:
         except IOError as e:
             logger.error(f"Error loading prompt from {path}: {e}")
             return self._get_default_prompt(path.stem)
-
-    def _cache_prompts(self):
-        # Placeholder for pre-loading prompts; uses lru_cache for lazy performance
-        # Pre-load all prompts if desired, but for now, lazy loading with lru_cache
-        pass
 
     def _get_default_prompt(self, prompt_name: str) -> str:
         # Return fallback prompt if file loading fails

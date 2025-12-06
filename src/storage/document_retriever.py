@@ -9,7 +9,7 @@ Top-level declarations:
 """
 
 import logging
-from typing import Optional, Union
+from typing import Optional
 
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError

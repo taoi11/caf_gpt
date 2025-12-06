@@ -60,7 +60,6 @@ class SimpleEmailProcessor:
                     self.process_unseen_emails()
                 self._stop_event.wait(self._config.email_process_interval)
         finally:
-            self._connector.disconnect()
             logger.info("imap poll loop stopped")
 
     def stop(self) -> None:
@@ -130,9 +129,6 @@ class SimpleEmailProcessor:
                             if sent:
                                 log.info("Agent reply sent successfully")
                                 # Step 3: MARK AS READ after successful processing
-                                # Delete functionality is INACTIVE for now
-                                # if self._config.delete_after_process:
-                                #     self._connector.delete_email(uid)
                                 self._connector.mark_seen(uid)
                                 log.info("Email marked as read")
                             else:
