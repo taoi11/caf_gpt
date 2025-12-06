@@ -1,12 +1,13 @@
 # Byte-compiled / C extensions
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *$py.class
 *.so
 .Python
 
 # Virtual environments
-.env
+.env*
 .envrc
 .direnv
 env/
@@ -18,6 +19,10 @@ venv.bak/
 
 # Egg info
 **/*.egg-info/
+
+# Build artifacts
+build/
+dist/
 
 # IDEs and Editors
 .vscode/
@@ -33,3 +38,6 @@ logs/
 
 # Deployment data
 data/
+
+# Docker config
+.dockerignore
