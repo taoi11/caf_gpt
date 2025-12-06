@@ -21,8 +21,9 @@ logger = logging.getLogger(__name__)
 
 class DocumentRetriever:
     # Class handling connection to S3 and document retrieval
+    
     def __init__(self):
-        """Initialize the S3 client with configuration from AppConfig."""
+        # Initialize the S3 client with configuration from AppConfig
         storage_config = config.storage
 
         # Create an S3 client with the appropriate endpoint if provided
@@ -63,14 +64,12 @@ class DocumentRetriever:
 
     def _build_object_key(self, category: str, filename: str) -> str:
         # Construct the S3 object key from category and filename
-        # Ensures proper path format for S3 objects
         if category and not category.startswith("/"):
             return f"{category}/{filename}"
         return filename
 
     def _fetch_from_s3(self, key: str) -> bytes:
         # Fetch the raw content of an S3 object
-        # Uses bucket name from configuration
         try:
             response = self.s3_client.get_object(Bucket=config.storage.s3_bucket_name, Key=key)
             return response["Body"].read()

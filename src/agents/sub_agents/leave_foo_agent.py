@@ -1,5 +1,5 @@
 """
-/workspace/caf_gpt/src/agents/sub_agents/leave_foo_agent.py
+src/agents/sub_agents/leave_foo_agent.py
 
 Specialized sub-agent for leave policy research, inheriting from BaseAgent.
 
@@ -17,7 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class LeaveFooAgent:
+    # Agent handling leave-related queries with policy document integration
+    
     def __init__(self, prompt_manager: Optional["PromptManager"] = None):
+        # Initialize with prompt manager and document retriever
         self.prompt_manager = prompt_manager
         self.document_retriever = DocumentRetriever()  # Initialize the document retriever
 
@@ -39,7 +42,6 @@ class LeaveFooAgent:
 
     def _retrieve_leave_policy(self) -> str:
         # Fetch leave policy from storage using DocumentRetriever
-        # Updated to use new file path: leave/leave_policy_2025.md in the 'policies' bucket
         policy_content = self.document_retriever.get_document("leave", "leave_policy_2025.md")
         if policy_content is None:
             logger.error("Leave policy document not found in storage.")
@@ -49,7 +51,7 @@ class LeaveFooAgent:
         return policy_content
 
     def _build_leave_foo_prompt(self, policy: str, question: str) -> List[Dict[str, str]]:
-        # Load leave_foo prompt, inject policy via {{leave_policy}} placeholder, construct messages
+        # Load leave_foo prompt and inject policy via placeholder
         if self.prompt_manager is None:
             raise ValueError("PromptManager is required for LeaveFooAgent")
 
@@ -62,7 +64,7 @@ class LeaveFooAgent:
         ]
 
     def _call_with_context(self, messages: List[Dict[str, str]]) -> str:
-        # Call llm_client with messages
+        # Call llm_client with messages using specific model for leave queries
         return llm_client.generate_response(
             messages, openrouter_model="x-ai/grok-4.1-fast"
         )

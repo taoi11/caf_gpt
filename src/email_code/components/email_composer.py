@@ -1,9 +1,11 @@
 """
 src/email_code/components/email_composer.py
 
-Basic EmailComposer for prototype: Compose properly formatted reply emails using stdlib.
-Builds EmailMessage with headers, quoted original content.
-For prototype: Plain text only, simple "Re:" subject, "> " quoting.
+Email composer that creates professional HTML replies using Jinja templates.
+Builds properly formatted emails with threading headers and original message quoting.
+
+Top-level declarations:
+- EmailComposer: Class for composing email replies using Jinja templates
 """
 
 from typing import Dict, Optional
@@ -17,8 +19,10 @@ from src.email_code.types import ReplyData, ParsedEmailData
 logger = get_logger(__name__)
 
 class EmailComposer:
+    # Class for composing email replies using Jinja templates
+    
     def __init__(self):
-        """Initialize Jinja environment with template dir from config."""
+        # Initialize Jinja environment with template directory from config
         template_dir = Path(config.email.template_dir)
         if not template_dir.exists():
             raise ValueError(f"Template directory not found: {template_dir}")
@@ -30,14 +34,11 @@ class EmailComposer:
         )
 
     def compose_reply(self, reply_data: ReplyData, original: ParsedEmailData, agent_email: str) -> Dict:
-        """
-        Compose professional HTML reply using Jinja template for Redmail.
-        Includes formatted HTML body with quoting, threading headers, and validation.
-        :param reply_data: Structured reply info (body, to, cc, subject, in_reply_to, references)
-        :param original: Original parsed email for quoting and threading
-        :param agent_email: Bot's email address (for From header)
-        :return: Dict with keys: subject, to, cc, html_body, in_reply_to, references
-        """
+        # Compose professional HTML reply using Jinja template with threading and validation
+        # :param reply_data: Structured reply info (body, to, cc, subject, in_reply_to, references)
+        # :param original: Original parsed email for quoting and threading
+        # :param agent_email: Bot's email address (for From header)
+        # :return: Dict with keys: subject, to, cc, html_body, in_reply_to, references
         try:
             # Validate inputs
             self._validate_reply_data(reply_data)
@@ -45,7 +46,7 @@ class EmailComposer:
             # Format subject
             subject = self._format_subject(reply_data.subject, original.subject)
 
-            # Prepare original data for template (as dict for Jinja)
+            # Prepare original data for template
             original_dict = {
                 "from_addr": original.from_addr,
                 "date": original.date or "Unknown date",
@@ -65,7 +66,7 @@ class EmailComposer:
             to = reply_data.to
             cc = reply_data.cc or []
 
-            # Threading
+            # Threading headers
             in_reply_to = reply_data.in_reply_to or original.message_id
             references = reply_data.references or original.message_id
 
@@ -91,7 +92,7 @@ class EmailComposer:
 
     @staticmethod
     def _format_subject(reply_subject: Optional[str], original_subject: str) -> str:
-        """Format subject with 'Re:' prefix if not present, preferring reply_subject."""
+        # Format subject with 'Re:' prefix if not present, preferring reply_subject
         try:
             if reply_subject:
                 # Ensure 'Re:' if replying but not present
@@ -110,7 +111,7 @@ class EmailComposer:
 
     @staticmethod
     def _validate_reply_data(data: ReplyData) -> None:
-        """Ensure required fields for reply are present."""
+        # Ensure required fields for reply are present
         if not data.to:
             logger.error("Reply data validation failed: no recipients")
             raise ValueError("Reply must have at least one recipient")

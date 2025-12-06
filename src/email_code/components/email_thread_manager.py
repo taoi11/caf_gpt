@@ -1,9 +1,11 @@
 """
 src/email_code/components/email_thread_manager.py
 
-Basic EmailThreadManager for prototype: Manage RFC 5322 compliant email threading.
-Generates In-Reply-To and References headers for replies.
-For prototype: Simple append/trim logic.
+Email thread manager for RFC 5322 compliant email threading.
+Generates In-Reply-To and References headers for proper email conversation tracking.
+
+Top-level declarations:
+- EmailThreadManager: Static class for building email threading headers
 """
 
 from typing import Dict, List
@@ -14,13 +16,13 @@ from src.email_code.types import ParsedEmailData  # For message_id
 logger = get_logger(__name__)
 
 class EmailThreadManager:
+    # Static class for building email threading headers
+    
     @staticmethod
     def build_threading_headers(original: ParsedEmailData) -> Dict[str, str]:
-        """
-        Build threading headers for reply.
-        In-Reply-To: Original Message-ID
-        References: Existing References + original Message-ID (trim if >998 chars)
-        """
+        # Build threading headers for reply following RFC 5322 standards
+        # In-Reply-To: Original Message-ID
+        # References: Existing References + original Message-ID (trim if >998 chars)
         try:
             message_id = original.message_id.strip('<>')
             if not message_id:
@@ -42,9 +44,9 @@ class EmailThreadManager:
 
     @staticmethod
     def _build_references(original: ParsedEmailData, new_id: str) -> str:
-        """Build References header: Append new ID to existing, trim if needed."""
+        # Build References header: Append new ID to existing, trim if needed
         try:
-            # For prototype, use message_id as proxy; in full impl, parse actual References header
+            # For prototype, use message_id as proxy; in full implementation, parse actual References header
             existing_refs = original.message_id
             refs_list = [ref.strip('<>') for ref in existing_refs.split() if ref.strip('<>')] if existing_refs else []
             refs_list.append(new_id)
@@ -59,7 +61,7 @@ class EmailThreadManager:
 
     @staticmethod
     def _trim_references(refs: List[str], max_length: int = 998) -> List[str]:
-        """Trim references list to fit within header length limit."""
+        # Trim references list to fit within RFC header length limit
         try:
             trimmed = []
             current = ""

@@ -2,8 +2,11 @@
 """
 src/email_code/components/email_sender.py
 
-EmailSender using Redmail for robust SMTP sending with retries.
+Email sender using yagmail for robust SMTP sending with retries.
 Handles connection, authentication, and sending composed replies.
+
+Top-level declarations:
+- EmailSender: Class for sending emails via SMTP with retry logic
 """
 
 import yagmail
@@ -17,8 +20,10 @@ from .email_composer import EmailComposer
 logger = get_logger(__name__)
 
 class EmailSender:
+    # Class for sending emails via SMTP with retry logic
+    
     def __init__(self) -> None:
-        """Initialize yagmail SMTP with config from app settings."""
+        # Initialize yagmail SMTP with config from app settings
         email_config = config.email
         self.yag = yagmail.SMTP(
             user=email_config.smtp_username,
@@ -32,14 +37,11 @@ class EmailSender:
         logger.info("EmailSender initialized with yagmail and Jinja composer")
 
     def send_reply(self, reply_data: ReplyData, original: ParsedEmailData, agent_email: str) -> bool:
-        """
-        Compose a professional reply using EmailComposer and send via yagmail with retries.
-        
-        :param reply_data: Structured reply info (body, to, cc, subject, etc.)
-        :param original: Original parsed email for quoting and threading
-        :param agent_email: Sender's email address (e.g., from config)
-        :return: True if sent successfully, False otherwise
-        """
+        # Compose a professional reply using EmailComposer and send via yagmail with retries
+        # :param reply_data: Structured reply info (body, to, cc, subject, etc.)
+        # :param original: Original parsed email for quoting and threading
+        # :param agent_email: Sender's email address (e.g., from config)
+        # :return: True if sent successfully, False otherwise
         max_retries = 3
         for attempt in range(max_retries):
             try:

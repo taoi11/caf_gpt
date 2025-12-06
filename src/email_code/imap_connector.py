@@ -22,14 +22,15 @@ class IMAPConnectorError(Exception):
     pass
 
 class IMAPConnector:
-    """IMAP client wrapper using imap_tools for simplified operations"""
+    # IMAP client wrapper using imap_tools for simplified operations
     
     def __init__(self, config: EmailConfig) -> None:
+        # Initialize with email configuration
         self._config = config
 
     @contextmanager
     def mailbox(self) -> Generator[BaseMailBox, None, None]:
-        """Context manager for IMAP connection using imap_tools"""
+        # Context manager for IMAP connection using imap_tools
         with MailBox(self._config.imap_host, self._config.imap_port).login(
             self._config.imap_username,
             self._config.imap_password
@@ -37,7 +38,7 @@ class IMAPConnector:
             yield mb
 
     def mark_seen(self, uid: str) -> None:
-        """Mark email as seen using direct UID flag (no fetch needed)"""
+        # Mark email as seen using direct UID flag (no fetch needed)
         try:
             with self.mailbox() as mb:
                 mb.flag([uid], [MailMessageFlags.SEEN], True)
@@ -45,7 +46,7 @@ class IMAPConnector:
             raise IMAPConnectorError(f"failed to mark {uid} as seen: {error}") from error
 
     def fetch_unseen_sorted(self) -> List[MailMessage]:
-        """Batch fetch unseen emails, sort by date (oldest first), don't mark seen yet"""
+        # Batch fetch unseen emails, sort by date (oldest first), don't mark seen yet
         try:
             with self.mailbox() as mb:
                 msgs = list(mb.fetch("UNSEEN", mark_seen=False))

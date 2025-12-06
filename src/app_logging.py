@@ -26,4 +26,5 @@ def setup_logging(config: AppConfig) -> None:
 
 
 def get_logger(name: str) -> logging.Logger:
+    # Get a logger instance by name
     return logging.getLogger(name)

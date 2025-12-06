@@ -1,5 +1,5 @@
 """
-/workspace/caf_gpt/src/agents/prompt_manager.py
+src/agents/prompt_manager.py
 
 Manages loading and caching of system prompts from the prompts subdirectory.
 
@@ -18,6 +18,8 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 
 class PromptManager:
+    # Class for loading prompts from .md files with caching and fallbacks
+    
     def __init__(self, prompts_dir: Optional[Path] = None):
         # Initialize with optional prompts directory; ensure dir exists
         self.prompts_dir = prompts_dir or PROMPTS_DIR

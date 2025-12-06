@@ -26,7 +26,7 @@ logger = get_logger(__name__)
 
 
 class StoppableThread:
-    """Helper to run stoppable loop in thread."""
+    # Helper to run stoppable loop in thread with graceful shutdown
     def __init__(self, target, args=()):
         self.target = target
         self.args = args
@@ -41,7 +41,6 @@ class StoppableThread:
     def stop(self):
         self.stop_event.set()
         self.thread.join(timeout=5)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -77,6 +76,7 @@ app = FastAPI(
 
 @app.get("/health")
 async def health_check():
+    # Health check endpoint returning application status and version
     return JSONResponse(content={"status": "healthy", "version": "0.1.0"}, status_code=200)
 
 

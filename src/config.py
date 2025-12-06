@@ -24,15 +24,7 @@ POLICY_AGENT_EMAIL = "policy@caf-gpt.com"
 
 
 def should_trigger_agent(to_addresses: List[str]) -> bool:
-    """
-    Determine if an email should trigger the prime_foo agent based on its recipient address.
-
-    Args:
-        to_addresses: List of email addresses the message was sent to
-
-    Returns:
-        True if the email was sent to the policy agent address, False otherwise
-    """
+    # Determine if an email should trigger the prime_foo agent based on its recipient address
     return POLICY_AGENT_EMAIL in to_addresses
 
 

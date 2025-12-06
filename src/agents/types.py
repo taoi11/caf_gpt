@@ -1,5 +1,5 @@
 """
-/workspace/caf_gpt/src/agents/types.py
+src/agents/types.py
 
 Pydantic models for agent responses and research requests.
 

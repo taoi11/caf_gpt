@@ -2,6 +2,10 @@
 src/llm_interface.py
 
 Centralized service for all LLM interactions using OpenRouter API.
+
+Top-level declarations:
+- LLMInterface: Interface for interacting with LLMs via OpenRouter API
+- llm_client: Global instance of LLMInterface for application-wide use
 """
 
 import logging
@@ -14,11 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 class LLMInterface:
-    """
-    Interface for interacting with LLMs via OpenRouter API.
-    """
+    # Interface for interacting with LLMs via OpenRouter API
 
     def __init__(self):
+        # Initialize with LLM configuration from app settings
         self.config = config.llm
 
     def generate_response(
@@ -27,26 +30,18 @@ class LLMInterface:
         temperature: Optional[float] = None,
         openrouter_model: Optional[str] = None,
     ) -> str:
-        """
-        Generate a response from OpenRouter API.
-
-        Args:
-            messages: List of message dicts (role, content)
-            temperature: Optional override for temperature
-            openrouter_model: Optional override for OpenRouter model
-
-        Returns:
-            The generated text response
-        """
+        # Generate a response from OpenRouter API with optional parameter overrides
+        # :param messages: List of message dicts (role, content)
+        # :param temperature: Optional override for temperature
+        # :param openrouter_model: Optional override for OpenRouter model
+        # :return: The generated text response
         temp = temperature if temperature is not None else self.config.temperature
         return self._call_openrouter(messages, temp, openrouter_model)
 
     def _call_openrouter(
         self, messages: List[Dict[str, str]], temperature: float, model: Optional[str] = None
     ) -> str:
-        """
-        Call the OpenRouter API.
-        """
+        # Call the OpenRouter API with specified parameters and error handling
         use_model = model if model else self.config.openrouter_model
         logger.info(f"Calling OpenRouter with model={use_model}")
 
@@ -84,5 +79,5 @@ class LLMInterface:
             raise RuntimeError(f"Failed to get response from OpenRouter: {str(e)}")
 
 
-# Global instance
+# Global instance for application-wide use
 llm_client = LLMInterface()

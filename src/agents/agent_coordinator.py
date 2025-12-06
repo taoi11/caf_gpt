@@ -1,5 +1,5 @@
 """
-/workspace/caf_gpt/src/agents/agent_coordinator.py
+src/agents/agent_coordinator.py
 
 Orchestrator for prime_foo and sub-agent interactions, handling response parsing and research delegation.
 
@@ -21,7 +21,10 @@ logger = logging.getLogger(__name__)
 
 
 class AgentCoordinator:
+    # Main class coordinating LLM calls, parsing, and sub-agent delegation
+    
     def __init__(self, prompt_manager: PromptManager):
+        # Initialize with prompt manager and load available sub-agents
         self.prompt_manager = prompt_manager
         self.sub_agents: Dict[str, Any] = {}
         self._load_sub_agents()
@@ -66,7 +69,7 @@ class AgentCoordinator:
             return self.get_generic_error_response()
 
     def parse_prime_foo_response(self, response: str) -> PrimeFooResponse:
-        # Parse XML or fallback string for prime_foo responses, extracting type, content, and research details
+        # Parse XML or fallback string for prime_foo responses
         try:
             root = ET.fromstring(response)
             type_ = root.tag
@@ -124,7 +127,7 @@ class AgentCoordinator:
                 )
 
     def handle_research_request(self, research: ResearchRequest) -> str:
-        # Delegate multiple queries to sub-agent and aggregate responses for follow-up
+        # Delegate queries to sub-agent and aggregate responses
         agent = self.sub_agents.get(research.agent_type)
         if not agent:
             logger.warning(f"No sub-agent found for {research.agent_type}")
