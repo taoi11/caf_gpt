@@ -67,8 +67,6 @@ class AgentCoordinator:
 
     def parse_prime_foo_response(self, response: str) -> PrimeFooResponse:
         # Parse XML or fallback string for prime_foo responses, extracting type, content, and research details
-        from typing import List  # For queries list
-
         try:
             root = ET.fromstring(response)
             type_ = root.tag

@@ -6,7 +6,7 @@ Builds EmailMessage with headers, quoted original content.
 For prototype: Plain text only, simple "Re:" subject, "> " quoting.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 import jinja2
 from pathlib import Path
 

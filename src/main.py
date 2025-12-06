@@ -11,7 +11,6 @@ Top-level declarations:
 
 from contextlib import asynccontextmanager
 import threading
-import time
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -20,9 +19,6 @@ import structlog
 from src.config import config
 from src.app_logging import setup_logging, get_logger
 
-from src.llm_interface import LLMInterface
-from src.agents.agent_coordinator import AgentCoordinator
-from src.agents.prompt_manager import PromptManager
 from src.email_code.simple_email_handler import SimpleEmailProcessor
 
 setup_logging(config)
