@@ -156,8 +156,6 @@ class SimpleEmailProcessor:
         preview = data.body.strip()[:200] if data.body else ""
         return LoggedEmail(uid=uid, sender=sender, subject=subject, preview=preview)
 
-    # HTML stripping is now handled by EmailAdapter
-
     @staticmethod
     def _log_email(entry: LoggedEmail) -> None:
         preview = entry.preview[:50] + "..." if len(entry.preview) > 50 else entry.preview
