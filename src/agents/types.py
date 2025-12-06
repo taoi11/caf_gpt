@@ -8,10 +8,9 @@ Top-level declarations:
 - AgentResponse: Final response from coordinator (reply, no_response, or error)
 - PrimeFooResponse: Parsed prime_foo response structure
 - ResearchRequest: Sub-agent research query with multiple queries and agent type
-- SubAgentQuery: Individual sub-agent question with optional context
 """
 
-from typing import List, Union, Optional
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -41,7 +40,3 @@ class ResearchRequest(BaseModel):
     agent_type: str  # e.g., 'leave_foo'
 
 
-class SubAgentQuery(BaseModel):
-    # Individual sub-agent question with optional context
-    question: str
-    context: Optional[str] = None

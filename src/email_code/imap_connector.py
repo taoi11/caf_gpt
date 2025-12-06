@@ -11,7 +11,7 @@ Top-level declarations:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Generator, List, Optional
+from typing import Generator, List
 from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags
 from datetime import datetime
 from src.config import EmailConfig
@@ -43,15 +43,6 @@ class IMAPConnector:
                 mb.flag([uid], [MailMessageFlags.SEEN], True)
         except Exception as error:
             raise IMAPConnectorError(f"failed to mark {uid} as seen: {error}") from error
-
-    def delete_email(self, uid: str) -> None:
-        """Delete email using direct UID (no fetch needed)"""
-        try:
-            with self.mailbox() as mb:
-                mb.delete([uid])
-        except Exception as error:
-            raise IMAPConnectorError(f"failed to delete {uid}: {error}") from error
-
 
     def fetch_unseen_sorted(self) -> List[MailMessage]:
         """Batch fetch unseen emails, sort by date (oldest first), don't mark seen yet"""

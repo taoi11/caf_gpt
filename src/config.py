@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import List
 
-from pydantic import Field, model_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Email address for policy-related agents (prime_foo)
@@ -43,7 +43,6 @@ class EmailConfig(BaseSettings):
     imap_username: str
     imap_password: str
 
-    delete_after_process: bool = True
     email_process_interval: int = 30
 
     # SMTP settings for sending replies

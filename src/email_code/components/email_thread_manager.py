@@ -7,7 +7,7 @@ For prototype: Simple append/trim logic.
 """
 
 import re
-from typing import Optional, Dict, List
+from typing import Dict, List
 
 from src.app_logging import get_logger
 from src.email_code.types import ParsedEmailData  # For message_id
@@ -76,16 +76,3 @@ class EmailThreadManager:
             logger.error("Failed to trim references", error=str(e))
             return refs[:5]  # Fallback: keep first 5
 
-    @staticmethod
-    def validate_message_id(message_id: str) -> bool:
-        """Basic validation of Message-ID format (RFC 2822)."""
-        try:
-            # Should be <local-part@domain>, but simple check
-            pattern = r'^<[^@]+@[^>]+>$'
-            is_valid = bool(re.match(pattern, message_id))
-            if not is_valid:
-                logger.warning("Invalid Message-ID format", message_id=message_id)
-            return is_valid
-        except Exception as e:
-            logger.error("Error validating Message-ID", message_id=message_id, error=str(e))
-            return False
