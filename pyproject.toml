@@ -16,7 +16,6 @@ dependencies = [
   "requests",
   "email-validator",
   "boto3",
-  "structlog",
   "imap-tools",
   "yagmail",
   "jinja2",

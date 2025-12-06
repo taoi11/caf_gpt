@@ -26,4 +26,4 @@
 - Use async/await for I/O operations
 - Implement proper error handling and logging
 - Security: No hardcoded secrets, use environment variables
-- Logging: Use structlog for structured logging
+- Logging: Use standard library logging module

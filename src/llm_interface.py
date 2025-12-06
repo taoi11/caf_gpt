@@ -4,13 +4,13 @@ src/llm_interface.py
 Centralized service for all LLM interactions using OpenRouter API.
 """
 
+import logging
 import requests
-import structlog
 from typing import List, Dict, Optional
 
 from src.config import config
 
-logger = structlog.get_logger()
+logger = logging.getLogger(__name__)
 
 
 class LLMInterface:
@@ -48,7 +48,7 @@ class LLMInterface:
         Call the OpenRouter API.
         """
         use_model = model if model else self.config.openrouter_model
-        logger.info("calling_openrouter", model=use_model)
+        logger.info(f"Calling OpenRouter with model={use_model}")
 
         headers = {
             "Authorization": f"Bearer {self.config.openrouter_api_key}",
@@ -80,7 +80,7 @@ class LLMInterface:
                 raise ValueError(f"Unexpected OpenRouter response format: {data}")
 
         except requests.RequestException as e:
-            logger.error("openrouter_call_failed", error=str(e))
+            logger.error(f"OpenRouter call failed: {e}")
             raise RuntimeError(f"Failed to get response from OpenRouter: {str(e)}")
 
 

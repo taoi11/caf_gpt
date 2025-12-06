@@ -62,30 +62,17 @@ class EmailSender:
                     headers=headers if headers else None,
                 )
                 
-                logger.info(
-                    "Reply sent successfully via yagmail",
-                    subject=composed["subject"],
-                    to=", ".join(composed["to"]),
-                    cc_count=len(composed["cc"] or []),
-                    attempt=attempt + 1,
-                )
+                to_str = ", ".join(composed["to"])
+                cc_count = len(composed["cc"] or [])
+                logger.info(f"Reply sent successfully via yagmail subject={composed['subject']} to={to_str} cc_count={cc_count} attempt={attempt + 1}")
                 return True
-                
+
             except Exception as e:
-                logger.warning(
-                    f"Send attempt {attempt + 1} failed via yagmail",
-                    error=str(e),
-                    subject=reply_data.subject,
-                    to=", ".join(reply_data.to),
-                )
+                to_str = ", ".join(reply_data.to)
+                logger.warning(f"Send attempt {attempt + 1} failed via yagmail: {e} subject={reply_data.subject} to={to_str}")
                 if attempt < max_retries - 1:
                     wait_time = 2 ** attempt  # Exponential backoff
                     time.sleep(wait_time)
                 else:
-                    logger.error(
-                        "Failed to send reply after all retries",
-                        error=str(e),
-                        subject=reply_data.subject,
-                        to=", ".join(reply_data.to),
-                    )
+                    logger.error(f"Failed to send reply after all retries: {e} subject={reply_data.subject} to={to_str}")
                     return False

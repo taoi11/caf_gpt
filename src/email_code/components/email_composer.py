@@ -78,19 +78,15 @@ class EmailComposer:
                 "references": references,
             }
 
-            logger.debug(
-                "Jinja-templated HTML reply composed",
-                subject=subject,
-                to=", ".join(to),
-                cc_count=len(cc),
-                body_preview=reply_data.body[:100] + "..." if len(reply_data.body) > 100 else reply_data.body,
-            )
+            to_str = ", ".join(to)
+            body_preview = reply_data.body[:100] + "..." if len(reply_data.body) > 100 else reply_data.body
+            logger.debug(f"Jinja-templated HTML reply composed subject={subject} to={to_str} cc_count={len(cc)} body_preview={body_preview}")
             return reply_dict
         except jinja2.TemplateNotFound as e:
             logger.error(f"Jinja template not found: {e}")
             raise
         except Exception as e:
-            logger.error("Failed to compose reply", error=str(e), subject=reply_data.subject)
+            logger.error(f"Failed to compose reply: {e} subject={reply_data.subject}")
             raise
 
     @staticmethod
@@ -109,17 +105,15 @@ class EmailComposer:
                 return original_subject
             return "Re:"
         except Exception as e:
-            logger.error("Failed to format subject", error=str(e), original_subject=original_subject)
+            logger.error(f"Failed to format subject: {e} original_subject={original_subject}")
             return "Re:"
 
     @staticmethod
     def _validate_reply_data(data: ReplyData) -> None:
         """Ensure required fields for reply are present."""
-        try:
-            if not data.to:
-                raise ValueError("Reply must have at least one recipient")
-            if not data.body.strip():
-                raise ValueError("Reply body cannot be empty")
-        except Exception as e:
-            logger.error("Reply data validation failed", error=str(e))
-            raise
+        if not data.to:
+            logger.error("Reply data validation failed: no recipients")
+            raise ValueError("Reply must have at least one recipient")
+        if not data.body.strip():
+            logger.error("Reply data validation failed: empty body")
+            raise ValueError("Reply body cannot be empty")
