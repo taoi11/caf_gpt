@@ -13,11 +13,9 @@ from __future__ import annotations
 
 import structlog
 import threading
-import time
 
 from dataclasses import dataclass
 from typing import Optional
-from datetime import datetime
 from imap_tools import MailMessage
 
 from src.config import EmailConfig, should_trigger_agent, POLICY_AGENT_EMAIL
