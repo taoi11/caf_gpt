@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 from src.storage.document_retriever import DocumentRetriever
 from src.llm_interface import llm_client
+from src.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,7 @@ class FeedbackNoteAgent:
                 {"role": "user", "content": email_context},
             ]
 
-            response = llm_client.generate_response(messages, openrouter_model="x-ai/grok-4")
+            response = llm_client.generate_response(messages, openrouter_model=config.llm.pacenote_model)
             parsed = self._parse_response(response)
 
             # Loop to handle rank requests (similar to research loop in prime_foo)
@@ -82,7 +83,7 @@ class FeedbackNoteAgent:
                     ]
 
                     response = llm_client.generate_response(
-                        follow_up_messages, openrouter_model="x-ai/grok-4"
+                        follow_up_messages, openrouter_model=config.llm.pacenote_model
                     )
                     parsed = self._parse_response(response)
 

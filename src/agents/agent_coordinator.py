@@ -17,6 +17,7 @@ from .types import AgentResponse, PrimeFooResponse, ResearchRequest
 from .sub_agents.leave_foo_agent import LeaveFooAgent
 from .feedback_note_agent import FeedbackNoteAgent
 from src.llm_interface import llm_client
+from src.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class AgentCoordinator:
                 {"role": "system", "content": prime_prompt},
                 {"role": "user", "content": email_context},
             ]
-            response = llm_client.generate_response(messages, openrouter_model="x-ai/grok-4")
+            response = llm_client.generate_response(messages, openrouter_model=config.llm.prime_foo_model)
             parsed = self.parse_prime_foo_response(response)
 
             while True:
@@ -67,7 +68,7 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                         {"role": "user", "content": f"Research results: {research_result}"},
                     ]
                     response = llm_client.generate_response(
-                        follow_up_messages, openrouter_model="x-ai/grok-4"
+                        follow_up_messages, openrouter_model=config.llm.prime_foo_model
                     )
                     parsed = self.parse_prime_foo_response(response)
                 else:

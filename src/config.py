@@ -65,6 +65,11 @@ class LLMConfig(BaseSettings):
     openrouter_api_key: str
     openrouter_model: str = "x-ai/grok-code-fast-1"
 
+    # Agent-specific models
+    pacenote_model: str = "anthropic/claude-haiku-4.5"
+    prime_foo_model: str = "google/gemini-3-pro-preview"
+    leave_foo_model: str = "x-ai/grok-4.1-fast"
+
     # Common
     temperature: float = 0.7
     request_timeout_seconds: float = 60.0
