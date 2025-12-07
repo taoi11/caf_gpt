@@ -54,7 +54,7 @@ You MUST respond with ONLY one of these xml formats. DO NOT add any other text, 
 <reply>
   <body>
   Hello,
-  Could you please clarify the rank of the member for whom this feedback note is intended? This this will allow me to tailor the feedback to the appropriate set of competencies.
+  Could you please clarify the rank of the member for whom this feedback note is intended? This will allow me to tailor the feedback to the appropriate set of competencies.
 
   Regards,
   </body>
