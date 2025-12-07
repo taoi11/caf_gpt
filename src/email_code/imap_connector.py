@@ -55,9 +55,9 @@ class IMAPConnector:
                 except Exception as e:
                     logger.warning(f"Could not fetch flags before marking: {e}")
 
-                # Use the seen() method which is more reliable than flag()
-                result = mb.seen([uid], True)
-                logger.info(f"Mark seen operation result for uid={uid}: {result}")
+                # Use flag() to set the SEEN flag
+                mb.flag([uid], [MailMessageFlags.SEEN], True)
+                logger.info(f"Mark seen operation completed for uid={uid}")
 
                 # Force IMAP to persist the flag change
                 mb.client.noop()
