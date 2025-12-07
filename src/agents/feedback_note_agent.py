@@ -80,14 +80,16 @@ class FeedbackNoteAgent:
                     updated_prompt = base_prompt.replace("{{competency_list}}", competency_list)
                     updated_prompt = updated_prompt.replace("{{examples}}", examples)
 
-                    # Continue conversation with updated context
-                    follow_up_messages = [
-                        {"role": "system", "content": updated_prompt},
-                        {"role": "user", "content": email_context},
-                    ]
+                    # Continue conversation by appending to existing messages
+                    # Add the assistant's rank request and a user message with competencies
+                    messages.append({"role": "assistant", "content": response})
+                    messages.append({
+                        "role": "user",
+                        "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\nCompetencies:\n{competency_list}\n\nExamples:\n{examples}"
+                    })
 
                     response = llm_client.generate_response(
-                        follow_up_messages, openrouter_model=config.llm.pacenote_model
+                        messages, openrouter_model=config.llm.pacenote_model
                     )
                     logger.info(f"LLM follow-up raw response: {response}")
                     parsed = self._parse_response(response)
