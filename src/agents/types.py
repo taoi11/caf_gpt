@@ -31,5 +31,3 @@ class ResearchRequest(BaseModel):
     # Sub-agent research query with multiple queries and agent type
     queries: List[str]
     agent_type: str  # e.g., 'leave_foo'
-
-

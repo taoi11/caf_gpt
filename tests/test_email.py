@@ -52,14 +52,14 @@ def sample_mail_message():
 # Deprecated: search_unseen_uids - test removed as method is deprecated
 
 
-@patch('src.email_code.imap_connector.MailBox')
+@patch("src.email_code.imap_connector.MailBox")
 def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
     """Test IMAP connector batch fetches and sorts unseen emails using imap_tools."""
     # Mock MailBox context manager
     mock_mb = MagicMock()
     # MailBox().login() returns the context manager
     mock_mailbox.return_value.login.return_value.__enter__.return_value = mock_mb
-    
+
     # Mock fetch to return test messages with dates
     mock_msg1 = MagicMock()
     mock_msg1.uid = "2"
@@ -68,14 +68,15 @@ def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
     mock_msg2.uid = "1"
     mock_msg2.date = datetime(2023, 1, 1)  # Older
     mock_mb.fetch.return_value = [mock_msg1, mock_msg2]
-    
+
     connector = IMAPConnector(mock_config)
     msgs = connector.fetch_unseen_sorted()
-    
+
     assert len(msgs) == 2
     assert msgs[0].uid == "1"  # Oldest first
     assert msgs[1].uid == "2"
     mock_mb.fetch.assert_called_once_with("UNSEEN", mark_seen=False)
+
 
 # Deprecated: fetch_email_message - test removed as method is deprecated
 
@@ -92,9 +93,9 @@ def test_email_thread_manager_builds_headers():
         recipients=EmailRecipients(to=["agent@caf.com"]),
         subject="Test Subject",
         body="Test body",
-        thread_id="test123"
+        thread_id="test123",
     )
-    
+
     headers = EmailThreadManager.build_threading_headers(parsed)
     assert "In-Reply-To" in headers
     assert headers["In-Reply-To"] == "<test123@domain.com>"
@@ -110,17 +111,17 @@ def test_email_composer_composes_reply():
         subject="Test Subject",
         body="Test body",
         date="2023-01-01",
-        thread_id="test123"
+        thread_id="test123",
     )
-    
+
     reply_data = ReplyData(
         to=["test@example.com"],
         subject="Re: Test Subject",
         body="Reply body",
         in_reply_to="<test123@domain.com>",
-        references="<test123@domain.com>"
+        references="<test123@domain.com>",
     )
-    
+
     composer = EmailComposer()
     composed = composer.compose_reply(reply_data, parsed, "agent@caf.com")
     assert isinstance(composed, dict)
@@ -135,9 +136,11 @@ def test_email_composer_composes_reply():
     assert composed["in_reply_to"] == "<test123@domain.com>"
 
 
-@patch('src.email_code.simple_email_handler.PromptManager')
-@patch('src.email_code.simple_email_handler.IMAPConnector')
-def test_simple_email_processor_process_unseen(mock_connector_class, mock_prompt_manager, mock_config):
+@patch("src.email_code.simple_email_handler.PromptManager")
+@patch("src.email_code.simple_email_handler.IMAPConnector")
+def test_simple_email_processor_process_unseen(
+    mock_connector_class, mock_prompt_manager, mock_config
+):
     """Test SimpleEmailProcessor processes unseen emails using mocked IMAP connector."""
     # Mock connector and its methods
     mock_connector = MagicMock()
@@ -149,12 +152,12 @@ def test_simple_email_processor_process_unseen(mock_connector_class, mock_prompt
     mock_msg.subject = "Test"
     mock_msg.text = "Body"
     mock_connector.fetch_unseen_sorted.return_value = [mock_msg]
-    
+
     mock_connector_class.return_value = mock_connector
-    
+
     processor = SimpleEmailProcessor(mock_config)
     processor.process_unseen_emails()
-    
+
     # Verify the connector was called correctly
     mock_connector.fetch_unseen_sorted.assert_called_once()
     mock_connector.mark_seen.assert_called_once_with("1")
@@ -163,7 +166,7 @@ def test_simple_email_processor_process_unseen(mock_connector_class, mock_prompt
 def test_email_adapter_adapts_mail_message(sample_mail_message):
     """Test EmailAdapter converts MailMessage to ParsedEmailData."""
     parsed = EmailAdapter.adapt_mail_message(sample_mail_message)
-    
+
     assert isinstance(parsed, ParsedEmailData)
     assert parsed.from_addr == "test@example.com"
     assert parsed.subject == "Test Subject"
@@ -178,20 +181,20 @@ def test_email_adapter_strips_html():
     """Test EmailAdapter HTML stripping functionality."""
     html = "<p>Hello <strong>World</strong>!</p><br>"
     clean = EmailAdapter._strip_html(html)
-    
+
     assert "Hello World!" in clean
     assert "<p>" not in clean
     assert "<strong>" not in clean
     assert "<br>" not in clean
 
 
-@patch('src.email_code.simple_email_handler.PromptManager')
+@patch("src.email_code.simple_email_handler.PromptManager")
 def test_simple_email_processor_uses_adapter(mock_prompt_manager, sample_mail_message):
     """Test SimpleEmailProcessor correctly uses EmailAdapter for conversion."""
     processor = SimpleEmailProcessor(Mock())
     # Verify that the processor uses the EmailAdapter
     parsed = processor._adapt_mail_message(sample_mail_message)
-    
+
     # The adapter should be called, so this should work
     assert isinstance(parsed, ParsedEmailData)
     assert parsed.from_addr == "test@example.com"
@@ -199,7 +202,6 @@ def test_simple_email_processor_uses_adapter(mock_prompt_manager, sample_mail_me
     assert "test body" in parsed.body
     assert parsed.message_id == "test123"
     assert parsed.recipients.to == ["agent@caf.com"]
-
 
 
 def test_email_sender_sends_reply(mock_yagmail, mock_composed_reply, sample_parsed_data):
@@ -211,13 +213,13 @@ def test_email_sender_sends_reply(mock_yagmail, mock_composed_reply, sample_pars
         cc=["cc@example.com"],
         subject="Re: Test Subject",
         in_reply_to="<test123@domain.com>",
-        references="<test123@domain.com>"
+        references="<test123@domain.com>",
     )
-    
+
     # Mock compose_reply to return our composed dict
-    with patch.object(EmailComposer, 'compose_reply', return_value=mock_composed_reply):
+    with patch.object(EmailComposer, "compose_reply", return_value=mock_composed_reply):
         sent = sender.send_reply(reply_data, sample_parsed_data, "agent@caf.com")
-    
+
     assert sent is True
     mock_yagmail.send.assert_called_once()
     call_args = mock_yagmail.send.call_args[1]
@@ -228,13 +230,15 @@ def test_email_sender_sends_reply(mock_yagmail, mock_composed_reply, sample_pars
     assert "Test reply body" in call_args["contents"]
     assert "In-Reply-To" in call_args.get("headers", {})
 
+
 @pytest.fixture
 def mock_yagmail():
     """Mock yagmail SMTP instance."""
-    with patch('src.email_code.components.email_sender.yagmail.SMTP') as mock_smtp:
+    with patch("src.email_code.components.email_sender.yagmail.SMTP") as mock_smtp:
         instance = mock_smtp.return_value
         instance.send.return_value = None  # Simulate successful send
         yield instance
+
 
 @pytest.fixture
 def mock_composed_reply():
@@ -248,6 +252,7 @@ def mock_composed_reply():
         "references": "<test123@domain.com>",
     }
 
+
 @pytest.fixture
 def sample_parsed_data():
     """Sample ParsedEmailData for testing."""
@@ -258,8 +263,5 @@ def sample_parsed_data():
         subject="Test Subject",
         body="Test body",
         date="2023-01-01",
-        thread_id="test123"
+        thread_id="test123",
     )
-
-
-

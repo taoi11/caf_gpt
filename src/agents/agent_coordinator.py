@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class AgentCoordinator:
     # Main class coordinating LLM calls, parsing, and sub-agent delegation
-    
+
     def __init__(self, prompt_manager: PromptManager):
         # Initialize with prompt manager and load available sub-agents
         self.prompt_manager = prompt_manager
@@ -41,9 +41,7 @@ class AgentCoordinator:
                 {"role": "system", "content": prime_prompt},
                 {"role": "user", "content": email_context},
             ]
-            response = llm_client.generate_response(
-                messages, openrouter_model="x-ai/grok-4"
-            )
+            response = llm_client.generate_response(messages, openrouter_model="x-ai/grok-4")
             parsed = self.parse_prime_foo_response(response)
 
             while True:

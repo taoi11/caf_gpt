@@ -42,6 +42,7 @@ class StoppableThread:
         self.stop_event.set()
         self.thread.join(timeout=5)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize components and start email queue processor in background thread
@@ -52,7 +53,9 @@ async def lifespan(app: FastAPI):
 
     # Start processor in stoppable thread
     processor_thread = StoppableThread(target=processor.run_loop)
-    logger.info("Email queue processor thread started", extra={"thread_id": processor_thread.thread.ident})
+    logger.info(
+        "Email queue processor thread started", extra={"thread_id": processor_thread.thread.ident}
+    )
 
     try:
         yield

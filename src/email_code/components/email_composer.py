@@ -18,9 +18,10 @@ from src.email_code.types import ReplyData, ParsedEmailData
 
 logger = get_logger(__name__)
 
+
 class EmailComposer:
     # Class for composing email replies using Jinja templates
-    
+
     def __init__(self):
         # Initialize Jinja environment with template directory from config
         template_dir = Path(config.email.template_dir)
@@ -33,7 +34,9 @@ class EmailComposer:
             lstrip_blocks=True,
         )
 
-    def compose_reply(self, reply_data: ReplyData, original: ParsedEmailData, agent_email: str) -> Dict:
+    def compose_reply(
+        self, reply_data: ReplyData, original: ParsedEmailData, agent_email: str
+    ) -> Dict:
         # Compose professional HTML reply using Jinja template with threading and validation
         # :param reply_data: Structured reply info (body, to, cc, subject, in_reply_to, references)
         # :param original: Original parsed email for quoting and threading
@@ -80,8 +83,12 @@ class EmailComposer:
             }
 
             to_str = ", ".join(to)
-            body_preview = reply_data.body[:100] + "..." if len(reply_data.body) > 100 else reply_data.body
-            logger.debug(f"Jinja-templated HTML reply composed subject={subject} to={to_str} cc_count={len(cc)} body_preview={body_preview}")
+            body_preview = (
+                reply_data.body[:100] + "..." if len(reply_data.body) > 100 else reply_data.body
+            )
+            logger.debug(
+                f"Jinja-templated HTML reply composed subject={subject} to={to_str} cc_count={len(cc)} body_preview={body_preview}"
+            )
             return reply_dict
         except jinja2.TemplateNotFound as e:
             logger.error(f"Jinja template not found: {e}")
