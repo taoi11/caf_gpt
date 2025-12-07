@@ -25,6 +25,13 @@ logger = logging.getLogger(__name__)
 class AgentCoordinator:
     # Main class coordinating LLM calls, parsing, and sub-agent delegation
 
+    # Signature appended to all agent replies
+    SIGNATURE = """
+
+CAF-GPT
+[Source Code](https://github.com/taoi11/caf_gpt)
+How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
+
     def __init__(self, prompt_manager: PromptManager):
         # Initialize with prompt manager and load available sub-agents
         self.prompt_manager = prompt_manager
@@ -45,7 +52,9 @@ class AgentCoordinator:
                 {"role": "system", "content": prime_prompt},
                 {"role": "user", "content": email_context},
             ]
-            response = llm_client.generate_response(messages, openrouter_model=config.llm.prime_foo_model)
+            response = llm_client.generate_response(
+                messages, openrouter_model=config.llm.prime_foo_model
+            )
             parsed = self.parse_prime_foo_response(response)
 
             while True:
@@ -53,12 +62,7 @@ class AgentCoordinator:
                     return self.handle_no_response()
                 elif parsed.type == "reply":
                     # Append signature to policy agent replies
-                    signature = """
-
-CAF-GPT
-[Source Code](https://github.com/taoi11/caf_gpt)
-How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
-                    reply_with_signature = parsed.content + signature
+                    reply_with_signature = parsed.content + self.SIGNATURE
                     return AgentResponse(reply=reply_with_signature)
                 elif parsed.type == "research":
                     research_result = self.handle_research_request(parsed.research)
@@ -172,12 +176,7 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                 return self.handle_no_response()
             elif parsed.type == "reply":
                 # Append signature to feedback note replies
-                signature = """
-
-CAF-GPT
-[Source Code](https://github.com/taoi11/caf_gpt)
-How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
-                reply_with_signature = parsed.content + signature
+                reply_with_signature = parsed.content + self.SIGNATURE
                 return AgentResponse(reply=reply_with_signature)
             else:
                 return self.get_generic_error_response()
@@ -217,4 +216,6 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                 return PrimeFooResponse(type="reply", content=content)
             else:
                 # Default to error
-                return PrimeFooResponse(type="reply", content="Unable to process feedback note request.")
+                return PrimeFooResponse(
+                    type="reply", content="Unable to process feedback note request."
+                )
