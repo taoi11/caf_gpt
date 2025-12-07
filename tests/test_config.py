@@ -16,6 +16,9 @@ import os
 os.environ.setdefault("EMAIL__IMAP_HOST", "imap.test")
 os.environ.setdefault("EMAIL__IMAP_USERNAME", "user")
 os.environ.setdefault("EMAIL__IMAP_PASSWORD", "secret")
+os.environ.setdefault("EMAIL__SMTP_HOST", "smtp.test")
+os.environ.setdefault("EMAIL__SMTP_USERNAME", "user")
+os.environ.setdefault("EMAIL__SMTP_PASSWORD", "secret")
 os.environ.setdefault("LLM__OPENROUTER_API_KEY", "key")
 os.environ.setdefault("STORAGE__S3_BUCKET_NAME", "bucket")
 os.environ.setdefault("STORAGE__S3_ACCESS_KEY", "access")
@@ -45,6 +48,18 @@ def test_should_trigger_agent_without_policy_email() -> None:
 
 def test_defaults_are_set() -> None:
     # Confirm that default values are applied correctly for processing flags
-    config = EmailConfig(imap_host="imap.test", imap_username="user", imap_password="secret")
+    config = EmailConfig(
+        imap_host="imap.test",
+        imap_username="user",
+        imap_password="secret",
+        smtp_host="smtp.test",
+        smtp_username="user",
+        smtp_password="secret",
+    )
 
     assert config.email_process_interval == 30
+    assert config.imap_port == 993
+    assert config.smtp_port == 587
+    assert config.smtp_use_tls is True
+    assert config.smtp_use_ssl is False
+    assert config.template_dir == "src/email_code/templates"

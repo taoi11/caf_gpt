@@ -16,14 +16,16 @@ from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags
 from datetime import datetime
 from src.config import EmailConfig
 
+
 class IMAPConnectorError(Exception):
     """Custom exception raised when IMAP operations fail"""
 
     pass
 
+
 class IMAPConnector:
     # IMAP client wrapper using imap_tools for simplified operations
-    
+
     def __init__(self, config: EmailConfig) -> None:
         # Initialize with email configuration
         self._config = config
@@ -32,8 +34,7 @@ class IMAPConnector:
     def mailbox(self) -> Generator[BaseMailBox, None, None]:
         # Context manager for IMAP connection using imap_tools
         with MailBox(self._config.imap_host, self._config.imap_port).login(
-            self._config.imap_username,
-            self._config.imap_password
+            self._config.imap_username, self._config.imap_password
         ) as mb:
             yield mb
 
@@ -55,3 +56,7 @@ class IMAPConnector:
                 return msgs
         except Exception as error:
             raise IMAPConnectorError(f"failed to fetch unseen emails: {error}") from error
+
+    def disconnect(self) -> None:
+        # No-op: All connections are handled by context managers that automatically cleanup
+        pass

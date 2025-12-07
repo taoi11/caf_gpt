@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class LeaveFooAgent:
     # Agent handling leave-related queries with policy document integration
-    
+
     def __init__(self, prompt_manager: Optional["PromptManager"] = None):
         # Initialize with prompt manager and document retriever
         self.prompt_manager = prompt_manager
@@ -65,6 +65,4 @@ class LeaveFooAgent:
 
     def _call_with_context(self, messages: List[Dict[str, str]]) -> str:
         # Call llm_client with messages using specific model for leave queries
-        return llm_client.generate_response(
-            messages, openrouter_model="x-ai/grok-4.1-fast"
-        )
+        return llm_client.generate_response(messages, openrouter_model="x-ai/grok-4.1-fast")

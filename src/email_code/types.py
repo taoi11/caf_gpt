@@ -12,10 +12,12 @@ Top-level declarations:
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr, validator, Field
 
+
 class EmailRecipients(BaseModel):
     # Model for email recipient lists with to and cc fields
     to: List[EmailStr] = Field(default_factory=list)
     cc: List[EmailStr] = Field(default_factory=list)
+
 
 class ParsedEmailData(BaseModel):
     # Model for parsed incoming email data with all required fields
@@ -27,10 +29,11 @@ class ParsedEmailData(BaseModel):
     date: Optional[str] = None
     thread_id: Optional[str] = None
 
-    @validator('body', pre=True)
+    @validator("body", pre=True)
     def extract_body(cls, v, values):
         # Ensure body is never None, fallback to empty string
-        return v or ''
+        return v or ""
+
 
 class ReplyData(BaseModel):
     # Model for email reply data structure with threading support
