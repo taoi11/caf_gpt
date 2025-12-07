@@ -65,7 +65,7 @@ class FeedbackNoteAgent:
                     return response
 
                 elif parsed.type == "reply":
-                    return response
+                    return parsed.content
 
                 elif parsed.type == "rank":
                     # Load competencies for requested rank
