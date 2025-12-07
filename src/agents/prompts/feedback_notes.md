@@ -79,7 +79,7 @@ You MUST respond with ONLY one of these xml formats. DO NOT add any other text, 
 ```xml
 <reply>
   <body>
-    I apologize, but I am currently have not learnt the competencies for [specified rank]. Here is a Feedback Note with Cpl competencies instead:
+    I apologize, but I have not yet learnt the competencies for [specified rank]. Here is a Feedback Note with Cpl competencies instead:
     [Feedback Note Here]
     Regards,
   </body>
