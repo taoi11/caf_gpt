@@ -74,10 +74,6 @@ You MUST respond with ONLY one of these xml formats. DO NOT add any other text, 
 ```xml
 <no_response>
 ```
-## Example 3 - No Response Needed:
-```xml
-<no_response>
-```
 
 ## EXAMPLE 4 - Rank Not Supported
 ```xml
