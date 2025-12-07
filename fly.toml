@@ -4,7 +4,7 @@
 #
 
 app = 'caf-gpt'
-primary_region = 'yyz'
+primary_region = 'iad'
 
 [build]
 
