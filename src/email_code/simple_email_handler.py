@@ -17,7 +17,7 @@ import threading
 from dataclasses import dataclass
 from imap_tools import MailMessage
 
-from src.config import EmailConfig, should_trigger_agent, POLICY_AGENT_EMAIL
+from src.config import EmailConfig, should_trigger_agent, POLICY_AGENT_EMAIL, PACENOTE_AGENT_EMAIL
 from src.email_code.imap_connector import IMAPConnector, IMAPConnectorError
 from src.email_code.types import ParsedEmailData, ReplyData
 from src.email_code.components.email_adapter import EmailAdapter
@@ -86,8 +86,10 @@ class SimpleEmailProcessor:
                     logged_email = self._build_log_entry(uid, parsed_data)
                     self._log_email(logged_email)
 
-                    # Check if should trigger agent
-                    if should_trigger_agent(parsed_data.recipients.to):
+                    # Check which agent should process this email
+                    agent_type = should_trigger_agent(parsed_data.recipients.to)
+
+                    if agent_type:
                         # Build email context for agent
                         email_context = f"""
                         Subject: {parsed_data.subject or '<no subject>'}
@@ -99,11 +101,23 @@ class SimpleEmailProcessor:
                         {parsed_data.body}
                         """
 
-                        # Process with agent coordinator
-                        logger.info(f"[uid={uid}] Processing email through AI pipeline")
-                        agent_response = self.coordinator.process_email_with_prime_foo(
-                            email_context
-                        )
+                        # Process with appropriate agent coordinator
+                        logger.info(f"[uid={uid}] Processing email through {agent_type} agent pipeline")
+
+                        if agent_type == "policy":
+                            agent_response = self.coordinator.process_email_with_prime_foo(
+                                email_context
+                            )
+                            agent_email = POLICY_AGENT_EMAIL
+                        elif agent_type == "pacenote":
+                            agent_response = self.coordinator.process_email_with_feedback_note(
+                                email_context
+                            )
+                            agent_email = PACENOTE_AGENT_EMAIL
+                        else:
+                            logger.warning(f"[uid={uid}] Unknown agent type: {agent_type}")
+                            self._connector.mark_seen(uid)
+                            continue
 
                         if agent_response.reply:
                             # Build threading headers for reply
@@ -116,14 +130,14 @@ class SimpleEmailProcessor:
                             reply_to.update(
                                 addr
                                 for addr in parsed_data.recipients.to
-                                if addr != POLICY_AGENT_EMAIL
+                                if addr != agent_email
                             )
 
                             # CC recipients (excluding self)
                             reply_cc = [
                                 addr
                                 for addr in parsed_data.recipients.cc
-                                if addr != POLICY_AGENT_EMAIL
+                                if addr != agent_email
                             ]
 
                             # Prepare reply data
@@ -139,7 +153,7 @@ class SimpleEmailProcessor:
                             # Send reply
                             logger.info(f"[uid={uid}] Sending agent reply")
                             sent = self.sender.send_reply(
-                                reply_data, parsed_data, POLICY_AGENT_EMAIL
+                                reply_data, parsed_data, agent_email
                             )
                             if sent:
                                 logger.info(f"[uid={uid}] Agent reply sent successfully")
