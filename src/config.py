@@ -13,9 +13,9 @@ Top-level declarations:
 
 from __future__ import annotations
 
-from typing import List, Mapping, Optional
+from typing import List
 
-from pydantic import Field, model_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Email address for policy-related agents (prime_foo)
@@ -24,15 +24,7 @@ POLICY_AGENT_EMAIL = "policy@caf-gpt.com"
 
 
 def should_trigger_agent(to_addresses: List[str]) -> bool:
-    """
-    Determine if an email should trigger the prime_foo agent based on its recipient address.
-
-    Args:
-        to_addresses: List of email addresses the message was sent to
-
-    Returns:
-        True if the email was sent to the policy agent address, False otherwise
-    """
+    # Determine if an email should trigger the prime_foo agent based on its recipient address
     return POLICY_AGENT_EMAIL in to_addresses
 
 
@@ -43,7 +35,6 @@ class EmailConfig(BaseSettings):
     imap_username: str
     imap_password: str
 
-    delete_after_process: bool = True
     email_process_interval: int = 30
 
     # SMTP settings for sending replies
@@ -87,7 +78,6 @@ class StorageConfig(BaseSettings):
 class LogConfig(BaseSettings):
     # Pydantic settings for logging configuration
     log_level: str = "INFO"
-    json_logging: bool = False
 
     model_config = SettingsConfigDict(env_prefix="LOG__", extra="ignore")
 

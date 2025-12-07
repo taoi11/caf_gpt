@@ -1,29 +1,34 @@
-# Environment
-.env
-.direnv
-
-# Python
+# Byte-compiled / C extensions
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *$py.class
 *.so
 .Python
+
+# Virtual environments
+.env*
+.envrc
+.direnv
 env/
 venv/
+.venv/
 ENV/
 env.bak/
 venv.bak/
 
-
-
 # Egg info
 **/*.egg-info/
 
-# Editor directories and files
+# Build artifacts
+build/
+dist/
+
+# IDEs and Editors
 .vscode/
 .idea/
 
-# OS
+# OS generated
 .DS_Store
 Thumbs.db
 
@@ -31,8 +36,8 @@ Thumbs.db
 *.log
 logs/
 
-# Deployment
+# Deployment data
 data/
-.aider*
-!.aider.conf.yml
-*.egg-info/
+
+# Docker config
+.dockerignore

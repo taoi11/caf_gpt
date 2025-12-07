@@ -16,7 +16,6 @@ dependencies = [
   "requests",
   "email-validator",
   "boto3",
-  "structlog",
   "imap-tools",
   "yagmail",
   "jinja2",
@@ -24,9 +23,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "black",
-  "mypy",
-  "pytest",
+  "black==25.11.0",
+  "mypy==1.19.0",
+  "pytest==8.4.2",
 ]
 
 [tool.black]

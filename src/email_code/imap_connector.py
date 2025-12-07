@@ -11,72 +11,43 @@ Top-level declarations:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Generator, List, Optional
+from typing import Generator, List
 from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags
 from datetime import datetime
 from src.config import EmailConfig
+
 
 class IMAPConnectorError(Exception):
     """Custom exception raised when IMAP operations fail"""
 
     pass
 
+
 class IMAPConnector:
-    """IMAP client wrapper using imap_tools for simplified operations"""
-    
+    # IMAP client wrapper using imap_tools for simplified operations
+
     def __init__(self, config: EmailConfig) -> None:
+        # Initialize with email configuration
         self._config = config
 
     @contextmanager
     def mailbox(self) -> Generator[BaseMailBox, None, None]:
-        """Context manager for IMAP connection using imap_tools"""
+        # Context manager for IMAP connection using imap_tools
         with MailBox(self._config.imap_host, self._config.imap_port).login(
-            self._config.imap_username,
-            self._config.imap_password
+            self._config.imap_username, self._config.imap_password
         ) as mb:
             yield mb
 
-    # Deprecated: search_unseen_uids - replaced by batch fetch_unseen_sorted
-    # def search_unseen_uids(self) -> List[str]:
-    #     """Search for unseen email UIDs"""
-    #     try:
-    #         with self.mailbox() as mb:
-    #             uids = [msg.uid for msg in mb.fetch("UNSEEN")]
-    #             return uids
-    #     except Exception as error:
-    #         raise IMAPConnectorError(f"failed to search for unseen emails: {error}") from error
-
-    # Deprecated: fetch_email_message - replaced by batch fetch_unseen_sorted
-    # def fetch_email_message(self, uid: str) -> MailMessage:
-    #     """Fetch and parse email message"""
-    #     try:
-    #         with self.mailbox() as mb:
-    #             msgs = list(mb.fetch(f"UID {uid}"))
-    #             if not msgs:
-    #                 raise IMAPConnectorError(f"email {uid} not found")
-    #             return msgs[0]
-    #     except Exception as error:
-    #         raise IMAPConnectorError(f"failed to fetch email {uid}: {error}") from error
-
     def mark_seen(self, uid: str) -> None:
-        """Mark email as seen using direct UID flag (no fetch needed)"""
+        # Mark email as seen using direct UID flag (no fetch needed)
         try:
             with self.mailbox() as mb:
                 mb.flag([uid], [MailMessageFlags.SEEN], True)
         except Exception as error:
             raise IMAPConnectorError(f"failed to mark {uid} as seen: {error}") from error
 
-    def delete_email(self, uid: str) -> None:
-        """Delete email using direct UID (no fetch needed)"""
-        try:
-            with self.mailbox() as mb:
-                mb.delete([uid])
-        except Exception as error:
-            raise IMAPConnectorError(f"failed to delete {uid}: {error}") from error
-
-
     def fetch_unseen_sorted(self) -> List[MailMessage]:
-        """Batch fetch unseen emails, sort by date (oldest first), don't mark seen yet"""
+        # Batch fetch unseen emails, sort by date (oldest first), don't mark seen yet
         try:
             with self.mailbox() as mb:
                 msgs = list(mb.fetch("UNSEEN", mark_seen=False))
@@ -86,8 +57,6 @@ class IMAPConnector:
         except Exception as error:
             raise IMAPConnectorError(f"failed to fetch unseen emails: {error}") from error
 
-
-
     def disconnect(self) -> None:
-        """Disconnect is handled automatically by context manager"""
+        # No-op: All connections are handled by context managers that automatically cleanup
         pass

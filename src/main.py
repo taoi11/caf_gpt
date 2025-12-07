@@ -11,18 +11,13 @@ Top-level declarations:
 
 from contextlib import asynccontextmanager
 import threading
-import time
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-import structlog
 
 from src.config import config
 from src.app_logging import setup_logging, get_logger
 
-from src.llm_interface import LLMInterface
-from src.agents.agent_coordinator import AgentCoordinator
-from src.agents.prompt_manager import PromptManager
 from src.email_code.simple_email_handler import SimpleEmailProcessor
 
 setup_logging(config)
@@ -31,7 +26,7 @@ logger = get_logger(__name__)
 
 
 class StoppableThread:
-    """Helper to run stoppable loop in thread."""
+    # Helper to run stoppable loop in thread with graceful shutdown
     def __init__(self, target, args=()):
         self.target = target
         self.args = args
@@ -58,7 +53,9 @@ async def lifespan(app: FastAPI):
 
     # Start processor in stoppable thread
     processor_thread = StoppableThread(target=processor.run_loop)
-    logger.info("Email queue processor thread started", thread_id=processor_thread.thread.ident)
+    logger.info(
+        "Email queue processor thread started", extra={"thread_id": processor_thread.thread.ident}
+    )
 
     try:
         yield
@@ -82,6 +79,7 @@ app = FastAPI(
 
 @app.get("/health")
 async def health_check():
+    # Health check endpoint returning application status and version
     return JSONResponse(content={"status": "healthy", "version": "0.1.0"}, status_code=200)
 
 

@@ -1,24 +1,16 @@
 """
-/workspace/caf_gpt/src/agents/types.py
+src/agents/types.py
 
-Pydantic models for agent messages, responses, and research requests.
+Pydantic models for agent responses and research requests.
 
 Top-level declarations:
-- Message: Single chat message with role and content
 - AgentResponse: Final response from coordinator (reply, no_response, or error)
 - PrimeFooResponse: Parsed prime_foo response structure
 - ResearchRequest: Sub-agent research query with multiple queries and agent type
-- SubAgentQuery: Individual sub-agent question with optional context
 """
 
-from typing import List, Union, Optional
+from typing import List, Optional
 from pydantic import BaseModel
-
-
-class Message(BaseModel):
-    # Single chat message (role, content)
-    role: str
-    content: str
 
 
 class AgentResponse(BaseModel):
@@ -39,9 +31,3 @@ class ResearchRequest(BaseModel):
     # Sub-agent research query with multiple queries and agent type
     queries: List[str]
     agent_type: str  # e.g., 'leave_foo'
-
-
-class SubAgentQuery(BaseModel):
-    # Individual sub-agent question with optional context
-    question: str
-    context: Optional[str] = None

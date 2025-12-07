@@ -1,5 +1,5 @@
 """
-/workspace/caf_gpt/src/agents/prompt_manager.py
+src/agents/prompt_manager.py
 
 Manages loading and caching of system prompts from the prompts subdirectory.
 
@@ -9,8 +9,7 @@ Top-level declarations:
 
 import logging
 from pathlib import Path
-from functools import lru_cache
-from typing import Optional
+from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -18,20 +17,35 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 
 class PromptManager:
+    # Class for loading prompts from .md files with caching and fallbacks
+    MAX_CACHE_SIZE = 32  # Limit cache to prevent unbounded memory growth
+
     def __init__(self, prompts_dir: Optional[Path] = None):
-        # Initialize with optional prompts directory; ensure dir exists and cache prompts
+        # Initialize with optional prompts directory; ensure dir exists
         self.prompts_dir = prompts_dir or PROMPTS_DIR
         self.prompts_dir.mkdir(exist_ok=True)
-        self._cache_prompts()
+        self._cache: Dict[str, str] = {}
 
-    @lru_cache(maxsize=32)
     def get_prompt(self, prompt_name: str) -> str:
-        # Load prompt from .md file or return default if not found
+        # Load prompt from .md file or return default if not found, with instance-level caching
+        if prompt_name in self._cache:
+            return self._cache[prompt_name]
+
         prompt_path = self.prompts_dir / f"{prompt_name}.md"
         if not prompt_path.exists():
             logger.warning(f"Prompt file not found: {prompt_path}")
-            return self._get_default_prompt(prompt_name)
-        return self._load_from_filesystem(prompt_path)
+            result = self._get_default_prompt(prompt_name)
+        else:
+            result = self._load_from_filesystem(prompt_path)
+
+        # Simple cache eviction: clear oldest half if cache is full
+        if len(self._cache) >= self.MAX_CACHE_SIZE:
+            keys_to_remove = list(self._cache.keys())[: self.MAX_CACHE_SIZE // 2]
+            for key in keys_to_remove:
+                del self._cache[key]
+
+        self._cache[prompt_name] = result
+        return result
 
     def _load_from_filesystem(self, path: Path) -> str:
         # Read and return content from prompt file with error handling
@@ -41,11 +55,6 @@ class PromptManager:
         except IOError as e:
             logger.error(f"Error loading prompt from {path}: {e}")
             return self._get_default_prompt(path.stem)
-
-    def _cache_prompts(self):
-        # Placeholder for pre-loading prompts; uses lru_cache for lazy performance
-        # Pre-load all prompts if desired, but for now, lazy loading with lru_cache
-        pass
 
     def _get_default_prompt(self, prompt_name: str) -> str:
         # Return fallback prompt if file loading fails

@@ -2,23 +2,26 @@
 src/llm_interface.py
 
 Centralized service for all LLM interactions using OpenRouter API.
+
+Top-level declarations:
+- LLMInterface: Interface for interacting with LLMs via OpenRouter API
+- llm_client: Global instance of LLMInterface for application-wide use
 """
 
+import logging
 import requests
-import structlog
 from typing import List, Dict, Optional
 
 from src.config import config
 
-logger = structlog.get_logger()
+logger = logging.getLogger(__name__)
 
 
 class LLMInterface:
-    """
-    Interface for interacting with LLMs via OpenRouter API.
-    """
+    # Interface for interacting with LLMs via OpenRouter API
 
     def __init__(self):
+        # Initialize with LLM configuration from app settings
         self.config = config.llm
 
     def generate_response(
@@ -27,28 +30,20 @@ class LLMInterface:
         temperature: Optional[float] = None,
         openrouter_model: Optional[str] = None,
     ) -> str:
-        """
-        Generate a response from OpenRouter API.
-
-        Args:
-            messages: List of message dicts (role, content)
-            temperature: Optional override for temperature
-            openrouter_model: Optional override for OpenRouter model
-
-        Returns:
-            The generated text response
-        """
+        # Generate a response from OpenRouter API with optional parameter overrides
+        # :param messages: List of message dicts (role, content)
+        # :param temperature: Optional override for temperature
+        # :param openrouter_model: Optional override for OpenRouter model
+        # :return: The generated text response
         temp = temperature if temperature is not None else self.config.temperature
         return self._call_openrouter(messages, temp, openrouter_model)
 
     def _call_openrouter(
         self, messages: List[Dict[str, str]], temperature: float, model: Optional[str] = None
     ) -> str:
-        """
-        Call the OpenRouter API.
-        """
+        # Call the OpenRouter API with specified parameters and error handling
         use_model = model if model else self.config.openrouter_model
-        logger.info("calling_openrouter", model=use_model)
+        logger.info(f"Calling OpenRouter with model={use_model}")
 
         headers = {
             "Authorization": f"Bearer {self.config.openrouter_api_key}",
@@ -80,9 +75,9 @@ class LLMInterface:
                 raise ValueError(f"Unexpected OpenRouter response format: {data}")
 
         except requests.RequestException as e:
-            logger.error("openrouter_call_failed", error=str(e))
+            logger.error(f"OpenRouter call failed: {e}")
             raise RuntimeError(f"Failed to get response from OpenRouter: {str(e)}")
 
 
-# Global instance
+# Global instance for application-wide use
 llm_client = LLMInterface()
