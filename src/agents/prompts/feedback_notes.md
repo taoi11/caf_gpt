@@ -22,7 +22,7 @@ WO - Warrant Officer
 1. Send a no reply if applicable.
 2. Ask for clarification if the rank is not clear.
 3. You must first reply to get a list of competencies and examples to be substituted in the placeholders below by your runtime system.
-4. Then the second reply will be the actual feedback note generation based on the compatencies and examples provided.
+4. Then the second reply will be the actual feedback note generation based on the competencies and examples provided.
 
 ---
 
