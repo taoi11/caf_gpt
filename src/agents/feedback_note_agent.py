@@ -48,8 +48,6 @@ class FeedbackNoteAgent:
     def process_email(self, email_context: str) -> str:
         # Main loop: send to LLM, parse response, handle rank request loop similar to prime_foo
         try:
-            logger.info(f"Processing email with context: {email_context}")
-
             # Get base prompt with placeholders
             base_prompt = self._get_base_prompt()
 
@@ -59,9 +57,7 @@ class FeedbackNoteAgent:
             ]
 
             response = llm_client.generate_response(messages, openrouter_model=config.llm.pacenote_model)
-            logger.info(f"LLM raw response: {response}")
             parsed = self._parse_response(response)
-            logger.info(f"Parsed response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}")
 
             # Loop to handle rank requests (similar to research loop in prime_foo)
             while True:

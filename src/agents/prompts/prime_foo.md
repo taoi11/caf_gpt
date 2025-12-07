@@ -84,3 +84,13 @@ CAF-GPT
 [Source Code](https://github.com/taoi11/caf_gpt)
 How to use CAF-GPT: [Documentation](placeholder_for_docs_link)
 ```
+
+## Signature
+
+The following signature will be appended to all replies automatically, do not include it in your response.
+
+```
+CAF-GPT
+[Source Code](https://github.com/taoi11/caf_gpt)
+How to use CAF-GPT: [Documentation](placeholder_for_docs_link)
+```
