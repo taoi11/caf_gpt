@@ -55,3 +55,7 @@ class IMAPConnector:
                 return msgs
         except Exception as error:
             raise IMAPConnectorError(f"failed to fetch unseen emails: {error}") from error
+
+    def disconnect(self) -> None:
+        # No-op: All connections are handled by context managers that automatically cleanup
+        pass

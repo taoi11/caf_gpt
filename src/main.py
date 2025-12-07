@@ -52,7 +52,7 @@ async def lifespan(app: FastAPI):
 
     # Start processor in stoppable thread
     processor_thread = StoppableThread(target=processor.run_loop)
-    logger.info(f"Email queue processor thread started, thread_id={processor_thread.thread.ident}")
+    logger.info("Email queue processor thread started", extra={"thread_id": processor_thread.thread.ident})
 
     try:
         yield

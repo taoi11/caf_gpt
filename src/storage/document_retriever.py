@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 class DocumentRetriever:
     # Class handling connection to S3 and document retrieval
-    
     def __init__(self):
         # Initialize the S3 client with configuration from AppConfig
         storage_config = config.storage

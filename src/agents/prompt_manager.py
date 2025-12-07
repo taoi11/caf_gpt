@@ -9,8 +9,7 @@ Top-level declarations:
 
 import logging
 from pathlib import Path
-from functools import lru_cache
-from typing import Optional
+from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -24,15 +23,22 @@ class PromptManager:
         # Initialize with optional prompts directory; ensure dir exists
         self.prompts_dir = prompts_dir or PROMPTS_DIR
         self.prompts_dir.mkdir(exist_ok=True)
+        self._cache: Dict[str, str] = {}
 
-    @lru_cache(maxsize=32)
     def get_prompt(self, prompt_name: str) -> str:
-        # Load prompt from .md file or return default if not found
+        # Load prompt from .md file or return default if not found, with instance-level caching
+        if prompt_name in self._cache:
+            return self._cache[prompt_name]
+        
         prompt_path = self.prompts_dir / f"{prompt_name}.md"
         if not prompt_path.exists():
             logger.warning(f"Prompt file not found: {prompt_path}")
-            return self._get_default_prompt(prompt_name)
-        return self._load_from_filesystem(prompt_path)
+            result = self._get_default_prompt(prompt_name)
+        else:
+            result = self._load_from_filesystem(prompt_path)
+        
+        self._cache[prompt_name] = result
+        return result
 
     def _load_from_filesystem(self, path: Path) -> str:
         # Read and return content from prompt file with error handling
