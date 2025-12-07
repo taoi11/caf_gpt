@@ -15,7 +15,9 @@ import xml.etree.ElementTree as ET
 from .prompt_manager import PromptManager
 from .types import AgentResponse, PrimeFooResponse, ResearchRequest
 from .sub_agents.leave_foo_agent import LeaveFooAgent
+from .feedback_note_agent import FeedbackNoteAgent
 from src.llm_interface import llm_client
+from src.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +25,20 @@ logger = logging.getLogger(__name__)
 class AgentCoordinator:
     # Main class coordinating LLM calls, parsing, and sub-agent delegation
 
+    # Signature appended to all agent replies
+    SIGNATURE = """
+
+CAF-GPT
+[Source Code](https://github.com/taoi11/caf_gpt)
+How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
+
     def __init__(self, prompt_manager: PromptManager):
         # Initialize with prompt manager and load available sub-agents
         self.prompt_manager = prompt_manager
         self.sub_agents: Dict[str, Any] = {}
         self._load_sub_agents()
+        # Initialize feedback note agent
+        self.feedback_note_agent = FeedbackNoteAgent(self.prompt_manager)
 
     def _load_sub_agents(self):
         # Dynamically load sub-agents like LeaveFooAgent with prompt manager access
@@ -41,14 +52,18 @@ class AgentCoordinator:
                 {"role": "system", "content": prime_prompt},
                 {"role": "user", "content": email_context},
             ]
-            response = llm_client.generate_response(messages, openrouter_model="x-ai/grok-4")
+            response = llm_client.generate_response(
+                messages, openrouter_model=config.llm.prime_foo_model
+            )
             parsed = self.parse_prime_foo_response(response)
 
             while True:
                 if parsed.type == "no_response":
                     return self.handle_no_response()
                 elif parsed.type == "reply":
-                    return AgentResponse(reply=parsed.content)
+                    # Append signature to policy agent replies
+                    reply_with_signature = parsed.content + self.SIGNATURE
+                    return AgentResponse(reply=reply_with_signature)
                 elif parsed.type == "research":
                     research_result = self.handle_research_request(parsed.research)
                     # Send research results back to prime_foo
@@ -57,7 +72,7 @@ class AgentCoordinator:
                         {"role": "user", "content": f"Research results: {research_result}"},
                     ]
                     response = llm_client.generate_response(
-                        follow_up_messages, openrouter_model="x-ai/grok-4"
+                        follow_up_messages, openrouter_model=config.llm.prime_foo_model
                     )
                     parsed = self.parse_prime_foo_response(response)
                 else:
@@ -150,3 +165,57 @@ class AgentCoordinator:
     def get_generic_error_response(self) -> AgentResponse:
         # Return generic error from AgentResponse model for unexpected cases
         return AgentResponse(error="An unexpected error occurred while processing your email.")
+
+    def process_email_with_feedback_note(self, email_context: str) -> AgentResponse:
+        # Process email through feedback note agent for pacenote workflow
+        try:
+            response = self.feedback_note_agent.process_email(email_context)
+            parsed = self._parse_feedback_note_response(response)
+
+            if parsed.type == "no_response":
+                return self.handle_no_response()
+            elif parsed.type == "reply":
+                # Append signature to feedback note replies
+                reply_with_signature = parsed.content + self.SIGNATURE
+                return AgentResponse(reply=reply_with_signature)
+            else:
+                return self.get_generic_error_response()
+
+        except Exception as e:
+            logger.error(f"Error in feedback note coordination: {e}")
+            return self.get_generic_error_response()
+
+    def _parse_feedback_note_response(self, response: str) -> PrimeFooResponse:
+        # Parse XML response from feedback note agent (same format as prime_foo)
+        try:
+            root = ET.fromstring(response)
+            type_ = root.tag
+            content = root.text.strip() if root.text else ""
+
+            if type_ == "reply":
+                body_elem = root.find("body")
+                if body_elem is not None and body_elem.text:
+                    content = body_elem.text.strip()
+
+            return PrimeFooResponse(type=type_, content=content)
+
+        except ET.ParseError:
+            # Fallback parsing for non-XML responses
+            if "<no_response>" in response:
+                return PrimeFooResponse(type="no_response")
+            elif "<reply>" in response:
+                start = response.find("<reply>") + 7
+                end = response.find("</reply>", start)
+                if end > start:
+                    body_start = response.find("<body>", start) + 6
+                    body_end = response.find("</body>", body_start)
+                    if body_end > body_start:
+                        content = response[body_start:body_end].strip()
+                    else:
+                        content = response[start:end].strip()
+                return PrimeFooResponse(type="reply", content=content)
+            else:
+                # Default to error
+                return PrimeFooResponse(
+                    type="reply", content="Unable to process feedback note request."
+                )

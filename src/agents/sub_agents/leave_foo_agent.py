@@ -12,6 +12,7 @@ from typing import Dict, List, Optional
 
 from ...storage.document_retriever import DocumentRetriever
 from src.llm_interface import llm_client
+from src.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -65,4 +66,4 @@ class LeaveFooAgent:
 
     def _call_with_context(self, messages: List[Dict[str, str]]) -> str:
         # Call llm_client with messages using specific model for leave queries
-        return llm_client.generate_response(messages, openrouter_model="x-ai/grok-4.1-fast")
+        return llm_client.generate_response(messages, openrouter_model=config.llm.leave_foo_model)

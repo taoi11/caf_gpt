@@ -13,7 +13,7 @@ Top-level declarations:
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,10 +22,19 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Only emails sent to this address should trigger the prime_foo agent workflow
 POLICY_AGENT_EMAIL = "policy@caf-gpt.com"
 
+# Email address for feedback note agent (pacenote)
+# Only emails sent to this address should trigger the feedback note agent workflow
+PACENOTE_AGENT_EMAIL = "pacenote@caf-gpt.com"
 
-def should_trigger_agent(to_addresses: List[str]) -> bool:
-    # Determine if an email should trigger the prime_foo agent based on its recipient address
-    return POLICY_AGENT_EMAIL in to_addresses
+
+def should_trigger_agent(to_addresses: List[str]) -> Optional[str]:
+    # Determine which agent should process the email based on recipient address
+    # Returns: "policy" for policy agent, "pacenote" for feedback note agent, None if no agent needed
+    if POLICY_AGENT_EMAIL in to_addresses:
+        return "policy"
+    if PACENOTE_AGENT_EMAIL in to_addresses:
+        return "pacenote"
+    return None
 
 
 class EmailConfig(BaseSettings):
@@ -55,6 +64,11 @@ class LLMConfig(BaseSettings):
     # OpenRouter API
     openrouter_api_key: str
     openrouter_model: str = "x-ai/grok-code-fast-1"
+
+    # Agent-specific models
+    pacenote_model: str = "anthropic/claude-haiku-4.5"
+    prime_foo_model: str = "google/gemini-3-pro-preview"
+    leave_foo_model: str = "x-ai/grok-4.1-fast"
 
     # Common
     temperature: float = 0.7
