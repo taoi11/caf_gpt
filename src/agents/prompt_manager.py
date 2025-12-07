@@ -18,6 +18,7 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 class PromptManager:
     # Class for loading prompts from .md files with caching and fallbacks
+    MAX_CACHE_SIZE = 32  # Limit cache to prevent unbounded memory growth
 
     def __init__(self, prompts_dir: Optional[Path] = None):
         # Initialize with optional prompts directory; ensure dir exists
@@ -36,6 +37,12 @@ class PromptManager:
             result = self._get_default_prompt(prompt_name)
         else:
             result = self._load_from_filesystem(prompt_path)
+
+        # Simple cache eviction: clear oldest half if cache is full
+        if len(self._cache) >= self.MAX_CACHE_SIZE:
+            keys_to_remove = list(self._cache.keys())[: self.MAX_CACHE_SIZE // 2]
+            for key in keys_to_remove:
+                del self._cache[key]
 
         self._cache[prompt_name] = result
         return result
