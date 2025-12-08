@@ -58,10 +58,12 @@ class EmailSender:
                     headers["References"] = composed["references"]
 
                 # Send the email
+                # Pass contents as a list to ensure yagmail treats it correctly
+                # We rely on EmailComposer to provide valid HTML
                 self.yag.send(
                     to=composed["to"],
                     subject=composed["subject"],
-                    contents=composed["html_body"],
+                    contents=[composed["html_body"]],
                     cc=composed["cc"] if composed["cc"] else None,
                     headers=headers if headers else None,
                 )
