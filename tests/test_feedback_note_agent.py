@@ -12,7 +12,7 @@ import sys
 # Mock the config module before importing FeedbackNoteAgent
 mock_config = Mock()
 mock_config.llm.pacenote_model = "test-model"
-sys.modules['src.config'] = Mock(config=mock_config)
+sys.modules["src.config"] = Mock(config=mock_config)
 
 from src.agents.feedback_note_agent import FeedbackNoteAgent, FeedbackNoteResponse
 
