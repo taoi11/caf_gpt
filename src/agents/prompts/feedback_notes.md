@@ -34,6 +34,18 @@ WO - Warrant Officer
 4. Your runtime system will then provide the competencies and examples in the placeholders below.
 5. After receiving competencies, generate the actual feedback note based on the competencies and examples provided.
 
+## Response Format
+
+When generating the feedback note, you MUST wrap it in the following XML format:
+
+```xml
+<reply>
+  <body>
+    [Your feedback note here in PLAIN TEXT. Do NOT use HTML tags like <br> or <p>. Use standard newlines for formatting.]
+  </body>
+</reply>
+```
+
 ---
 
 You are limited to a max of 3 titles from the following list of competencies.

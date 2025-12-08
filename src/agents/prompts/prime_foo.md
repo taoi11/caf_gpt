@@ -39,6 +39,7 @@ You MUST respond with ONLY one of these xml formats. DO NOT add any other text, 
   <body>
     Your complete response here. Reference sources like [CAFP 20-2, Chapter 3, Section 3.2]
     Regards, <or something witty>
+    [Your response here in PLAIN TEXT. Do NOT use HTML tags like <br> or <p>. Use standard newlines for formatting.]
   </body>
 </reply>
 ```

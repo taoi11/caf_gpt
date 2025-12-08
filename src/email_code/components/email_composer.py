@@ -10,7 +10,9 @@ Top-level declarations:
 
 from typing import Dict, Optional
 import jinja2
+from markupsafe import Markup, escape
 from pathlib import Path
+import re
 
 from src.app_logging import get_logger
 from src.config import config
@@ -58,10 +60,19 @@ class EmailComposer:
                 "body": original.body,
             }
 
+            # Clean reply body: replace <br> tags with newlines to avoid double escaping
+            # Then escape HTML and convert newlines to <br> safely
+            cleaned_body = re.sub(r'<br\s*/?>', '\n', reply_data.body, flags=re.IGNORECASE)
+            
+            # Escape the content to prevent XSS, then replace newlines with safe <br> tags
+            # We use Markup('<br>') to ensure the <br> tag itself is not escaped
+            escaped_body = escape(cleaned_body)
+            final_body = escaped_body.replace('\n', Markup('<br>'))
+            
             # Render HTML template
             template = self.jinja_env.get_template("reply.html.jinja")
             html_body = template.render(
-                reply_body=reply_data.body,
+                reply_body=final_body,
                 original=original_dict,
             )
 
