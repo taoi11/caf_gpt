@@ -75,6 +75,11 @@ class EmailComposer:
                 reply_body=final_body,
                 original=original_dict,
             )
+            
+            # Minify HTML: replace newlines with spaces to prevent downstream tools (like yagmail)
+            # from converting structural newlines into <br> tags.
+            # Since final_body already has <br> for content line breaks, this is safe.
+            html_body = html_body.replace('\n', ' ')
 
             # Prepare recipients
             to = reply_data.to
