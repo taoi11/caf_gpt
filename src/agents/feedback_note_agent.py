@@ -94,7 +94,6 @@ class FeedbackNoteAgent:
                     examples = self._load_examples()
 
                     # Continue conversation by appending to existing messages
-                    # Add the assistant's rank request and a user message with competencies
                     messages.append({"role": "assistant", "content": response})
                     messages.append({
                         "role": "user",
@@ -114,23 +113,11 @@ class FeedbackNoteAgent:
                 else:
                     # Unknown response type
                     logger.warning(f"Unknown response type: {parsed.type}")
-                    return """<reply>
-  <body>
-  I apologize, but I encountered an error while processing your request. Please try again.
-
-  Regards,
-  </body>
-</reply>"""
+                    return "I apologize, but I encountered an error while processing your request. Please try again."
 
         except Exception as e:
             logger.error(f"Error in feedback note generation: {e}")
-            return """<reply>
-  <body>
-  I apologize, but I encountered an error while processing your request. Please try again.
-
-  Regards,
-  </body>
-</reply>"""
+            return "I apologize, but I encountered an error while processing your request. Please try again."
 
     def _get_base_prompt(self) -> str:
         # Load the base feedback_notes prompt with placeholders
