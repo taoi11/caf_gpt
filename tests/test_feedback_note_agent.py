@@ -46,10 +46,12 @@ def test_circuit_breaker_triggers_on_fourth_call(mock_llm_client, feedback_agent
     # Mock document retrieval
     with patch.object(feedback_agent, "_load_competencies", return_value="Mock competencies"):
         with patch.object(feedback_agent, "_load_examples", return_value="Mock examples"):
-            # Circuit breaker should trigger and raise RuntimeError
-            with pytest.raises(RuntimeError, match="Circuit breaker"):
-                feedback_agent.process_email("Test email context")
+            # Circuit breaker should trigger and return error message
+            result = feedback_agent.process_email("Test email context")
 
+    # Verify that the error message is returned
+    assert "<reply>" in result
+    assert "error" in result.lower() or "apologize" in result.lower()
     # Verify that exactly 3 LLM calls were made (circuit breaker prevented 4th)
     assert mock_llm_client.generate_response.call_count == 3
 
