@@ -8,5 +8,11 @@
   "chat.promptFilesLocations": {
     ".ai/rules": true
   },
-  "typos.config": ".vscode/typos.toml"
+  "typos.config": ".vscode/typos.toml",
+  "markdownlint.config": {
+    "MD031": false,
+    "MD032": false,
+    "MD022": false,
+    "MD024": false
+  }
 }
