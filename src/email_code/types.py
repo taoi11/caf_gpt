@@ -10,7 +10,7 @@ Top-level declarations:
 """
 
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr, validator, Field
+from pydantic import BaseModel, EmailStr, field_validator, Field
 
 
 class EmailRecipients(BaseModel):
@@ -29,8 +29,9 @@ class ParsedEmailData(BaseModel):
     date: Optional[str] = None
     thread_id: Optional[str] = None
 
-    @validator("body", pre=True)
-    def extract_body(cls, v, values):
+    @field_validator("body", mode="before")
+    @classmethod
+    def extract_body(cls, v):
         # Ensure body is never None, fallback to empty string
         return v or ""
 
