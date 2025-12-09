@@ -12,22 +12,7 @@
   "markdownlint.config": {
     "MD031": false,
     "MD032": false,
-    "MD036": false,
     "MD022": false,
     "MD024": false
-  },
-  "python.testing.pytestArgs": [
-    "tests"
-  ],
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true,
-  "markdownlint.lintWorkspaceGlobs": [
-    "**/*.{md,mkd,mdwn,mdown,markdown,markdn,mdtxt,mdtext,workbook}",
-    "!**/*.code-search",
-    "!**/bower_components",
-    "!**/node_modules",
-    "!**/.git",
-    "!**/vendor",
-    "!LICENSE"
-  ]
+  }
 }

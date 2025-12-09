@@ -166,7 +166,7 @@ Agents use XML for structured responses:
 <rank>mcpl</rank>
 ```
 
-The XML parsing logic is unified in `AgentCoordinator._parse_xml_response()`. If the LLM returns invalid XML, an `XMLParseError` is raised and the LLM is given one retry with an informative error message.
+The XML parsing logic is unified in `AgentCoordinator._parse_xml_response()` with fallback string parsing for malformed XML.
 
 ## Important Patterns and Conventions
 
@@ -247,4 +247,4 @@ prompt = prompt_manager.get_prompt("leave_foo")
 prompt = prompt.replace("{{leave_policy}}", policy_content)
 ```
 
-Always use PromptManager rather than reading files directly - it provides caching and raises `FileNotFoundError` for missing prompts.
+Always use PromptManager rather than reading files directly - it provides caching and fallback handling.
