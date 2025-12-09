@@ -76,16 +76,12 @@ class FeedbackNoteAgent:
                     competency_list = self._load_competencies(parsed.rank)
                     examples = self._load_examples()
 
-                    # Build updated prompt with competencies
-                    updated_prompt = base_prompt.replace("{{competency_list}}", competency_list)
-                    updated_prompt = updated_prompt.replace("{{examples}}", examples)
-
                     # Continue conversation by appending to existing messages
                     # Add the assistant's rank request and a user message with competencies
                     messages.append({"role": "assistant", "content": response})
                     messages.append({
                         "role": "user",
-                        "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\nCompetencies:\n{competency_list}\n\nExamples:\n{examples}"
+                        "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\n<competencies>\n{competency_list}\n</competencies>\n\n<examples>\n{examples}\n</examples>"
                     })
 
                     response = llm_client.generate_response(
