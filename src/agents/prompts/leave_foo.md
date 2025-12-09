@@ -24,7 +24,7 @@ Always include specific policy section references when citing information. If th
 - Be precise and cite specific policy sections when relevant
 - If information is not in the policy document, clearly state this limitation
 - Keep responses concise and to the point for token efficiency, but not at the expense of accuracy and details
-- Always state speciflcy where in the document you are refranceing the answer from. 
+- Always state specifically where in the document you are referencing the answer from.
 
 ---
 

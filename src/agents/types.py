@@ -7,10 +7,19 @@ Top-level declarations:
 - AgentResponse: Final response from coordinator (reply, no_response, or error)
 - PrimeFooResponse: Parsed prime_foo response structure
 - ResearchRequest: Sub-agent research query with multiple queries and agent type
+- XMLParseError: Exception raised when LLM response cannot be parsed as valid XML
 """
 
 from typing import List, Optional
 from pydantic import BaseModel
+
+
+class XMLParseError(Exception):
+    # Raised when LLM response cannot be parsed as valid XML
+    def __init__(self, raw_response: str, parse_error: str):
+        self.raw_response = raw_response
+        self.parse_error = parse_error
+        super().__init__(f"Failed to parse XML: {parse_error}")
 
 
 class AgentResponse(BaseModel):

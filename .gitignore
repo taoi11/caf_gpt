@@ -24,10 +24,6 @@ venv.bak/
 build/
 dist/
 
-# IDEs and Editors
-.vscode/
-.idea/
-
 # OS generated
 .DS_Store
 Thumbs.db
@@ -35,9 +31,3 @@ Thumbs.db
 # Logs
 *.log
 logs/
-
-# Deployment data
-data/
-
-# Docker config
-.dockerignore

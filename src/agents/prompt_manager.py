@@ -4,7 +4,7 @@ src/agents/prompt_manager.py
 Manages loading and caching of system prompts from the prompts subdirectory.
 
 Top-level declarations:
-- PromptManager: Class for loading prompts from .md files with caching and fallbacks
+- PromptManager: Class for loading prompts from .md files with caching
 """
 
 import logging
