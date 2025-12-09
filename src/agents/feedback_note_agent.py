@@ -137,6 +137,17 @@ class FeedbackNoteAgent:
     def _parse_response(self, response: str) -> FeedbackNoteResponse:
         # Parse XML response to determine type (no_response, reply, or rank)
         # Raises XMLParseError if response is not valid XML
+        
+        # Strip markdown code fences if present
+        response = response.strip()
+        if response.startswith("```xml"):
+            response = response[6:]  # Remove ```xml
+        elif response.startswith("```"):
+            response = response[3:]  # Remove ```
+        if response.endswith("```"):
+            response = response[:-3]  # Remove trailing ```
+        response = response.strip()
+        
         try:
             root = ET.fromstring(response)
             type_ = root.tag
