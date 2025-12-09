@@ -36,7 +36,9 @@ WO - Warrant Officer
 
 ## Response Format
 
-When generating the feedback note, you MUST wrap it in the following XML format:
+### CRITICAL: YOU MUST RESPOND WITH RAW XML ONLY
+Your response must be PURE XML with NO markdown formatting, NO code fences, NO explanations.
+Do NOT wrap your response in ```xml or``` markers.
 
 ```xml
 <reply>
