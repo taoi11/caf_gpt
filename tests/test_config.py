@@ -34,16 +34,17 @@ def test_policy_agent_email_constant() -> None:
 
 
 def test_should_trigger_agent_with_policy_email() -> None:
-    # Verify that should_trigger_agent returns True when policy email is in recipient list
-    assert should_trigger_agent(["policy@caf-gpt.com"]) is True
-    assert should_trigger_agent(["other@example.com", "policy@caf-gpt.com"]) is True
+    # Verify that should_trigger_agent returns 'policy' when policy email is in recipient list
+    assert should_trigger_agent(["policy@caf-gpt.com"]) == "policy"
+    assert should_trigger_agent(["other@example.com", "policy@caf-gpt.com"]) == "policy"
 
 
 def test_should_trigger_agent_without_policy_email() -> None:
-    # Verify that should_trigger_agent returns False when policy email is not in recipient list
-    assert should_trigger_agent(["other@example.com"]) is False
-    assert should_trigger_agent(["pacenote@caf-gpt.com"]) is False
-    assert should_trigger_agent([]) is False
+    # Verify that should_trigger_agent returns None when policy email is not in recipient list
+    assert should_trigger_agent(["other@example.com"]) is None
+    # Pacenote email triggers the pacenote agent, not None
+    assert should_trigger_agent(["pacenote@caf-gpt.com"]) == "pacenote"
+    assert should_trigger_agent([]) is None
 
 
 def test_defaults_are_set() -> None:

@@ -8,6 +8,9 @@ Top-level declarations:
 - EmailAdapter: Static class for converting between MailMessage and ParsedEmailData formats
 """
 
+import re
+from html import unescape
+
 from imap_tools import MailMessage
 
 from src.email_code.types import ParsedEmailData, EmailRecipients
@@ -39,8 +42,5 @@ class EmailAdapter:
     @staticmethod
     def _strip_html(html: str) -> str:
         # Basic HTML stripping for fallback when text content is not available
-        import re
-        from html import unescape
-
         clean = re.sub(r"<[^>]+>", "", html)
         return unescape(clean).strip()

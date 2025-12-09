@@ -227,7 +227,9 @@ def test_email_sender_sends_reply(mock_yagmail, mock_composed_reply, sample_pars
     assert call_args["to"] == ["test@example.com"]
     assert call_args["cc"] == ["cc@example.com"]
     assert call_args["subject"] == "Re: Test Subject"
-    assert "Test reply body" in call_args["contents"]
+    # contents is a list with HTML body
+    assert len(call_args["contents"]) == 1
+    assert "Test reply body" in call_args["contents"][0]
     assert "In-Reply-To" in call_args.get("headers", {})
 
 
