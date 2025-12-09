@@ -17,8 +17,6 @@ from pydantic import BaseModel
 from src.storage.document_retriever import DocumentRetriever
 from src.llm_interface import llm_client
 from src.config import config
-from src.agents.prompt_manager import PromptManager
-from src.agents.types import XMLParseError
 
 logger = logging.getLogger(__name__)
 
@@ -41,122 +39,138 @@ class FeedbackNoteResponse(BaseModel):
 class FeedbackNoteAgent:
     # Agent handling feedback note generation with rank-specific competencies
 
-    def __init__(self, prompt_manager: PromptManager):
+    def __init__(self, prompt_manager: Optional["PromptManager"] = None):
         # Initialize with prompt manager and document retriever
         self.prompt_manager = prompt_manager
         self.document_retriever = DocumentRetriever()
         self.s3_category = "paceNote"
 
-    def _call_llm_with_retry(self, messages: list) -> tuple[str, FeedbackNoteResponse]:
-        # Call LLM and parse response, with 1 retry on XML parse failure
-        response = llm_client.generate_response(
-            messages, openrouter_model=config.llm.pacenote_model
-        )
-        logger.info(f"LLM raw response: {response}")
-        try:
-            parsed = self._parse_response(response)
-            return response, parsed
-        except XMLParseError as e:
-            logger.warning(f"XML parse failed, retrying: {e.parse_error}")
-            # Send error feedback and retry once
-            retry_messages = messages + [
-                {"role": "assistant", "content": response},
-                {"role": "user", "content": f"Your response was not valid XML. Parse error: {e.parse_error}. Please respond with properly formatted XML."},
-            ]
-            response = llm_client.generate_response(
-                retry_messages, openrouter_model=config.llm.pacenote_model
-            )
-            logger.info(f"LLM retry response: {response}")
-            # No more retries - let it raise if it fails again
-            parsed = self._parse_response(response)
-            return response, parsed
-
-    def process_email(self, email_context: str) -> FeedbackNoteResponse:
+    def process_email(self, email_context: str) -> str:
         # Main loop: send to LLM, parse response, handle rank request loop similar to prime_foo
-        # Get base prompt with placeholders
-        base_prompt = self._get_base_prompt()
+        try:
+            logger.info(f"Processing email with context: {email_context}")
 
-        messages = [
-            {"role": "system", "content": base_prompt},
-            {"role": "user", "content": email_context},
-        ]
+            # Get base prompt with placeholders
+            base_prompt = self._get_base_prompt()
 
-        # Circuit breaker: limit to 3 LLM calls per email
-        max_llm_calls = 3
-        llm_call_count = 0
+            messages = [
+                {"role": "system", "content": base_prompt},
+                {"role": "user", "content": email_context},
+            ]
 
-        llm_call_count += 1
-        response, parsed = self._call_llm_with_retry(messages)
-        logger.info(
-            f"Parsed response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}"
-        )
+            response = llm_client.generate_response(messages, openrouter_model=config.llm.pacenote_model)
+            logger.info(f"LLM raw response: {response}")
+            parsed = self._parse_response(response)
+            logger.info(f"Parsed response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}")
 
-        # Loop to handle rank requests (similar to research loop in prime_foo)
-        while True:
-            if parsed.type == "no_response":
-                return parsed
+            # Loop to handle rank requests (similar to research loop in prime_foo)
+            while True:
+                if parsed.type == "no_response":
+                    return response
 
-            elif parsed.type == "reply":
-                return parsed
+                elif parsed.type == "reply":
+                    return response
 
-            elif parsed.type == "rank":
-                # Check circuit breaker before making another LLM call
-                if llm_call_count >= max_llm_calls:
-                    logger.error(
-                        f"Circuit breaker triggered: exceeded maximum {max_llm_calls} LLM calls per email"
+                elif parsed.type == "rank":
+                    # Load competencies for requested rank
+                    competency_list = self._load_competencies(parsed.rank)
+                    examples = self._load_examples()
+
+                    # Continue conversation by appending to existing messages
+                    # Add the assistant's rank request and a user message with competencies
+                    messages.append({"role": "assistant", "content": response})
+                    messages.append({
+                        "role": "user",
+                        "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\n<competencies>\n{competency_list}\n</competencies>\n\n<examples>\n{examples}\n</examples>"
+                    })
+
+                    response = llm_client.generate_response(
+                        messages, openrouter_model=config.llm.pacenote_model
                     )
-                    raise RuntimeError(
-                        f"Circuit breaker: exceeded maximum {max_llm_calls} LLM calls per email"
-                    )
+                    logger.info(f"LLM follow-up raw response: {response}")
+                    parsed = self._parse_response(response)
+                    logger.info(f"Parsed follow-up response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}")
 
-                # Load competencies for requested rank
-                competency_list = self._load_competencies(parsed.rank)
-                examples = self._load_examples()
+                else:
+                    # Unknown response type
+                    logger.warning(f"Unknown response type: {parsed.type}")
+                    return """<reply>
+  <body>
+  I apologize, but I encountered an error while processing your request. Please try again.
 
-                # Continue conversation by appending to existing messages
-                messages.append({"role": "assistant", "content": response})
-                messages.append({
-                    "role": "user",
-                    "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\n<competencies>\n{competency_list}\n</competencies>\n\n<examples>\n{examples}\n</examples>"
-                })
+  Regards,
+  </body>
+</reply>"""
 
-                llm_call_count += 1
-                response, parsed = self._call_llm_with_retry(messages)
-                logger.info(
-                    f"Parsed follow-up response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}"
-                )
+        except Exception as e:
+            logger.error(f"Error in feedback note generation: {e}")
+            return """<reply>
+  <body>
+  I apologize, but I encountered an error while processing your request. Please try again.
 
-            else:
-                # Unknown response type should not happen - XMLParseError handles bad tags
-                raise RuntimeError(f"Unexpected response type: {parsed.type}")
+  Regards,
+  </body>
+</reply>"""
 
     def _get_base_prompt(self) -> str:
         # Load the base feedback_notes prompt with placeholders
+        if self.prompt_manager is None:
+            raise ValueError("PromptManager is required for FeedbackNoteAgent")
+
         return self.prompt_manager.get_prompt("feedback_notes")
 
     def _parse_response(self, response: str) -> FeedbackNoteResponse:
-        # Parse XML response by extracting expected tags, ignoring surrounding content
-        # Raises XMLParseError if expected tags are not found
-        import re
-        
-        # Try to find <rank>...</rank>
-        rank_match = re.search(r'<rank>(.*?)</rank>', response, re.DOTALL | re.IGNORECASE)
-        if rank_match:
-            rank = rank_match.group(1).strip().lower()
-            return FeedbackNoteResponse(type="rank", rank=rank)
-        
-        # Try to find <reply><body>...</body></reply>
-        body_match = re.search(r'<reply>.*?<body>(.*?)</body>.*?</reply>', response, re.DOTALL | re.IGNORECASE)
-        if body_match:
-            content = body_match.group(1).strip()
-            return FeedbackNoteResponse(type="reply", content=content)
-        
-        # Try to find <no_response>
-        if re.search(r'<no_response\s*/?\s*>', response, re.IGNORECASE):
-            return FeedbackNoteResponse(type="no_response")
-        
-        # If none of the expected tags found, raise error
-        raise XMLParseError(response, "No recognized XML tags found (expected: <rank>, <reply><body>, or <no_response>)")
+        # Parse XML response to determine type (no_response, reply, or rank)
+        try:
+            root = ET.fromstring(response)
+            type_ = root.tag
+            content = root.text.strip() if root.text else ""
+
+            if type_ == "rank":
+                # Extract rank from <rank>mcpl</rank>
+                return FeedbackNoteResponse(type="rank", rank=content.lower())
+
+            elif type_ == "reply":
+                # Extract body from reply
+                body_elem = root.find("body")
+                if body_elem is not None and body_elem.text:
+                    content = body_elem.text.strip()
+                return FeedbackNoteResponse(type="reply", content=content)
+
+            elif type_ == "no_response":
+                return FeedbackNoteResponse(type="no_response")
+
+            else:
+                logger.warning(f"Unknown XML tag: {type_}")
+                return FeedbackNoteResponse(type="unknown")
+
+        except ET.ParseError:
+            # Fallback parsing for non-XML responses
+            if "<no_response>" in response:
+                return FeedbackNoteResponse(type="no_response")
+
+            elif "<reply>" in response:
+                start = response.find("<reply>") + 7
+                end = response.find("</reply>", start)
+                if end > start:
+                    body_start = response.find("<body>", start) + 6
+                    body_end = response.find("</body>", body_start)
+                    if body_end > body_start:
+                        content = response[body_start:body_end].strip()
+                    else:
+                        content = response[start:end].strip()
+                return FeedbackNoteResponse(type="reply", content=content)
+
+            elif "<rank>" in response:
+                start = response.find("<rank>") + 6
+                end = response.find("</rank>", start)
+                if end > start:
+                    rank = response[start:end].strip().lower()
+                    return FeedbackNoteResponse(type="rank", rank=rank)
+
+            # Default to unknown
+            logger.warning(f"Could not parse response: {response[:100]}")
+            return FeedbackNoteResponse(type="unknown")
 
     def _load_competencies(self, rank: str) -> str:
         # Load rank-specific competencies from S3
