@@ -11,7 +11,7 @@ A FastAPI-based AI email agent platform.
 
 ## Project Structure
 
-```
+```text
 src/
 ├── agents/               # AI Agents logic
 ├── email_code/           # Email handling (IMAP/SMTP)
