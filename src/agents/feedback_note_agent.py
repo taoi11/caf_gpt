@@ -56,8 +56,19 @@ class FeedbackNoteAgent:
                 {"role": "user", "content": email_context},
             ]
 
-            response = llm_client.generate_response(messages, openrouter_model=config.llm.pacenote_model)
+            # Circuit breaker: limit to 3 LLM calls per email
+            max_llm_calls = 3
+            llm_call_count = 0
+
+            llm_call_count += 1
+            response = llm_client.generate_response(
+                messages, openrouter_model=config.llm.pacenote_model
+            )
+            logger.info(f"LLM raw response: {response}")
             parsed = self._parse_response(response)
+            logger.info(
+                f"Parsed response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}"
+            )
 
             # Loop to handle rank requests (similar to research loop in prime_foo)
             while True:
@@ -68,6 +79,15 @@ class FeedbackNoteAgent:
                     return response
 
                 elif parsed.type == "rank":
+                    # Check circuit breaker before making another LLM call
+                    if llm_call_count >= max_llm_calls:
+                        logger.error(
+                            f"Circuit breaker triggered: exceeded maximum {max_llm_calls} LLM calls per email"
+                        )
+                        raise RuntimeError(
+                            f"Circuit breaker: exceeded maximum {max_llm_calls} LLM calls per email"
+                        )
+
                     # Load competencies for requested rank
                     competency_list = self._load_competencies(parsed.rank)
                     examples = self._load_examples()
@@ -80,12 +100,15 @@ class FeedbackNoteAgent:
                         "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\n<competencies>\n{competency_list}\n</competencies>\n\n<examples>\n{examples}\n</examples>"
                     })
 
+                    llm_call_count += 1
                     response = llm_client.generate_response(
                         messages, openrouter_model=config.llm.pacenote_model
                     )
                     logger.info(f"LLM follow-up raw response: {response}")
                     parsed = self._parse_response(response)
-                    logger.info(f"Parsed follow-up response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}")
+                    logger.info(
+                        f"Parsed follow-up response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}"
+                    )
 
                 else:
                     # Unknown response type
