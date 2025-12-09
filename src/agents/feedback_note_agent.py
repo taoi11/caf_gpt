@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from src.storage.document_retriever import DocumentRetriever
 from src.llm_interface import llm_client
 from src.config import config
+from src.agents.prompt_manager import PromptManager
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class FeedbackNoteResponse(BaseModel):
 class FeedbackNoteAgent:
     # Agent handling feedback note generation with rank-specific competencies
 
-    def __init__(self, prompt_manager: Optional["PromptManager"] = None):
+    def __init__(self, prompt_manager: PromptManager):
         # Initialize with prompt manager and document retriever
         self.prompt_manager = prompt_manager
         self.document_retriever = DocumentRetriever()
@@ -133,9 +134,6 @@ class FeedbackNoteAgent:
 
     def _get_base_prompt(self) -> str:
         # Load the base feedback_notes prompt with placeholders
-        if self.prompt_manager is None:
-            raise ValueError("PromptManager is required for FeedbackNoteAgent")
-
         return self.prompt_manager.get_prompt("feedback_notes")
 
     def _parse_response(self, response: str) -> FeedbackNoteResponse:
