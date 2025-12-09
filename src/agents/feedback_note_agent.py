@@ -48,8 +48,6 @@ class FeedbackNoteAgent:
     def process_email(self, email_context: str) -> str:
         # Main loop: send to LLM, parse response, handle rank request loop similar to prime_foo
         try:
-            logger.info(f"Processing email with context: {email_context}")
-
             # Get base prompt with placeholders
             base_prompt = self._get_base_prompt()
 
@@ -94,19 +92,13 @@ class FeedbackNoteAgent:
                     competency_list = self._load_competencies(parsed.rank)
                     examples = self._load_examples()
 
-                    # Build updated prompt with competencies
-                    updated_prompt = base_prompt.replace("{{competency_list}}", competency_list)
-                    updated_prompt = updated_prompt.replace("{{examples}}", examples)
-
                     # Continue conversation by appending to existing messages
                     # Add the assistant's rank request and a user message with competencies
                     messages.append({"role": "assistant", "content": response})
-                    messages.append(
-                        {
-                            "role": "user",
-                            "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\nCompetencies:\n{competency_list}\n\nExamples:\n{examples}",
-                        }
-                    )
+                    messages.append({
+                        "role": "user",
+                        "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\n<competencies>\n{competency_list}\n</competencies>\n\n<examples>\n{examples}\n</examples>"
+                    })
 
                     llm_call_count += 1
                     response = llm_client.generate_response(
