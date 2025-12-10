@@ -102,3 +102,49 @@ Email templates use Jinja2 (`src/email_code/templates/reply.html.jinja`). `Email
 - **Signature appending**: `AgentCoordinator.SIGNATURE` is appended to all Prime Foo agent replies (includes GitHub link)
 - **Error handling**: Emails with processing errors are left unread for retry, but logged for debugging
 - **Path style S3**: Some S3-compatible services need `STORAGE__USE_PATH_STYLE_ENDPOINT=true`
+
+## Python Comment Standards
+This repository follows a strict commenting standard for **ALL** `.py` files (except simple `__init__.py` files that only re-export names).
+
+### File-Level Comments (Required)
+Every Python module must have a module docstring at the **very top** that:
+1. Includes the file path (relative to repo root)
+2. States the responsibility/purpose of the code in the file
+3. Lists all top-level functions or classes
+
+#### Example:
+```python
+"""
+src/utils/env_utils.py
+
+Environment utilities helpers that centralize the runtime configuration helpers.
+
+Top-level declarations:
+- is_dev_mode: Check if the environment is configured for development
+"""
+```
+
+## Function/Class Comments (Required)
+Every top-level function or class must have inline # comments immediately after its definition that:
+1. Expand on the short description from the module docstring
+2. Provide additional context about its purpose or behavior
+3. Minimum one line, maximum three lines
+
+#### Example:
+```python
+def my_function():
+    # Brief description expanding on the module docstring reference
+    # Additional context about purpose or behavior
+    ...
+```
+
+## Inline Comments (Minimal)
+Minimize inline comments within functions. **Only add them when:**
+1. Documenting a specific lesson learned
+2. Explaining a non-obvious solution to a specific problem
+3. Noting a workaround for a known issue
+
+**Avoid:**
+- Obvious comments that just restate what the code does
+- Redundant comments that explain self-documenting code
+- Excessive comments that clutter the code
