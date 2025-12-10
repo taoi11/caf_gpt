@@ -6,7 +6,9 @@
       "Bash(flyctl logs:*)",
       "Bash(python -m pytest:*)",
       "Bash(wc:*)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(mypy:*)",
+      "Bash(black:*)"
     ],
     "deny": [],
     "ask": []
