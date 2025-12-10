@@ -70,9 +70,10 @@ def test_circuit_breaker_allows_three_calls(mock_llm_client, feedback_agent):
             # Should succeed with 3 calls
             result = feedback_agent.process_email("Test email context")
 
-    # Verify result contains the final reply
-    assert "<reply>" in result
-    assert "Final response" in result
+    # Verify result is a FeedbackNoteResponse with type 'reply'
+    assert isinstance(result, FeedbackNoteResponse)
+    assert result.type == "reply"
+    assert result.content == "Final response"
     # Verify that exactly 3 LLM calls were made
     assert mock_llm_client.generate_response.call_count == 3
 
@@ -86,9 +87,10 @@ def test_circuit_breaker_allows_single_call(mock_llm_client, feedback_agent):
     # Should succeed with just 1 call
     result = feedback_agent.process_email("Test email context")
 
-    # Verify result contains the reply
-    assert "<reply>" in result
-    assert "Quick response" in result
+    # Verify result is a FeedbackNoteResponse with type 'reply'
+    assert isinstance(result, FeedbackNoteResponse)
+    assert result.type == "reply"
+    assert result.content == "Quick response"
     # Verify that only 1 LLM call was made
     assert mock_llm_client.generate_response.call_count == 1
 
@@ -108,9 +110,10 @@ def test_circuit_breaker_allows_two_calls(mock_llm_client, feedback_agent):
             # Should succeed with 2 calls
             result = feedback_agent.process_email("Test email context")
 
-    # Verify result contains the reply
-    assert "<reply>" in result
-    assert "Response with competencies" in result
+    # Verify result is a FeedbackNoteResponse with type 'reply'
+    assert isinstance(result, FeedbackNoteResponse)
+    assert result.type == "reply"
+    assert result.content == "Response with competencies"
     # Verify that exactly 2 LLM calls were made
     assert mock_llm_client.generate_response.call_count == 2
 
@@ -124,7 +127,8 @@ def test_circuit_breaker_handles_no_response(mock_llm_client, feedback_agent):
     # Should succeed with just 1 call
     result = feedback_agent.process_email("Test email context")
 
-    # Verify result contains the no_response
-    assert "<no_response" in result
+    # Verify result is a FeedbackNoteResponse with type 'no_response'
+    assert isinstance(result, FeedbackNoteResponse)
+    assert result.type == "no_response"
     # Verify that only 1 LLM call was made
     assert mock_llm_client.generate_response.call_count == 1

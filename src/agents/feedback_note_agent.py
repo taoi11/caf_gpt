@@ -46,7 +46,7 @@ class FeedbackNoteAgent:
         self.prompt_manager = prompt_manager
         self.s3_category = "paceNote"
 
-    def process_email(self, email_context: str) -> str:
+    def process_email(self, email_context: str) -> FeedbackNoteResponse:
         # Main loop: send to LLM, parse response, handle rank request loop similar to prime_foo
         # Get base prompt with placeholders
         base_prompt = self._get_base_prompt()
@@ -71,10 +71,10 @@ class FeedbackNoteAgent:
         # Loop to handle rank requests (similar to research loop in prime_foo)
         while True:
             if parsed.type == "no_response":
-                return response
+                return parsed
 
             elif parsed.type == "reply":
-                return response
+                return parsed
 
             elif parsed.type == "rank":
                 # Check circuit breaker before making another LLM call
