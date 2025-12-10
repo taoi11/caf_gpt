@@ -18,11 +18,33 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from src.config import config
-from src.utils.app_logging import setup_logging
-
 from src.email_code.simple_email_handler import SimpleEmailProcessor
 
-setup_logging(config)
+
+def _setup_logging() -> None:
+    # Configure standard library logging based on app config
+    # Uses DEBUG level when DEV_MODE is enabled for verbose logging, else respects config.log.log_level
+    # Format includes optional UID context from LoggerAdapter for email processing
+    effective_log_level = "DEBUG" if config.dev_mode else config.log.log_level
+
+    # Custom formatter to include UID from LoggerAdapter extra context
+    class UIDFormatter(logging.Formatter):
+        def format(self, record: logging.LogRecord) -> str:
+            # Add UID prefix if present in extra context
+            if hasattr(record, "uid"):
+                record.msg = f"[uid={record.uid}] {record.msg}"
+            return super().format(record)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(UIDFormatter("%(asctime)s %(name)s: %(message)s"))
+
+    logging.basicConfig(
+        level=getattr(logging, effective_log_level.upper()),
+        handlers=[handler],
+    )
+
+
+_setup_logging()
 
 logger = logging.getLogger(__name__)
 
