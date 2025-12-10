@@ -33,6 +33,9 @@ CAF-GPT
 <a href="https://github.com/taoi11/caf_gpt">Source Code</a>
 How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/quick_start.md">Documentation</a>"""
 
+    # Generic error message returned to users when processing fails
+    GENERIC_ERROR_MSG = "An unexpected error occurred while processing your email."
+
     def __init__(self, prompt_manager: PromptManager):
         # Initialize with prompt manager and load available sub-agents
         self.prompt_manager = prompt_manager
@@ -72,17 +75,13 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                     # Append signature to policy agent replies
                     if not parsed.content:
                         logger.error("Reply type received but content is None")
-                        return AgentResponse.error_result(
-                            "An unexpected error occurred while processing your email."
-                        )
+                        return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
                     reply_with_signature = self._add_signature(parsed.content)
                     return AgentResponse.success(reply_with_signature)
                 elif parsed.type == "research":
                     if not parsed.research:
                         logger.error("Research type received but research is None")
-                        return AgentResponse.error_result(
-                            "An unexpected error occurred while processing your email."
-                        )
+                        return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
                     research_result = self.handle_research_request(parsed.research)
                     # Send research results back to prime_foo
                     follow_up_messages = messages + [
@@ -97,19 +96,13 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                         self.parse_prime_foo_response,
                     )
                 else:
-                    return AgentResponse.error_result(
-                        "An unexpected error occurred while processing your email."
-                    )
+                    return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
         except XMLParseError as e:
             logger.error(f"XML parse failed after retry: {e.parse_error}")
-            return AgentResponse.error_result(
-                "An unexpected error occurred while processing your email."
-            )
+            return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
         except Exception as e:
             logger.error(f"Error in coordination: {e}")
-            return AgentResponse.error_result(
-                "An unexpected error occurred while processing your email."
-            )
+            return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
 
     def parse_prime_foo_response(self, response: str) -> PrimeFooResponse:
         # Parse XML for prime_foo responses using shared parser with research handler
@@ -162,23 +155,15 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                 # Append signature to feedback note replies
                 if not parsed.content:
                     logger.error("Reply type received but content is None")
-                    return AgentResponse.error_result(
-                        "An unexpected error occurred while processing your email."
-                    )
+                    return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
                 reply_with_signature = self._add_signature(parsed.content)
                 return AgentResponse.success(reply_with_signature)
             else:
-                return AgentResponse.error_result(
-                    "An unexpected error occurred while processing your email."
-                )
+                return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
 
         except XMLParseError as e:
             logger.error(f"XML parse failed in feedback note: {e.parse_error}")
-            return AgentResponse.error_result(
-                "An unexpected error occurred while processing your email."
-            )
+            return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
         except Exception as e:
             logger.error(f"Error in feedback note coordination: {e}")
-            return AgentResponse.error_result(
-                "An unexpected error occurred while processing your email."
-            )
+            return AgentResponse.error_result(self.GENERIC_ERROR_MSG)

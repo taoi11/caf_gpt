@@ -12,6 +12,7 @@ Top-level declarations:
 
 import logging
 import requests
+from contextvars import ContextVar
 from functools import wraps
 from typing import Callable, TypeVar, List, Dict, Optional, Any
 
@@ -21,6 +22,11 @@ from .types import XMLParseError
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
+
+# Context variable to track circuit breaker state across the call stack
+_circuit_breaker_context: ContextVar[Optional[Dict[str, int]]] = ContextVar(
+    "circuit_breaker", default=None
+)
 
 
 class LLMInterface:
@@ -91,20 +97,19 @@ llm_client = LLMInterface()
 
 def circuit_breaker(max_calls: int = 3) -> Callable[[Callable[..., T]], Callable[..., T]]:
     # Decorator to limit the number of LLM calls within a method execution
-    # Tracks calls across the decorated method's execution and raises RuntimeError when exceeded
+    # Uses context variables for thread-safe tracking across the call stack
     # Default limit is 3 calls for backward compatibility
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> T:
-            # Store call count in wrapper closure
-            wrapper.llm_call_count = 0  # type: ignore[attr-defined]
-            wrapper.max_llm_calls = max_calls  # type: ignore[attr-defined]
+            # Initialize circuit breaker context
+            ctx = {"count": 0, "max": max_calls}
+            token = _circuit_breaker_context.set(ctx)
             try:
                 return func(*args, **kwargs)
             finally:
-                # Clean up after execution
-                delattr(wrapper, "llm_call_count")
-                delattr(wrapper, "max_llm_calls")
+                # Clean up context after execution
+                _circuit_breaker_context.reset(token)
 
         return wrapper
 
@@ -114,26 +119,15 @@ def circuit_breaker(max_calls: int = 3) -> Callable[[Callable[..., T]], Callable
 def increment_circuit_breaker() -> None:
     # Helper to increment and check circuit breaker from within decorated method
     # Call this before each LLM invocation to enforce the limit
-    import inspect
+    ctx = _circuit_breaker_context.get()
+    if ctx is None:
+        logger.warning("increment_circuit_breaker called outside decorated method")
+        return
 
-    frame = inspect.currentframe()
-    if frame and frame.f_back:
-        caller_frame = frame.f_back
-        # Find the wrapper function in the call stack
-        for frame_info in inspect.getouterframes(caller_frame):
-            func = frame_info.frame.f_locals.get("wrapper")
-            if func and hasattr(func, "llm_call_count"):
-                func.llm_call_count += 1
-                if func.llm_call_count > func.max_llm_calls:
-                    logger.error(
-                        f"Circuit breaker triggered: exceeded maximum {func.max_llm_calls} LLM calls"
-                    )
-                    raise RuntimeError(
-                        f"Circuit breaker: exceeded maximum {func.max_llm_calls} LLM calls per email"
-                    )
-                return
-    # Fallback: if we can't find wrapper, just log warning
-    logger.warning("increment_circuit_breaker called outside decorated method")
+    ctx["count"] += 1
+    if ctx["count"] > ctx["max"]:
+        logger.error(f"Circuit breaker triggered: exceeded maximum {ctx['max']} LLM calls")
+        raise RuntimeError(f"Circuit breaker: exceeded maximum {ctx['max']} LLM calls per email")
 
 
 def call_llm_with_retry(
