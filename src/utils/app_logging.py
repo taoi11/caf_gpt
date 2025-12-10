@@ -1,5 +1,5 @@
 """
-src/app_logging.py
+src/utils/app_logging.py
 
 Centralized logging configuration using standard library logging.
 

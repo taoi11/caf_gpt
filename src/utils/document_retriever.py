@@ -1,5 +1,5 @@
 """
-src/storage/document_retriever.py
+src/utils/document_retriever.py
 
 Implementation of DocumentRetriever for fetching documents from S3-compatible storage.
 This class provides read-only access to documents stored in an S3 bucket.

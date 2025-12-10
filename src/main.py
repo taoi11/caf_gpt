@@ -36,10 +36,12 @@ class StoppableThread:
         self.thread.start()
 
     def _run(self) -> None:
+        # Main thread execution loop that runs target function until stop event is set
         while not self.stop_event.wait(timeout=1):  # Check every second
             self.target(*self.args)
 
     def stop(self) -> None:
+        # Gracefully stop the thread by setting stop event and waiting for completion
         self.stop_event.set()
         self.thread.join(timeout=5)
 
