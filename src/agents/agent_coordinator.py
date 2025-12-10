@@ -26,12 +26,12 @@ logger = logging.getLogger(__name__)
 class AgentCoordinator:
     # Main class coordinating LLM calls, parsing, and sub-agent delegation
 
-    # Signature appended to all agent replies
+    # Signature appended to all agent replies (HTML format with proper links)
     SIGNATURE = """
 
 CAF-GPT
-[Source Code](https://github.com/taoi11/caf_gpt)
-How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
+<a href="https://github.com/taoi11/caf_gpt">Source Code</a>
+How to use CAF-GPT: <a href="placeholder_for_docs_link">Documentation</a>"""
 
     def __init__(self, prompt_manager: PromptManager):
         # Initialize with prompt manager and load available sub-agents
@@ -46,8 +46,9 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
         self.sub_agents["leave_foo"] = LeaveFooAgent(self.prompt_manager)
 
     def _add_signature(self, content: str) -> str:
-        # Append signature to reply content
-        return content + self.SIGNATURE
+        # Append signature to reply content, marking HTML as safe for email composer
+        from markupsafe import Markup
+        return content + Markup(self.SIGNATURE)
 
     @circuit_breaker(max_calls=6)
     def process_email_with_prime_foo(self, email_context: str) -> AgentResponse:

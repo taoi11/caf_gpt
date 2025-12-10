@@ -65,12 +65,16 @@ class EmailComposer:
 
             # Clean reply body: replace <br> tags with newlines to avoid double escaping
             # Then escape HTML and convert newlines to <br> safely
-            cleaned_body = re.sub(r"<br\s*/?>", "\n", reply_data.body, flags=re.IGNORECASE)
-
-            # Escape the content to prevent XSS, then replace newlines with safe <br> tags
-            # We use Markup('<br>') to ensure the <br> tag itself is not escaped
-            escaped_body = escape(cleaned_body)
-            final_body = escaped_body.replace("\n", Markup("<br>"))
+            # Handle Markup objects (which contain safe HTML like signature links) separately
+            if isinstance(reply_data.body, Markup):
+                # Body contains safe HTML (e.g., signature with links), preserve it
+                final_body = reply_data.body.replace("\n", Markup("<br>"))
+            else:
+                cleaned_body = re.sub(r"<br\s*/?>", "\n", reply_data.body, flags=re.IGNORECASE)
+                # Escape the content to prevent XSS, then replace newlines with safe <br> tags
+                # We use Markup('<br>') to ensure the <br> tag itself is not escaped
+                escaped_body = escape(cleaned_body)
+                final_body = escaped_body.replace("\n", Markup("<br>"))
 
             # Render HTML template
             template = self.jinja_env.get_template("reply.html.jinja")
