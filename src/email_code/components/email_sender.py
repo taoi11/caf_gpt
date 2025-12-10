@@ -8,15 +8,15 @@ Top-level declarations:
 - EmailSender: Class for sending emails via SMTP with retry logic
 """
 
+import logging
 import yagmail
 import time
 
-from src.utils.app_logging import get_logger
 from src.config import config
 from src.email_code.types import ReplyData, ParsedEmailData
 from .email_composer import EmailComposer
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class EmailSender:

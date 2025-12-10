@@ -9,16 +9,16 @@ Top-level declarations:
 """
 
 from typing import Dict, Optional, Any
+import logging
 import jinja2
 from markupsafe import Markup, escape
 from pathlib import Path
 import re
 
-from src.utils.app_logging import get_logger
 from src.config import config
 from src.email_code.types import ReplyData, ParsedEmailData
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 TEMPLATE_DIR = "src/email_code/templates"
 

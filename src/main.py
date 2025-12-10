@@ -10,6 +10,7 @@ Top-level declarations:
 """
 
 from contextlib import asynccontextmanager
+import logging
 import threading
 from typing import Callable, Any, AsyncGenerator
 
@@ -17,13 +18,13 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from src.config import config
-from src.utils.app_logging import setup_logging, get_logger
+from src.utils.app_logging import setup_logging
 
 from src.email_code.simple_email_handler import SimpleEmailProcessor
 
 setup_logging(config)
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class StoppableThread:

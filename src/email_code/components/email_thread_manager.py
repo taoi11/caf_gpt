@@ -9,11 +9,11 @@ Top-level declarations:
 """
 
 from typing import Dict, List
+import logging
 
-from src.utils.app_logging import get_logger
 from src.email_code.types import ParsedEmailData  # For message_id
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class EmailThreadManager:

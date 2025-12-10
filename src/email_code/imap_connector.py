@@ -11,14 +11,14 @@ Top-level declarations:
 
 from __future__ import annotations
 
+import logging
 from contextlib import contextmanager
 from typing import Generator, List
 from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags  # type: ignore[attr-defined]
 from datetime import datetime
 from src.config import EmailConfig
-from src.utils.app_logging import get_logger
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class IMAPConnectorError(Exception):
