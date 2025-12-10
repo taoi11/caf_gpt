@@ -5,6 +5,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.mypy_cache/
 
 # Virtual environments
 .env*

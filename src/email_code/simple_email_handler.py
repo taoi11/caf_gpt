@@ -25,6 +25,7 @@ from src.email_code.components.email_sender import EmailSender
 from src.email_code.components.email_thread_manager import EmailThreadManager
 from src.agents.prompt_manager import PromptManager
 from src.agents.agent_coordinator import AgentCoordinator
+from src.utils.spam_filter import is_sender_allowed
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +86,12 @@ class SimpleEmailProcessor:
                     parsed_data = self._adapt_mail_message(msg)
                     logged_email = self._build_log_entry(uid, parsed_data)
                     self._log_email(logged_email)
+
+                    # Check if sender is allowed
+                    if not is_sender_allowed(parsed_data.from_addr):
+                        logger.info(f"[uid={uid}] Blocked sender: {parsed_data.from_addr}")
+                        self._connector.move_to_junk(uid)
+                        continue
 
                     # Check which agent should process this email
                     agent_type = should_trigger_agent(parsed_data.recipients.to)

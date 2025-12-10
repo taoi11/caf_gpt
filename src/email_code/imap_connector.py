@@ -113,6 +113,17 @@ class IMAPConnector:
         except Exception as error:
             raise IMAPConnectorError(f"failed to fetch unseen emails: {error}") from error
 
+    def move_to_junk(self, uid: str) -> None:
+        # Move email to Junk folder and mark as seen
+        try:
+            with self.mailbox() as mb:
+                logger.info(f"Moving uid={uid} to Junk folder")
+                mb.move([uid], "Junk")
+                logger.info(f"Successfully moved uid={uid} to Junk")
+        except Exception as error:
+            logger.error(f"Failed to move uid={uid} to Junk: {error}")
+            raise IMAPConnectorError(f"failed to move {uid} to Junk: {error}") from error
+
     def disconnect(self) -> None:
         # No-op: All connections are handled by context managers that automatically cleanup
         pass

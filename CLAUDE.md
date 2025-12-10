@@ -102,3 +102,6 @@ Email templates use Jinja2 (`src/email_code/templates/reply.html.jinja`). `Email
 - **Signature appending**: `AgentCoordinator.SIGNATURE` is appended to all Prime Foo agent replies (includes GitHub link)
 - **Error handling**: Emails with processing errors are left unread for retry, but logged for debugging
 - **Path style S3**: Some S3-compatible services need `STORAGE__USE_PATH_STYLE_ENDPOINT=true`
+
+## Miscellaneous
+- Always prepend your commit message with `Claude:` to let everyone know this is your work
