@@ -20,7 +20,7 @@ def setup_logging(config: AppConfig) -> None:
 
     logging.basicConfig(
         level=getattr(logging, effective_log_level.upper()),
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        format="%(asctime)s %(name)s: %(message)s",
         handlers=[logging.StreamHandler()],
     )
 
