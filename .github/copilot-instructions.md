@@ -71,8 +71,7 @@ S3 organization: `s3://bucket/category/filename`
 ### Formatting & Type Checking
 ```bash
 black src/ tests/        # Format code (100 char line length)
-mypy src/                # Type checking (Python 3.12)
-black --check src/       # Verify formatting without changes
+mypy src/ --strict       # Type checking (Python 3.12)
 ```
 
 ### Testing Conventions
@@ -112,7 +111,7 @@ Every Python module must have a module docstring at the **very top** that:
 2. States the responsibility/purpose of the code in the file
 3. Lists all top-level functions or classes
 
-#### Example:
+#### Example
 ```python
 """
 src/utils/env_utils.py
@@ -130,7 +129,7 @@ Every top-level function or class must have inline # comments immediately after 
 2. Provide additional context about its purpose or behavior
 3. Minimum one line, maximum three lines
 
-#### Example:
+### Example
 ```python
 def my_function():
     # Brief description expanding on the module docstring reference

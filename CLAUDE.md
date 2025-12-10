@@ -71,8 +71,7 @@ S3 organization: `s3://bucket/category/filename`
 ### Formatting & Type Checking
 ```bash
 black src/ tests/        # Format code (100 char line length)
-mypy src/                # Type checking (Python 3.12)
-black --check src/       # Verify formatting without changes
+mypy src/ --strict       # Type checking (Python 3.12)
 ```
 
 ### Testing Conventions
