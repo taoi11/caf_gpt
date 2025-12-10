@@ -28,6 +28,21 @@ class AgentResponse(BaseModel):
     no_response: bool = False
     error: Optional[str] = None
 
+    @classmethod
+    def success(cls, reply: str) -> "AgentResponse":
+        # Factory method for successful reply responses
+        return cls(reply=reply)
+
+    @classmethod
+    def no_response_result(cls) -> "AgentResponse":
+        # Factory method for no-response cases
+        return cls(no_response=True)
+
+    @classmethod
+    def error_result(cls, message: str) -> "AgentResponse":
+        # Factory method for error responses
+        return cls(error=message)
+
 
 class PrimeFooResponse(BaseModel):
     # Parsed prime_foo response structure
