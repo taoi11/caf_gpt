@@ -135,43 +135,28 @@ class FeedbackNoteAgent:
         return self.prompt_manager.get_prompt("feedback_notes")
 
     def _parse_response(self, response: str) -> FeedbackNoteResponse:
-        # Parse XML response to determine type (no_response, reply, or rank)
-        # Raises XMLParseError if response is not valid XML
+        # Parse XML response by extracting expected tags, ignoring surrounding content
+        # Raises XMLParseError if expected tags are not found
+        import re
         
-        # Strip markdown code fences if present
-        response = response.strip()
-        if response.startswith("```xml"):
-            response = response[6:]  # Remove ```xml
-        elif response.startswith("```"):
-            response = response[3:]  # Remove ```
-        if response.endswith("```"):
-            response = response[:-3]  # Remove trailing ```
-        response = response.strip()
+        # Try to find <rank>...</rank>
+        rank_match = re.search(r'<rank>(.*?)</rank>', response, re.DOTALL | re.IGNORECASE)
+        if rank_match:
+            rank = rank_match.group(1).strip().lower()
+            return FeedbackNoteResponse(type="rank", rank=rank)
         
-        try:
-            root = ET.fromstring(response)
-            type_ = root.tag
-            content = root.text.strip() if root.text else ""
-
-            if type_ == "rank":
-                # Extract rank from <rank>mcpl</rank>
-                return FeedbackNoteResponse(type="rank", rank=content.lower())
-
-            elif type_ == "reply":
-                # Extract body from reply
-                body_elem = root.find("body")
-                if body_elem is not None and body_elem.text:
-                    content = body_elem.text.strip()
-                return FeedbackNoteResponse(type="reply", content=content)
-
-            elif type_ == "no_response":
-                return FeedbackNoteResponse(type="no_response")
-
-            else:
-                raise XMLParseError(response, f"Unknown XML tag: {type_}")
-
-        except ET.ParseError as e:
-            raise XMLParseError(response, str(e))
+        # Try to find <reply><body>...</body></reply>
+        body_match = re.search(r'<reply>.*?<body>(.*?)</body>.*?</reply>', response, re.DOTALL | re.IGNORECASE)
+        if body_match:
+            content = body_match.group(1).strip()
+            return FeedbackNoteResponse(type="reply", content=content)
+        
+        # Try to find <no_response>
+        if re.search(r'<no_response\s*/?\s*>', response, re.IGNORECASE):
+            return FeedbackNoteResponse(type="no_response")
+        
+        # If none of the expected tags found, raise error
+        raise XMLParseError(response, "No recognized XML tags found (expected: <rank>, <reply><body>, or <no_response>)")
 
     def _load_competencies(self, rank: str) -> str:
         # Load rank-specific competencies from S3
