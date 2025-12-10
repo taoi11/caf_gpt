@@ -10,7 +10,7 @@ Top-level declarations:
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any
 import xml.etree.ElementTree as ET
 from pydantic import BaseModel
 
@@ -19,6 +19,7 @@ from src.config import config
 from src.agents.prompt_manager import PromptManager
 from src.agents.types import XMLParseError
 from src.agents.llm_utils import call_llm_with_retry, circuit_breaker, increment_circuit_breaker
+from src.agents.utils.xml_parser import parse_xml_response
 
 logger = logging.getLogger(__name__)
 
@@ -111,32 +112,18 @@ class FeedbackNoteAgent:
         return self.prompt_manager.get_prompt("feedback_notes")
 
     def _parse_response(self, response: str) -> FeedbackNoteResponse:
-        # Parse XML response to determine type (no_response, reply, or rank)
+        # Parse XML response using shared parser with rank handler
         # Raises XMLParseError if response is not valid XML
-        try:
-            root = ET.fromstring(response)
-            type_ = root.tag
+        def handle_rank(root: ET.Element) -> Dict[str, Any]:
+            # Extract rank value and convert to lowercase
             content = root.text.strip() if root.text else ""
+            return {"rank": content.lower()}
 
-            if type_ == "rank":
-                # Extract rank from <rank>mcpl</rank>
-                return FeedbackNoteResponse(type="rank", rank=content.lower())
+        parsed = parse_xml_response(response, type_handlers={"rank": handle_rank})
 
-            elif type_ == "reply":
-                # Extract body from reply
-                body_elem = root.find("body")
-                if body_elem is not None and body_elem.text:
-                    content = body_elem.text.strip()
-                return FeedbackNoteResponse(type="reply", content=content)
-
-            elif type_ == "no_response":
-                return FeedbackNoteResponse(type="no_response")
-
-            else:
-                raise XMLParseError(response, f"Unknown XML tag: {type_}")
-
-        except ET.ParseError as e:
-            raise XMLParseError(response, str(e))
+        # Convert ParsedXMLResponse to FeedbackNoteResponse
+        rank = parsed.extra.get("rank") if parsed.extra else None
+        return FeedbackNoteResponse(type=parsed.type, content=parsed.content, rank=rank)
 
     def _load_competencies(self, rank: str) -> str:
         # Load rank-specific competencies from S3
@@ -152,7 +139,9 @@ class FeedbackNoteAgent:
 
     def _load_examples(self) -> str:
         # Load examples from S3
-        return self._load_document("examples.md", "examples", "Examples not available at this time.")
+        return self._load_document(
+            "examples.md", "examples", "Examples not available at this time."
+        )
 
     def _load_document(self, filename: str, doc_type: str, fallback_message: str) -> str:
         # Load a document from S3 with consistent error handling and logging

@@ -17,6 +17,7 @@ from .types import AgentResponse, PrimeFooResponse, ResearchRequest, XMLParseErr
 from .sub_agents.leave_foo_agent import LeaveFooAgent
 from .feedback_note_agent import FeedbackNoteAgent, FeedbackNoteResponse
 from .llm_utils import call_llm_with_retry, circuit_breaker, increment_circuit_breaker
+from .utils.xml_parser import parse_xml_response
 from src.config import config
 
 logger = logging.getLogger(__name__)
@@ -99,35 +100,27 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
             logger.error(f"Error in coordination: {e}")
             return self.get_generic_error_response()
 
-    def _parse_xml_response(self, response: str, parse_research: bool = False) -> PrimeFooResponse:
-        # Shared XML parser for both prime_foo and feedback_note responses
-        # Raises XMLParseError if response is not valid XML
-        try:
-            root = ET.fromstring(response)
-            type_ = root.tag
-            content = root.text.strip() if root.text else ""
-            research = None
-            if type_ == "research" and parse_research:
-                sub_agent_elem = root.find("sub_agent")
-                if sub_agent_elem is not None:
-                    agent_type = sub_agent_elem.get("name", "")
-                    queries = []
-                    for query_elem in sub_agent_elem.findall("query"):
-                        if query_elem.text:
-                            queries.append(query_elem.text.strip())
-                    if queries:
-                        research = ResearchRequest(queries=queries, agent_type=agent_type)
-            elif type_ == "reply":
-                body_elem = root.find("body")
-                if body_elem is not None and body_elem.text:
-                    content = body_elem.text.strip()
-            return PrimeFooResponse(type=type_, content=content, research=research)
-        except ET.ParseError as e:
-            raise XMLParseError(response, str(e))
-
     def parse_prime_foo_response(self, response: str) -> PrimeFooResponse:
-        # Parse XML for prime_foo responses, raises XMLParseError on failure
-        return self._parse_xml_response(response, parse_research=True)
+        # Parse XML for prime_foo responses using shared parser with research handler
+        # Raises XMLParseError on failure
+        def handle_research(root: ET.Element) -> Dict[str, Any]:
+            # Extract research request with sub-agent and queries
+            sub_agent_elem = root.find("sub_agent")
+            if sub_agent_elem is not None:
+                agent_type = sub_agent_elem.get("name", "")
+                queries = []
+                for query_elem in sub_agent_elem.findall("query"):
+                    if query_elem.text:
+                        queries.append(query_elem.text.strip())
+                if queries:
+                    return {"research": ResearchRequest(queries=queries, agent_type=agent_type)}
+            return {}
+
+        parsed = parse_xml_response(response, type_handlers={"research": handle_research})
+
+        # Convert ParsedXMLResponse to PrimeFooResponse
+        research = parsed.extra.get("research") if parsed.extra else None
+        return PrimeFooResponse(type=parsed.type, content=parsed.content, research=research)
 
     def handle_research_request(self, research: ResearchRequest) -> str:
         # Delegate queries to sub-agent and aggregate responses
