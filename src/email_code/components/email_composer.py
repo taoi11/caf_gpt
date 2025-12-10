@@ -64,24 +64,24 @@ class EmailComposer:
 
             # Clean reply body: replace <br> tags with newlines to avoid double escaping
             # Then escape HTML and convert newlines to <br> safely
-            cleaned_body = re.sub(r'<br\s*/?>', '\n', reply_data.body, flags=re.IGNORECASE)
-            
+            cleaned_body = re.sub(r"<br\s*/?>", "\n", reply_data.body, flags=re.IGNORECASE)
+
             # Escape the content to prevent XSS, then replace newlines with safe <br> tags
             # We use Markup('<br>') to ensure the <br> tag itself is not escaped
             escaped_body = escape(cleaned_body)
-            final_body = escaped_body.replace('\n', Markup('<br>'))
-            
+            final_body = escaped_body.replace("\n", Markup("<br>"))
+
             # Render HTML template
             template = self.jinja_env.get_template("reply.html.jinja")
             html_body = template.render(
                 reply_body=final_body,
                 original=original_dict,
             )
-            
+
             # Minify HTML: replace newlines with spaces to prevent downstream tools (like yagmail)
             # from converting structural newlines into <br> tags.
             # Since final_body already has <br> for content line breaks, this is safe.
-            html_body = html_body.replace('\n', ' ')
+            html_body = html_body.replace("\n", " ")
 
             # Prepare recipients
             to = reply_data.to

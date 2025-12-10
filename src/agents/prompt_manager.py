@@ -34,7 +34,7 @@ class PromptManager:
         prompt_path = self.prompts_dir / f"{prompt_name}.md"
         if not prompt_path.exists():
             raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
-        
+
         result = self._load_from_filesystem(prompt_path)
 
         # Simple cache eviction: clear oldest half if cache is full

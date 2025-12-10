@@ -55,7 +55,10 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
             # Send error feedback and retry once
             retry_messages = messages + [
                 {"role": "assistant", "content": response},
-                {"role": "user", "content": f"Your response was not valid XML. Parse error: {e.parse_error}. Please respond with properly formatted XML."},
+                {
+                    "role": "user",
+                    "content": f"Your response was not valid XML. Parse error: {e.parse_error}. Please respond with properly formatted XML.",
+                },
             ]
             response = llm_client.generate_response(retry_messages, openrouter_model=model)
             # No more retries - let it raise if it fails again
@@ -86,7 +89,9 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                         {"role": "assistant", "content": response},
                         {"role": "user", "content": f"Research results: {research_result}"},
                     ]
-                    response, parsed = self._call_llm_with_retry(follow_up_messages, config.llm.prime_foo_model)
+                    response, parsed = self._call_llm_with_retry(
+                        follow_up_messages, config.llm.prime_foo_model
+                    )
                 else:
                     return self.get_generic_error_response()
         except XMLParseError as e:

@@ -102,7 +102,9 @@ class SimpleEmailProcessor:
                         """
 
                         # Process with appropriate agent coordinator
-                        logger.info(f"[uid={uid}] Processing email through {agent_type} agent pipeline")
+                        logger.info(
+                            f"[uid={uid}] Processing email through {agent_type} agent pipeline"
+                        )
 
                         if agent_type == "policy":
                             agent_response = self.coordinator.process_email_with_prime_foo(
@@ -128,16 +130,12 @@ class SimpleEmailProcessor:
                             # Calculate reply recipients (excluding self)
                             reply_to = {parsed_data.from_addr}
                             reply_to.update(
-                                addr
-                                for addr in parsed_data.recipients.to
-                                if addr != agent_email
+                                addr for addr in parsed_data.recipients.to if addr != agent_email
                             )
 
                             # CC recipients (excluding self)
                             reply_cc = [
-                                addr
-                                for addr in parsed_data.recipients.cc
-                                if addr != agent_email
+                                addr for addr in parsed_data.recipients.cc if addr != agent_email
                             ]
 
                             # Prepare reply data
@@ -152,9 +150,7 @@ class SimpleEmailProcessor:
 
                             # Send reply
                             logger.info(f"[uid={uid}] Sending agent reply")
-                            sent = self.sender.send_reply(
-                                reply_data, parsed_data, agent_email
-                            )
+                            sent = self.sender.send_reply(reply_data, parsed_data, agent_email)
                             if sent:
                                 logger.info(f"[uid={uid}] Agent reply sent successfully")
                                 self._connector.mark_seen(uid)

@@ -60,6 +60,9 @@ def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
     # MailBox().login() returns the context manager
     mock_mailbox.return_value.login.return_value.__enter__.return_value = mock_mb
 
+    # Mock uids to return test UIDs
+    mock_mb.uids.return_value = ["2", "1"]
+
     # Mock fetch to return test messages with dates
     mock_msg1 = MagicMock()
     mock_msg1.uid = "2"
@@ -67,7 +70,9 @@ def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
     mock_msg2 = MagicMock()
     mock_msg2.uid = "1"
     mock_msg2.date = datetime(2023, 1, 1)  # Older
-    mock_mb.fetch.return_value = [mock_msg1, mock_msg2]
+
+    # Mock fetch to return one message at a time
+    mock_mb.fetch.side_effect = [[mock_msg2], [mock_msg1]]
 
     connector = IMAPConnector(mock_config)
     msgs = connector.fetch_unseen_sorted()
@@ -75,7 +80,7 @@ def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
     assert len(msgs) == 2
     assert msgs[0].uid == "1"  # Oldest first
     assert msgs[1].uid == "2"
-    mock_mb.fetch.assert_called_once_with("UNSEEN", mark_seen=False)
+    mock_mb.uids.assert_called_once_with("UNSEEN")
 
 
 # Deprecated: fetch_email_message - test removed as method is deprecated

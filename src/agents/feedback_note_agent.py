@@ -61,7 +61,10 @@ class FeedbackNoteAgent:
             # Send error feedback and retry once
             retry_messages = messages + [
                 {"role": "assistant", "content": response},
-                {"role": "user", "content": f"Your response was not valid XML. Parse error: {e.parse_error}. Please respond with properly formatted XML."},
+                {
+                    "role": "user",
+                    "content": f"Your response was not valid XML. Parse error: {e.parse_error}. Please respond with properly formatted XML.",
+                },
             ]
             response = llm_client.generate_response(
                 retry_messages, openrouter_model=config.llm.pacenote_model
@@ -115,10 +118,12 @@ class FeedbackNoteAgent:
 
                 # Continue conversation by appending to existing messages
                 messages.append({"role": "assistant", "content": response})
-                messages.append({
-                    "role": "user",
-                    "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\n<competencies>\n{competency_list}\n</competencies>\n\n<examples>\n{examples}\n</examples>"
-                })
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\n<competencies>\n{competency_list}\n</competencies>\n\n<examples>\n{examples}\n</examples>",
+                    }
+                )
 
                 llm_call_count += 1
                 response, parsed = self._call_llm_with_retry(messages)

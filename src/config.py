@@ -44,7 +44,7 @@ class EmailConfig(BaseSettings):
     imap_username: str
     imap_password: str
 
-    email_process_interval: int = 30
+    email_process_interval: int = 60
 
     # SMTP settings for sending replies
     smtp_host: str

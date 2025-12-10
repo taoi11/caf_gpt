@@ -22,6 +22,7 @@ class EmailAdapter:
     @staticmethod
     def adapt_mail_message(msg: MailMessage) -> ParsedEmailData:
         # Convert imap_tools MailMessage to our ParsedEmailData domain model
+        # Note: Attachments are intentionally not accessed to minimize bandwidth usage
         # Recipients
         recipients = EmailRecipients(
             to=list(msg.to) if msg.to else [], cc=list(msg.cc) if msg.cc else []
