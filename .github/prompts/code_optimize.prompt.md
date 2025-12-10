@@ -1,13 +1,5 @@
 ---
-triggers:
-- optimize
-- simplify
-- refactor
-- clean up
-- improve code
-- fine-tune
-- fine-tuning
-agent: CodeActAgent
+agent: Plan
 ---
 
 # Code Optimization Process
@@ -116,4 +108,3 @@ Skip an optimization when:
 - No clear, simple improvements remain
 
 **Remember:** The goal is to make code simpler, not just different.
-

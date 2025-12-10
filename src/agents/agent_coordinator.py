@@ -15,8 +15,9 @@ import xml.etree.ElementTree as ET
 from .prompt_manager import PromptManager
 from .types import AgentResponse, PrimeFooResponse, ResearchRequest, XMLParseError
 from .sub_agents.leave_foo_agent import LeaveFooAgent
-from .feedback_note_agent import FeedbackNoteAgent
-from src.llm_interface import llm_client
+from .feedback_note_agent import FeedbackNoteAgent, FeedbackNoteResponse
+from .llm_utils import call_llm_with_retry, circuit_breaker, increment_circuit_breaker
+from .utils.xml_parser import parse_xml_response
 from src.config import config
 
 logger = logging.getLogger(__name__)
@@ -40,28 +41,15 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
         # Initialize feedback note agent
         self.feedback_note_agent = FeedbackNoteAgent(self.prompt_manager)
 
-    def _load_sub_agents(self):
+    def _load_sub_agents(self) -> None:
         # Dynamically load sub-agents like LeaveFooAgent with prompt manager access
         self.sub_agents["leave_foo"] = LeaveFooAgent(self.prompt_manager)
 
-    def _call_llm_with_retry(self, messages: list, model: str) -> tuple[str, "PrimeFooResponse"]:
-        # Call LLM and parse response, with 1 retry on XML parse failure
-        response = llm_client.generate_response(messages, openrouter_model=model)
-        try:
-            parsed = self.parse_prime_foo_response(response)
-            return response, parsed
-        except XMLParseError as e:
-            logger.warning(f"XML parse failed, retrying: {e.parse_error}")
-            # Send error feedback and retry once
-            retry_messages = messages + [
-                {"role": "assistant", "content": response},
-                {"role": "user", "content": f"Your response was not valid XML. Parse error: {e.parse_error}. Please respond with properly formatted XML."},
-            ]
-            response = llm_client.generate_response(retry_messages, openrouter_model=model)
-            # No more retries - let it raise if it fails again
-            parsed = self.parse_prime_foo_response(response)
-            return response, parsed
+    def _add_signature(self, content: str) -> str:
+        # Append signature to reply content
+        return content + self.SIGNATURE
 
+    @circuit_breaker(max_calls=6)
     def process_email_with_prime_foo(self, email_context: str) -> AgentResponse:
         # Main coordination loop: send to prime_foo, parse response, handle research/reply/no_response iteratively
         try:
@@ -70,69 +58,79 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                 {"role": "system", "content": prime_prompt},
                 {"role": "user", "content": email_context},
             ]
-            response, parsed = self._call_llm_with_retry(messages, config.llm.prime_foo_model)
+
+            increment_circuit_breaker()
+            response, parsed = call_llm_with_retry(
+                messages, config.llm.prime_foo_model, self.parse_prime_foo_response
+            )
 
             while True:
                 if parsed.type == "no_response":
-                    return self.handle_no_response()
+                    return AgentResponse.no_response_result()
                 elif parsed.type == "reply":
                     # Append signature to policy agent replies
-                    reply_with_signature = parsed.content + self.SIGNATURE
-                    return AgentResponse(reply=reply_with_signature)
+                    if not parsed.content:
+                        logger.error("Reply type received but content is None")
+                        return AgentResponse.error_result(
+                            "An unexpected error occurred while processing your email."
+                        )
+                    reply_with_signature = self._add_signature(parsed.content)
+                    return AgentResponse.success(reply_with_signature)
                 elif parsed.type == "research":
+                    if not parsed.research:
+                        logger.error("Research type received but research is None")
+                        return AgentResponse.error_result(
+                            "An unexpected error occurred while processing your email."
+                        )
                     research_result = self.handle_research_request(parsed.research)
                     # Send research results back to prime_foo
                     follow_up_messages = messages + [
                         {"role": "assistant", "content": response},
                         {"role": "user", "content": f"Research results: {research_result}"},
                     ]
-                    response, parsed = self._call_llm_with_retry(follow_up_messages, config.llm.prime_foo_model)
+
+                    increment_circuit_breaker()
+                    response, parsed = call_llm_with_retry(
+                        follow_up_messages,
+                        config.llm.prime_foo_model,
+                        self.parse_prime_foo_response,
+                    )
                 else:
-                    return self.get_generic_error_response()
+                    return AgentResponse.error_result(
+                        "An unexpected error occurred while processing your email."
+                    )
         except XMLParseError as e:
             logger.error(f"XML parse failed after retry: {e.parse_error}")
-            return self.get_generic_error_response()
+            return AgentResponse.error_result(
+                "An unexpected error occurred while processing your email."
+            )
         except Exception as e:
             logger.error(f"Error in coordination: {e}")
-            return self.get_generic_error_response()
-
-    def _parse_xml_response(self, response: str, parse_research: bool = False) -> PrimeFooResponse:
-        # Parse XML response by extracting expected tags, ignoring surrounding content
-        # Raises XMLParseError if expected tags are not found
-        import re
-        
-        # Try to find <no_response>
-        if re.search(r'<no_response\s*/?\s*>', response, re.IGNORECASE):
-            return PrimeFooResponse(type="no_response", content="")
-        
-        # Try to find <reply><body>...</body></reply>
-        body_match = re.search(r'<reply>.*?<body>(.*?)</body>.*?</reply>', response, re.DOTALL | re.IGNORECASE)
-        if body_match:
-            content = body_match.group(1).strip()
-            return PrimeFooResponse(type="reply", content=content)
-        
-        # Try to find <research> with sub_agent
-        if parse_research:
-            research_match = re.search(r'<research>(.*?)</research>', response, re.DOTALL | re.IGNORECASE)
-            if research_match:
-                research_content = research_match.group(1)
-                # Extract sub_agent name
-                agent_match = re.search(r'<sub_agent\s+name=["\']([^"\']+)["\']', research_content, re.IGNORECASE)
-                if agent_match:
-                    agent_type = agent_match.group(1)
-                    # Extract all queries
-                    queries = re.findall(r'<query>(.*?)</query>', research_content, re.DOTALL | re.IGNORECASE)
-                    queries = [q.strip() for q in queries if q.strip()]
-                    if queries:
-                        research = ResearchRequest(queries=queries, agent_type=agent_type)
-                        return PrimeFooResponse(type="research", content="", research=research)
-        
-        # If none of the expected tags found, raise error
-        raise XMLParseError(response, "No recognized XML tags found (expected: <no_response>, <reply><body>, or <research>)")
+            return AgentResponse.error_result(
+                "An unexpected error occurred while processing your email."
+            )
 
     def parse_prime_foo_response(self, response: str) -> PrimeFooResponse:
-        # Parse XML for prime_foo responses, raises XMLParseError on failure
-        return self._parse_xml_response(response, parse_research=True)
+        # Parse XML for prime_foo responses using shared parser with research handler
+        # Raises XMLParseError on failure
+        def handle_research(root: ET.Element) -> Dict[str, Any]:
+            # Extract research request with sub-agent and queries
+            sub_agent_elem = root.find("sub_agent")
+            if sub_agent_elem is not None:
+                agent_type = sub_agent_elem.get("name", "")
+                queries = []
+                for query_elem in sub_agent_elem.findall("query"):
+                    if query_elem.text:
+                        queries.append(query_elem.text.strip())
+                if queries:
+                    return {"research": ResearchRequest(queries=queries, agent_type=agent_type)}
+            return {}
+
+        parsed = parse_xml_response(response, type_handlers={"research": handle_research})
+
+        # Convert ParsedXMLResponse to PrimeFooResponse
+        research = parsed.extra.get("research") if parsed.extra else None
+        return PrimeFooResponse(type=parsed.type, content=parsed.content, research=research)
 
     def handle_research_request(self, research: ResearchRequest) -> str:
         # Delegate queries to sub-agent and aggregate responses
@@ -152,31 +150,34 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
         )
         return aggregated
 
-    def handle_no_response(self) -> AgentResponse:
-        # Return structured no_response from AgentResponse model
-        return AgentResponse(no_response=True)
-
-    def get_generic_error_response(self) -> AgentResponse:
-        # Return generic error from AgentResponse model for unexpected cases
-        return AgentResponse(error="An unexpected error occurred while processing your email.")
-
     def process_email_with_feedback_note(self, email_context: str) -> AgentResponse:
         # Process email through feedback note agent for pacenote workflow
         try:
             parsed = self.feedback_note_agent.process_email(email_context)
 
             if parsed.type == "no_response":
-                return self.handle_no_response()
+                return AgentResponse.no_response_result()
             elif parsed.type == "reply":
                 # Append signature to feedback note replies
-                reply_with_signature = parsed.content + self.SIGNATURE
-                return AgentResponse(reply=reply_with_signature)
+                if not parsed.content:
+                    logger.error("Reply type received but content is None")
+                    return AgentResponse.error_result(
+                        "An unexpected error occurred while processing your email."
+                    )
+                reply_with_signature = self._add_signature(parsed.content)
+                return AgentResponse.success(reply_with_signature)
             else:
-                return self.get_generic_error_response()
+                return AgentResponse.error_result(
+                    "An unexpected error occurred while processing your email."
+                )
 
         except XMLParseError as e:
             logger.error(f"XML parse failed in feedback note: {e.parse_error}")
-            return self.get_generic_error_response()
+            return AgentResponse.error_result(
+                "An unexpected error occurred while processing your email."
+            )
         except Exception as e:
             logger.error(f"Error in feedback note coordination: {e}")
-            return self.get_generic_error_response()
+            return AgentResponse.error_result(
+                "An unexpected error occurred while processing your email."
+            )

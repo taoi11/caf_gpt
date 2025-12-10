@@ -10,15 +10,16 @@ Top-level declarations:
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any
 import xml.etree.ElementTree as ET
 from pydantic import BaseModel
 
-from src.storage.document_retriever import DocumentRetriever
-from src.llm_interface import llm_client
+from src.utils.document_retriever import document_retriever
 from src.config import config
 from src.agents.prompt_manager import PromptManager
 from src.agents.types import XMLParseError
+from src.agents.llm_utils import call_llm_with_retry, circuit_breaker, increment_circuit_breaker
+from src.agents.utils.xml_parser import parse_xml_response
 
 logger = logging.getLogger(__name__)
 
@@ -42,35 +43,11 @@ class FeedbackNoteAgent:
     # Agent handling feedback note generation with rank-specific competencies
 
     def __init__(self, prompt_manager: PromptManager):
-        # Initialize with prompt manager and document retriever
+        # Initialize with prompt manager (uses shared document_retriever)
         self.prompt_manager = prompt_manager
-        self.document_retriever = DocumentRetriever()
         self.s3_category = "paceNote"
 
-    def _call_llm_with_retry(self, messages: list) -> tuple[str, FeedbackNoteResponse]:
-        # Call LLM and parse response, with 1 retry on XML parse failure
-        response = llm_client.generate_response(
-            messages, openrouter_model=config.llm.pacenote_model
-        )
-        logger.info(f"LLM raw response: {response}")
-        try:
-            parsed = self._parse_response(response)
-            return response, parsed
-        except XMLParseError as e:
-            logger.warning(f"XML parse failed, retrying: {e.parse_error}")
-            # Send error feedback and retry once
-            retry_messages = messages + [
-                {"role": "assistant", "content": response},
-                {"role": "user", "content": f"Your response was not valid XML. Parse error: {e.parse_error}. Please respond with properly formatted XML."},
-            ]
-            response = llm_client.generate_response(
-                retry_messages, openrouter_model=config.llm.pacenote_model
-            )
-            logger.info(f"LLM retry response: {response}")
-            # No more retries - let it raise if it fails again
-            parsed = self._parse_response(response)
-            return response, parsed
-
+    @circuit_breaker(max_calls=3)
     def process_email(self, email_context: str) -> FeedbackNoteResponse:
         # Main loop: send to LLM, parse response, handle rank request loop similar to prime_foo
         # Get base prompt with placeholders
@@ -81,12 +58,10 @@ class FeedbackNoteAgent:
             {"role": "user", "content": email_context},
         ]
 
-        # Circuit breaker: limit to 3 LLM calls per email
-        max_llm_calls = 3
-        llm_call_count = 0
-
-        llm_call_count += 1
-        response, parsed = self._call_llm_with_retry(messages)
+        increment_circuit_breaker()
+        response, parsed = call_llm_with_retry(
+            messages, config.llm.pacenote_model, self._parse_response, log_response=True
+        )
         logger.info(
             f"Parsed response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}"
         )
@@ -100,14 +75,9 @@ class FeedbackNoteAgent:
                 return parsed
 
             elif parsed.type == "rank":
-                # Check circuit breaker before making another LLM call
-                if llm_call_count >= max_llm_calls:
-                    logger.error(
-                        f"Circuit breaker triggered: exceeded maximum {max_llm_calls} LLM calls per email"
-                    )
-                    raise RuntimeError(
-                        f"Circuit breaker: exceeded maximum {max_llm_calls} LLM calls per email"
-                    )
+                # Add None check
+                if not parsed.rank:
+                    raise RuntimeError("Rank type received but rank value is None")
 
                 # Load competencies for requested rank
                 competency_list = self._load_competencies(parsed.rank)
@@ -115,13 +85,20 @@ class FeedbackNoteAgent:
 
                 # Continue conversation by appending to existing messages
                 messages.append({"role": "assistant", "content": response})
-                messages.append({
-                    "role": "user",
-                    "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\n<competencies>\n{competency_list}\n</competencies>\n\n<examples>\n{examples}\n</examples>"
-                })
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": f"Here are the competencies and examples for {parsed.rank.upper()}. Now please generate the feedback note.\n\n<competencies>\n{competency_list}\n</competencies>\n\n<examples>\n{examples}\n</examples>",
+                    }
+                )
 
-                llm_call_count += 1
-                response, parsed = self._call_llm_with_retry(messages)
+                increment_circuit_breaker()
+                response, parsed = call_llm_with_retry(
+                    messages,
+                    config.llm.pacenote_model,
+                    self._parse_response,
+                    log_response=True,
+                )
                 logger.info(
                     f"Parsed follow-up response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}"
                 )
@@ -135,28 +112,18 @@ class FeedbackNoteAgent:
         return self.prompt_manager.get_prompt("feedback_notes")
 
     def _parse_response(self, response: str) -> FeedbackNoteResponse:
-        # Parse XML response by extracting expected tags, ignoring surrounding content
-        # Raises XMLParseError if expected tags are not found
-        import re
-        
-        # Try to find <rank>...</rank>
-        rank_match = re.search(r'<rank>(.*?)</rank>', response, re.DOTALL | re.IGNORECASE)
-        if rank_match:
-            rank = rank_match.group(1).strip().lower()
-            return FeedbackNoteResponse(type="rank", rank=rank)
-        
-        # Try to find <reply><body>...</body></reply>
-        body_match = re.search(r'<reply>.*?<body>(.*?)</body>.*?</reply>', response, re.DOTALL | re.IGNORECASE)
-        if body_match:
-            content = body_match.group(1).strip()
-            return FeedbackNoteResponse(type="reply", content=content)
-        
-        # Try to find <no_response>
-        if re.search(r'<no_response\s*/?\s*>', response, re.IGNORECASE):
-            return FeedbackNoteResponse(type="no_response")
-        
-        # If none of the expected tags found, raise error
-        raise XMLParseError(response, "No recognized XML tags found (expected: <rank>, <reply><body>, or <no_response>)")
+        # Parse XML response using shared parser with rank handler
+        # Raises XMLParseError if response is not valid XML
+        def handle_rank(root: ET.Element) -> Dict[str, Any]:
+            # Extract rank value and convert to lowercase
+            content = root.text.strip() if root.text else ""
+            return {"rank": content.lower()}
+
+        parsed = parse_xml_response(response, type_handlers={"rank": handle_rank})
+
+        # Convert ParsedXMLResponse to FeedbackNoteResponse
+        rank = parsed.extra.get("rank") if parsed.extra else None
+        return FeedbackNoteResponse(type=parsed.type, content=parsed.content, rank=rank)
 
     def _load_competencies(self, rank: str) -> str:
         # Load rank-specific competencies from S3
@@ -166,22 +133,23 @@ class FeedbackNoteAgent:
             logger.warning(f"Unknown rank: {rank}, defaulting to cpl")
             rank_file = RANK_FILES["cpl"]
 
-        competencies = self.document_retriever.get_document(self.s3_category, rank_file)
-
-        if competencies is None:
-            logger.error(f"Failed to load competencies for rank {rank}")
-            return "Competencies not available at this time."
-
-        logger.info(f"Successfully loaded competencies for rank {rank}")
-        return competencies
+        return self._load_document(
+            rank_file, f"competencies for rank {rank}", "Competencies not available at this time."
+        )
 
     def _load_examples(self) -> str:
         # Load examples from S3
-        examples = self.document_retriever.get_document(self.s3_category, "examples.md")
+        return self._load_document(
+            "examples.md", "examples", "Examples not available at this time."
+        )
 
-        if examples is None:
-            logger.error("Failed to load examples")
-            return "Examples not available at this time."
+    def _load_document(self, filename: str, doc_type: str, fallback_message: str) -> str:
+        # Load a document from S3 with consistent error handling and logging
+        document = document_retriever.get_document(self.s3_category, filename)
 
-        logger.info("Successfully loaded examples")
-        return examples
+        if document is None:
+            logger.error(f"Failed to load {doc_type}")
+            return fallback_message
+
+        logger.info(f"Successfully loaded {doc_type}")
+        return document

@@ -58,9 +58,8 @@ def test_defaults_are_set() -> None:
         smtp_password="secret",
     )
 
-    assert config.email_process_interval == 30
+    assert config.email_process_interval == 60
     assert config.imap_port == 993
     assert config.smtp_port == 587
     assert config.smtp_use_tls is True
     assert config.smtp_use_ssl is False
-    assert config.template_dir == "src/email_code/templates"

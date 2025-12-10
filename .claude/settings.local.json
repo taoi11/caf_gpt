@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(fly apps list:*)",
+      "Bash(fly image show:*)",
+      "Bash(flyctl logs:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(wc:*)",
+      "Bash(pytest:*)",
+      "Bash(mypy:*)",
+      "Bash(black:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

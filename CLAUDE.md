@@ -1,250 +1,152 @@
-# CLAUDE.md
+# CAF-GPT Development Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Project Overview
+CAF-GPT is a backend only email agent platform using a multi-agent coordinator pattern. The system polls IMAP, routes emails to specialized AI agents (policy questions, feedback notes), retrieves context from S3 storage, and sends AI-generated replies via SMTP.
+FastAPI for healthy API endpoints.
 
-## Overview
-
-CAF-GPT is a FastAPI-based AI email agent platform that processes incoming emails and generates AI-powered responses. The system uses a multi-agent architecture with specialized agents for different domains (policy questions, feedback note generation). It connects to IMAP for reading emails, uses OpenRouter for LLM integration, and S3-compatible storage for document retrieval.
-
-## Development Commands
-
-### Setup and Installation
+## Essential Workflows
+### Running & Testing
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Run locally (uses .env for config)
+uvicorn src.main:app --reload
 
-# Install with dev dependencies
-pip install -e ".[dev]"
+# Docker (preferred for production)
+docker-compose up --build
+
+# Tests (always run before pushing - we debug on main)
+pytest                    # Run all tests
+pytest -v                 # Verbose output
+pytest tests/test_email.py  # Specific file
 ```
 
-### Running the Application
-Leroy jinkins
-We push to main.
-Run the test and be sure of your work. This is a hobby app. we debug on the main branch.
+### Development Philosophy
+- **"Leroy Jenkins - We push to main"**: This is a hobby app, direct commits to main are expected
+- Always run tests before pushing to validate changes
+- No staging/dev branch complexity - debug in production if needed
 
-### Testing
-```bash
-# Run all tests
-pytest
+## Agent Architecture Patterns
+### Email Routing
+Emails route to agents based on **recipient address** (`src/config.py:should_trigger_agent()`):
+- `policy@caf-gpt.com` → Prime Foo Agent (policy questions, can delegate to sub-agents)
+- `pacenote@caf-gpt.com` → Feedback Note Agent (performance feedback with rank-based competencies)
+- Other addresses → marked as read, no processing
 
-# Run specific test file
-pytest tests/test_email.py
+### Iterative Agent Workflow
+Both main agents use **iterative XML response loops**:
+1. **Prime Foo Agent** (`process_email_with_prime_foo`):
+   - LLM returns `<reply>`, `<research>`, or `<no_response>`
+   - If `<research>`: delegate to sub-agent → send results back → LLM replies again
+   - Sub-agents registered in `AgentCoordinator._load_sub_agents()`
+   - Example: `<research><sub_agent name="leave_foo"><query>...</query></sub_agent></research>`
 
-# Run tests with verbose output
-pytest -v
+2. **Feedback Note Agent** (`process_email`):
+   - LLM returns `<reply>`, `<rank>`, or `<no_response>`
+   - If `<rank>`: load competencies from S3 (`paceNote/{rank}.md`) → send to LLM → LLM generates feedback
+   - **Circuit breaker**: max 3 LLM calls per email to prevent infinite loops
+   - Rank files: `cpl.md`, `mcpl.md`, `sgt.md`, `wo.md`
 
-# Run tests with coverage
-pytest --cov=src
-```
+### XML Parsing with Retry
+All agents use `_call_llm_with_retry()` pattern:
+- Parse LLM response as XML
+- On `XMLParseError`: send parse error back to LLM, retry once
+- No more retries after first failure - raises exception for error handling
 
-### Code Quality
-```bash
-# Format code with Black
-black src/ tests/
+## Storage & Document Retrieval
+S3 organization: `s3://bucket/category/filename`
+- Categories: `leave/` (policy docs), `paceNote/` (rank competencies)
+- Access via: `document_retriever.get_document("paceNote", "mcpl.md")`
+- DocumentRetriever handles encoding detection (UTF-8 → ISO-8859-1 fallback)
 
-# Type checking with mypy
-mypy src/
-
-# Check formatting without making changes
-black --check src/ tests/
-```
-
-## Architecture Overview
-
-### Multi-Agent System
-
-The system uses a coordinator pattern with specialized agents:
-
-1. **AgentCoordinator** (`src/agents/agent_coordinator.py`) - Main orchestrator that:
-   - Routes emails to appropriate agents based on recipient address
-   - Handles iterative LLM conversation loops (e.g., research requests, rank requests)
-   - Parses XML responses and manages agent workflows
-   - Appends standard signatures to all agent replies
-
-2. **Prime Foo Agent** (policy agent) - Handles policy-related questions:
-   - Triggered by emails to `policy@caf-gpt.com`
-   - Can make research requests to sub-agents (e.g., LeaveFooAgent)
-   - Supports iterative workflow: prime_foo → research request → sub-agent → prime_foo → reply
-   - Model configured via `LLM__PRIME_FOO_MODEL` env var
-
-3. **Feedback Note Agent** (`src/agents/feedback_note_agent.py`) - Generates performance feedback notes:
-   - Triggered by emails to `pacenote@caf-gpt.com`
-   - Implements circuit breaker pattern (max 3 LLM calls per email)
-   - Uses rank-based competency documents from S3 (cpl.md, mcpl.md, sgt.md, wo.md)
-   - Supports iterative workflow: initial request → rank request → competencies loaded → feedback generated
-   - Model configured via `LLM__PACENOTE_MODEL` env var
-
-4. **Sub-agents** (`src/agents/sub_agents/`) - Specialized research agents:
-   - **LeaveFooAgent** - Handles leave policy queries by retrieving documents from S3
-   - Each sub-agent has its own LLM model configuration
-
-### Email Processing Flow
-
-```text
-IMAP Inbox → SimpleEmailProcessor → AgentCoordinator → [Prime Foo | Feedback Note] → SMTP Reply
-                                                               ↓
-                                                          Sub-agents (if needed)
-                                                               ↓
-                                                          DocumentRetriever (S3)
-```
-
-**Key Components:**
-
-- **SimpleEmailProcessor** (`src/email_code/simple_email_handler.py`) - Main email loop:
-  - Polls IMAP inbox every N seconds (configured via `EMAIL__EMAIL_PROCESS_INTERVAL`)
-  - Processes unseen emails oldest-first
-  - Routes to appropriate agent based on recipient email address
-  - Handles email threading (In-Reply-To, References headers)
-  - Marks emails as read only after successful processing
-
-- **IMAPConnector** (`src/email_code/imap_connector.py`) - Low-level IMAP operations using imap_tools library
-
-- **EmailSender** (`src/email_code/components/email_sender.py`) - Handles SMTP for sending replies
-
-- **EmailThreadManager** (`src/email_code/components/email_thread_manager.py`) - Manages email threading headers
-
-### Prompt Management
-
-- **PromptManager** (`src/agents/prompt_manager.py`):
-  - Loads agent prompts from `src/agents/prompts/*.md` files
-  - Implements LRU-style caching (max 32 prompts)
-  - Supports placeholder replacement (e.g., `{{leave_policy}}` in prompts)
-  - Available prompts: `prime_foo.md`, `feedback_notes.md`, `leave_foo.md`
-
-### Storage Layer
-
-- **DocumentRetriever** (`src/storage/document_retriever.py`):
-  - Provides read-only access to S3-compatible storage
-  - Organized by category and filename: `s3://bucket/category/filename`
-  - Categories: `leave/`, `paceNote/`
-  - Used by agents to fetch policy documents and competency frameworks
-
-### Configuration
-
-Configuration uses Pydantic Settings with nested structure (`src/config.py`):
-
-- **EmailConfig**: IMAP/SMTP settings
-- **LLMConfig**: OpenRouter API key and model selection per agent
-- **StorageConfig**: S3-compatible storage configuration
-- **LogConfig**: Logging level
-
-Environment variables use double underscore nesting:
-```bash
-EMAIL__IMAP_HOST=imap.example.com
-LLM__PRIME_FOO_MODEL=google/gemini-3-pro-preview
-LLM__PACENOTE_MODEL=anthropic/claude-haiku-4.5
-STORAGE__S3_BUCKET_NAME=policies
-```
-
-### XML Response Format
-
-Agents use XML for structured responses:
-
-**Prime Foo Agent:**
-```xml
-<no_response />
-
-<reply>
-  <body>Response text here</body>
-</reply>
-
-<research>
-  <sub_agent name="leave_foo">
-    <query>What is the leave policy for...?</query>
-  </sub_agent>
-</research>
-```
-
-**Feedback Note Agent:**
-```xml
-<no_response />
-
-<reply>
-  <body>Feedback note text here</body>
-</reply>
-
-<rank>mcpl</rank>
-```
-
-The XML parsing logic is unified in `AgentCoordinator._parse_xml_response()`. If the LLM returns invalid XML, an `XMLParseError` is raised and the LLM is given one retry with an informative error message.
-
-## Important Patterns and Conventions
-
-### Agent Routing
-
-Emails are routed to agents based on recipient address (`src/config.py:should_trigger_agent()`):
-- `policy@caf-gpt.com` → Prime Foo Agent (policy questions)
-- `pacenote@caf-gpt.com` → Feedback Note Agent (performance feedback)
-- Other recipients → marked as read without processing
-
-### Error Handling
-
-- Emails with processing errors are left unread for retry on next poll
-- Circuit breaker pattern in FeedbackNoteAgent prevents infinite LLM loops
-- Generic error responses use `AgentResponse.error` field
-- All S3 errors are logged but gracefully handled
-
-### Thread Safety
-
-`SimpleEmailProcessor` uses threading.Lock to ensure only one processing loop runs at a time, preventing race conditions with IMAP state.
-
-### Logging
-
-Structured logging throughout with contextual info:
-```python
-logger.info(f"[uid={uid}] Processing email through {agent_type} agent pipeline")
-```
-
-### Testing
-
-Tests use pytest with fixtures for mocking:
-- Email components tested with mock IMAP/SMTP
-- Agent logic tested with mock LLM responses
-- Configuration tested with environment variable overrides
-
-## Common Development Patterns
-
-### Adding a New Sub-Agent
-
+## Adding New Agents/Sub-agents
 1. Create agent class in `src/agents/sub_agents/your_agent.py`
 2. Implement `research(query: str) -> str` method
-3. Register in `AgentCoordinator._load_sub_agents()`
-4. Add prompt file in `src/agents/prompts/your_agent.md`
-5. Add model config in `LLMConfig` (optional)
+3. Register in `AgentCoordinator._load_sub_agents()`:
+   ```python
+   self.sub_agents["your_agent"] = YourAgent(self.prompt_manager)
+   ```
+4. Add prompt file: `src/agents/prompts/your_agent.md`
+5. (Optional) Add model config: `LLMConfig.your_agent_model`
 
-### Adding Documents to S3
-
-Documents are organized by category:
-```text
-s3://bucket-name/
-  leave/
-    leave_policy_2025.md
-  paceNote/
-    cpl.md
-    mcpl.md
-    sgt.md
-    wo.md
-    examples.md
+## Code Quality Standards
+### Formatting & Type Checking
+```bash
+black src/ tests/        # Format code (100 char line length)
+mypy src/ --strict       # Type checking (Python 3.12)
 ```
 
-Access via: `document_retriever.get_document("category", "filename.md")`
+### Testing Conventions
+- Use pytest fixtures for mocking (`mock_llm_client`, `mock_prompt_manager`, `sample_mail_message`)
+- Test agent logic with mock LLM responses (see `tests/test_feedback_note_agent.py`)
+- Test email components with mock IMAP/SMTP (see `tests/test_email.py`)
+- Circuit breaker tests verify max LLM call limits
 
-### Modifying Email Processing Logic
+## Email Processing Details
+### Threading & Concurrency
+- `SimpleEmailProcessor` uses `threading.Lock` to prevent IMAP race conditions
+- Background thread polls every `EMAIL__EMAIL_PROCESS_INTERVAL` seconds (default: 30s)
+- Processes emails **oldest-first** (sorted by UID)
+- Marks email as read **only on success** - errors leave unread for retry
 
-Email processing flow is in `SimpleEmailProcessor.process_unseen_emails()`. Key steps:
-1. Fetch unseen emails (sorted oldest-first)
-2. Parse email data
-3. Route to agent coordinator
-4. Build threading headers for reply
-5. Send reply via EmailSender
-6. Mark as read only on success
+### Email Threading Headers
+`EmailThreadManager` builds proper threading headers:
+- `In-Reply-To`: original message-id
+- `References`: all parent message-ids
+- Ensures replies appear in same thread in email clients
 
-### Working with Prompts
+### HTML Replies
+Email templates use Jinja2 (`src/email_code/templates/reply.html.jinja`). `EmailComposer` builds HTML replies with proper structure.
 
-Prompts support placeholder replacement:
+## Important Gotchas
+- **Prompts use caching**: `PromptManager` caches loaded prompts (LRU, max 32) - use its methods, don't read files directly
+- **Signature appending**: `AgentCoordinator.SIGNATURE` is appended to all Prime Foo agent replies (includes GitHub link)
+- **Error handling**: Emails with processing errors are left unread for retry, but logged for debugging
+- **Path style S3**: Some S3-compatible services need `STORAGE__USE_PATH_STYLE_ENDPOINT=true`
+
+## Python Comment Standards
+This repository follows a strict commenting standard for **ALL** `.py` files (except simple `__init__.py` files that only re-export names).
+
+### File-Level Comments (Required)
+Every Python module must have a module docstring at the **very top** that:
+1. Includes the file path (relative to repo root)
+2. States the responsibility/purpose of the code in the file
+3. Lists all top-level functions or classes
+
+#### Example:
 ```python
-prompt = prompt_manager.get_prompt("leave_foo")
-prompt = prompt.replace("{{leave_policy}}", policy_content)
+"""
+src/utils/env_utils.py
+
+Environment utilities helpers that centralize the runtime configuration helpers.
+
+Top-level declarations:
+- is_dev_mode: Check if the environment is configured for development
+"""
 ```
 
-Always use PromptManager rather than reading files directly - it provides caching and raises `FileNotFoundError` for missing prompts.
+## Function/Class Comments (Required)
+Every top-level function or class must have inline # comments immediately after its definition that:
+1. Expand on the short description from the module docstring
+2. Provide additional context about its purpose or behavior
+3. Minimum one line, maximum three lines
+
+#### Example:
+```python
+def my_function():
+    # Brief description expanding on the module docstring reference
+    # Additional context about purpose or behavior
+    ...
+```
+
+## Inline Comments (Minimal)
+Minimize inline comments within functions. **Only add them when:**
+1. Documenting a specific lesson learned
+2. Explaining a non-obvious solution to a specific problem
+3. Noting a workaround for a known issue
+
+**Avoid:**
+- Obvious comments that just restate what the code does
+- Redundant comments that explain self-documenting code
+- Excessive comments that clutter the code
+
+## Miscellaneous
+- Always prepend your commit message with `Claude:` to let everyone know this is your work

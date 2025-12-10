@@ -44,7 +44,7 @@ class EmailConfig(BaseSettings):
     imap_username: str
     imap_password: str
 
-    email_process_interval: int = 30
+    email_process_interval: int = 60
 
     # SMTP settings for sending replies
     smtp_host: str
@@ -53,7 +53,6 @@ class EmailConfig(BaseSettings):
     smtp_password: str
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
-    template_dir: str = "src/email_code/templates"
 
     model_config = SettingsConfigDict(env_prefix="EMAIL__", extra="ignore")
 
@@ -112,4 +111,4 @@ class AppConfig(BaseSettings):
     )
 
 
-config = AppConfig()
+config = AppConfig()  # type: ignore[call-arg]

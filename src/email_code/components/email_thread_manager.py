@@ -10,7 +10,7 @@ Top-level declarations:
 
 from typing import Dict, List
 
-from src.app_logging import get_logger
+from src.utils.app_logging import get_logger
 from src.email_code.types import ParsedEmailData  # For message_id
 
 logger = get_logger(__name__)
@@ -60,14 +60,14 @@ class EmailThreadManager:
             result = " ".join([f"<{ref}>" for ref in trimmed])
             return result
         except Exception as e:
-            logger.error("Failed to build references", error=str(e))
+            logger.error(f"Failed to build references: {e}")
             return f"<{new_id}>"
 
     @staticmethod
     def _trim_references(refs: List[str], max_length: int = 998) -> List[str]:
         # Trim references list to fit within RFC header length limit
         try:
-            trimmed = []
+            trimmed: list[str] = []
             current = ""
             for ref in refs:
                 test = f"{current} <{ref}>".strip()
@@ -80,5 +80,5 @@ class EmailThreadManager:
                 current = test
             return trimmed
         except Exception as e:
-            logger.error("Failed to trim references", error=str(e))
+            logger.error(f"Failed to trim references: {e}")
             return refs[:5]  # Fallback: keep first 5

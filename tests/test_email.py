@@ -25,13 +25,21 @@ from src.config import EmailConfig
 
 @pytest.fixture
 def mock_config():
-    """Mock EmailConfig with IMAP settings."""
-    config = Mock(spec=EmailConfig)
+    """Mock EmailConfig with IMAP and SMTP settings."""
+    config = Mock()
+    # IMAP settings
     config.imap_host = "imap.example.com"
     config.imap_port = 993
     config.imap_username = "user"
     config.imap_password = "pass"
     config.email_process_interval = 30
+    # SMTP settings (for completeness, even though we mock EmailSender)
+    config.smtp_host = "smtp.example.com"
+    config.smtp_port = 587
+    config.smtp_username = "user"
+    config.smtp_password = "pass"
+    config.smtp_use_tls = True
+    config.smtp_use_ssl = False
     return config
 
 
@@ -40,7 +48,7 @@ def sample_mail_message():
     """Sample imap_tools MailMessage for testing."""
     msg = Mock(spec=MailMessage)
     msg.uid = "test123"
-    msg.from_ = "test@example.com"
+    msg.from_ = "test@forces.gc.ca"
     msg.to = ["agent@caf.com"]
     msg.cc = []
     msg.subject = "Test Subject"
@@ -60,6 +68,9 @@ def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
     # MailBox().login() returns the context manager
     mock_mailbox.return_value.login.return_value.__enter__.return_value = mock_mb
 
+    # Mock uids to return test UIDs
+    mock_mb.uids.return_value = ["2", "1"]
+
     # Mock fetch to return test messages with dates
     mock_msg1 = MagicMock()
     mock_msg1.uid = "2"
@@ -67,7 +78,9 @@ def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
     mock_msg2 = MagicMock()
     mock_msg2.uid = "1"
     mock_msg2.date = datetime(2023, 1, 1)  # Older
-    mock_mb.fetch.return_value = [mock_msg1, mock_msg2]
+
+    # Mock fetch to return one message at a time
+    mock_mb.fetch.side_effect = [[mock_msg2], [mock_msg1]]
 
     connector = IMAPConnector(mock_config)
     msgs = connector.fetch_unseen_sorted()
@@ -75,7 +88,7 @@ def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
     assert len(msgs) == 2
     assert msgs[0].uid == "1"  # Oldest first
     assert msgs[1].uid == "2"
-    mock_mb.fetch.assert_called_once_with("UNSEEN", mark_seen=False)
+    mock_mb.uids.assert_called_once_with("UNSEEN")
 
 
 # Deprecated: fetch_email_message - test removed as method is deprecated
@@ -136,17 +149,18 @@ def test_email_composer_composes_reply():
     assert composed["in_reply_to"] == "<test123@domain.com>"
 
 
+@patch("src.email_code.simple_email_handler.EmailSender")
 @patch("src.email_code.simple_email_handler.PromptManager")
 @patch("src.email_code.simple_email_handler.IMAPConnector")
 def test_simple_email_processor_process_unseen(
-    mock_connector_class, mock_prompt_manager, mock_config
+    mock_connector_class, mock_prompt_manager, mock_email_sender, mock_config
 ):
     """Test SimpleEmailProcessor processes unseen emails using mocked IMAP connector."""
     # Mock connector and its methods
     mock_connector = MagicMock()
     mock_msg = MagicMock()
     mock_msg.uid = "1"
-    mock_msg.from_ = "test@example.com"
+    mock_msg.from_ = "test@forces.gc.ca"
     mock_msg.to = ["agent@caf.com"]
     mock_msg.cc = []
     mock_msg.subject = "Test"
@@ -168,7 +182,7 @@ def test_email_adapter_adapts_mail_message(sample_mail_message):
     parsed = EmailAdapter.adapt_mail_message(sample_mail_message)
 
     assert isinstance(parsed, ParsedEmailData)
-    assert parsed.from_addr == "test@example.com"
+    assert parsed.from_addr == "test@forces.gc.ca"
     assert parsed.subject == "Test Subject"
     assert "test body" in parsed.body
     assert parsed.message_id == "test123"
@@ -188,8 +202,11 @@ def test_email_adapter_strips_html():
     assert "<br>" not in clean
 
 
+@patch("src.email_code.simple_email_handler.EmailSender")
 @patch("src.email_code.simple_email_handler.PromptManager")
-def test_simple_email_processor_uses_adapter(mock_prompt_manager, sample_mail_message):
+def test_simple_email_processor_uses_adapter(
+    mock_prompt_manager, mock_email_sender, sample_mail_message
+):
     """Test SimpleEmailProcessor correctly uses EmailAdapter for conversion."""
     processor = SimpleEmailProcessor(Mock())
     # Verify that the processor uses the EmailAdapter
@@ -197,7 +214,7 @@ def test_simple_email_processor_uses_adapter(mock_prompt_manager, sample_mail_me
 
     # The adapter should be called, so this should work
     assert isinstance(parsed, ParsedEmailData)
-    assert parsed.from_addr == "test@example.com"
+    assert parsed.from_addr == "test@forces.gc.ca"
     assert parsed.subject == "Test Subject"
     assert "test body" in parsed.body
     assert parsed.message_id == "test123"

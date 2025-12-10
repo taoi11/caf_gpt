@@ -9,6 +9,12 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 import sys
 
+# Mock boto3 before any imports to prevent S3 client initialization
+mock_boto3 = Mock()
+mock_s3_client = Mock()
+mock_boto3.client.return_value = mock_s3_client
+sys.modules["boto3"] = mock_boto3
+
 # Mock the config module before importing FeedbackNoteAgent
 mock_config = Mock()
 mock_config.llm.pacenote_model = "test-model"
@@ -28,11 +34,11 @@ def mock_prompt_manager():
 @pytest.fixture
 def feedback_agent(mock_prompt_manager):
     """Create FeedbackNoteAgent with mocked dependencies."""
-    with patch("src.agents.feedback_note_agent.DocumentRetriever"):
+    with patch("src.utils.document_retriever.document_retriever"):
         return FeedbackNoteAgent(mock_prompt_manager)
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_triggers_on_fourth_call(mock_llm_client, feedback_agent):
     """Test that circuit breaker triggers when LLM call limit is exceeded."""
     # Mock LLM responses that keep requesting ranks
@@ -54,7 +60,7 @@ def test_circuit_breaker_triggers_on_fourth_call(mock_llm_client, feedback_agent
     assert mock_llm_client.generate_response.call_count == 3
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_allows_three_calls(mock_llm_client, feedback_agent):
     """Test that circuit breaker allows up to 3 LLM calls."""
     # Mock LLM responses: 2 rank requests + 1 reply
@@ -70,14 +76,15 @@ def test_circuit_breaker_allows_three_calls(mock_llm_client, feedback_agent):
             # Should succeed with 3 calls
             result = feedback_agent.process_email("Test email context")
 
-    # Verify result contains the final reply
-    assert "<reply>" in result
-    assert "Final response" in result
+    # Verify result is a FeedbackNoteResponse with type 'reply'
+    assert isinstance(result, FeedbackNoteResponse)
+    assert result.type == "reply"
+    assert result.content == "Final response"
     # Verify that exactly 3 LLM calls were made
     assert mock_llm_client.generate_response.call_count == 3
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_allows_single_call(mock_llm_client, feedback_agent):
     """Test that circuit breaker allows single LLM call with immediate reply."""
     # Mock LLM response with immediate reply
@@ -86,14 +93,15 @@ def test_circuit_breaker_allows_single_call(mock_llm_client, feedback_agent):
     # Should succeed with just 1 call
     result = feedback_agent.process_email("Test email context")
 
-    # Verify result contains the reply
-    assert "<reply>" in result
-    assert "Quick response" in result
+    # Verify result is a FeedbackNoteResponse with type 'reply'
+    assert isinstance(result, FeedbackNoteResponse)
+    assert result.type == "reply"
+    assert result.content == "Quick response"
     # Verify that only 1 LLM call was made
     assert mock_llm_client.generate_response.call_count == 1
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_allows_two_calls(mock_llm_client, feedback_agent):
     """Test that circuit breaker allows 2 LLM calls."""
     # Mock LLM responses: 1 rank request + 1 reply
@@ -108,14 +116,15 @@ def test_circuit_breaker_allows_two_calls(mock_llm_client, feedback_agent):
             # Should succeed with 2 calls
             result = feedback_agent.process_email("Test email context")
 
-    # Verify result contains the reply
-    assert "<reply>" in result
-    assert "Response with competencies" in result
+    # Verify result is a FeedbackNoteResponse with type 'reply'
+    assert isinstance(result, FeedbackNoteResponse)
+    assert result.type == "reply"
+    assert result.content == "Response with competencies"
     # Verify that exactly 2 LLM calls were made
     assert mock_llm_client.generate_response.call_count == 2
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_handles_no_response(mock_llm_client, feedback_agent):
     """Test that circuit breaker handles no_response type."""
     # Mock LLM response with no_response
@@ -124,7 +133,8 @@ def test_circuit_breaker_handles_no_response(mock_llm_client, feedback_agent):
     # Should succeed with just 1 call
     result = feedback_agent.process_email("Test email context")
 
-    # Verify result contains the no_response
-    assert "<no_response" in result
+    # Verify result is a FeedbackNoteResponse with type 'no_response'
+    assert isinstance(result, FeedbackNoteResponse)
+    assert result.type == "no_response"
     # Verify that only 1 LLM call was made
     assert mock_llm_client.generate_response.call_count == 1

@@ -8,25 +8,27 @@ Top-level declarations:
 - EmailComposer: Class for composing email replies using Jinja templates
 """
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 import jinja2
 from markupsafe import Markup, escape
 from pathlib import Path
 import re
 
-from src.app_logging import get_logger
+from src.utils.app_logging import get_logger
 from src.config import config
 from src.email_code.types import ReplyData, ParsedEmailData
 
 logger = get_logger(__name__)
 
+TEMPLATE_DIR = "src/email_code/templates"
+
 
 class EmailComposer:
     # Class for composing email replies using Jinja templates
 
-    def __init__(self):
-        # Initialize Jinja environment with template directory from config
-        template_dir = Path(config.email.template_dir)
+    def __init__(self) -> None:
+        # Initialize Jinja environment with template directory
+        template_dir = Path(TEMPLATE_DIR)
         if not template_dir.exists():
             raise ValueError(f"Template directory not found: {template_dir}")
         self.jinja_env = jinja2.Environment(
@@ -38,7 +40,7 @@ class EmailComposer:
 
     def compose_reply(
         self, reply_data: ReplyData, original: ParsedEmailData, agent_email: str
-    ) -> Dict:
+    ) -> Dict[str, Any]:
         # Compose professional HTML reply using Jinja template with threading and validation
         # :param reply_data: Structured reply info (body, to, cc, subject, in_reply_to, references)
         # :param original: Original parsed email for quoting and threading
@@ -62,24 +64,24 @@ class EmailComposer:
 
             # Clean reply body: replace <br> tags with newlines to avoid double escaping
             # Then escape HTML and convert newlines to <br> safely
-            cleaned_body = re.sub(r'<br\s*/?>', '\n', reply_data.body, flags=re.IGNORECASE)
-            
+            cleaned_body = re.sub(r"<br\s*/?>", "\n", reply_data.body, flags=re.IGNORECASE)
+
             # Escape the content to prevent XSS, then replace newlines with safe <br> tags
             # We use Markup('<br>') to ensure the <br> tag itself is not escaped
             escaped_body = escape(cleaned_body)
-            final_body = escaped_body.replace('\n', Markup('<br>'))
-            
+            final_body = escaped_body.replace("\n", Markup("<br>"))
+
             # Render HTML template
             template = self.jinja_env.get_template("reply.html.jinja")
             html_body = template.render(
                 reply_body=final_body,
                 original=original_dict,
             )
-            
+
             # Minify HTML: replace newlines with spaces to prevent downstream tools (like yagmail)
             # from converting structural newlines into <br> tags.
             # Since final_body already has <br> for content line breaks, this is safe.
-            html_body = html_body.replace('\n', ' ')
+            html_body = html_body.replace("\n", " ")
 
             # Prepare recipients
             to = reply_data.to

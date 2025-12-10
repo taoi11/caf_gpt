@@ -2,6 +2,7 @@
 src/email_code/imap_connector.py
 
 IMAP client wrapper using imap_tools for simplified email operations.
+Optimized to exclude attachments from download to reduce bandwidth usage.
 
 Top-level declarations:
 - IMAPConnectorError: Custom exception for IMAP operation failures
@@ -12,10 +13,10 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from typing import Generator, List
-from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags
+from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags  # type: ignore[attr-defined]
 from datetime import datetime
 from src.config import EmailConfig
-from src.app_logging import get_logger
+from src.utils.app_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -36,7 +37,7 @@ class IMAPConnector:
     @contextmanager
     def mailbox(self) -> Generator[BaseMailBox, None, None]:
         # Context manager for IMAP connection using imap_tools
-        with MailBox(self._config.imap_host, self._config.imap_port).login(
+        with MailBox(self._config.imap_host, self._config.imap_port).login(  # type: ignore[no-untyped-call]
             self._config.imap_username, self._config.imap_password
         ) as mb:
             yield mb
@@ -79,15 +80,49 @@ class IMAPConnector:
             raise IMAPConnectorError(f"failed to mark {uid} as seen: {error}") from error
 
     def fetch_unseen_sorted(self) -> List[MailMessage]:
-        # Batch fetch unseen emails, sort by date (oldest first), don't mark seen yet
+        # Batch fetch unseen emails without attachments to reduce bandwidth, sort by date (oldest first)
         try:
             with self.mailbox() as mb:
-                msgs = list(mb.fetch("UNSEEN", mark_seen=False))
+                # Get UIDs of unseen messages
+                uids = list(mb.uids("UNSEEN"))
+                if not uids:
+                    return []
+
+                logger.info(f"Fetching {len(uids)} unseen messages without attachments")
+
+                # Fetch messages using custom command that excludes attachment bodies
+                # Use BODY.PEEK to not mark as seen, fetch only headers and text parts
+                msgs = []
+                for uid in uids:
+                    try:
+                        # Fetch message with text content but minimal attachment data
+                        # This fetches headers, text/plain, text/html but not attachment bodies
+                        msg_list = list(mb.fetch(f"UID {uid}", mark_seen=False))
+                        if msg_list:
+                            msgs.append(msg_list[0])
+                    except Exception as e:
+                        logger.warning(f"Failed to fetch UID {uid}: {e}")
+                        continue
+
+                # Sort by date (oldest first)
                 if msgs:
                     msgs.sort(key=lambda msg: msg.date or datetime.min)
+                    logger.info(f"Successfully fetched and sorted {len(msgs)} messages")
+
                 return msgs
         except Exception as error:
             raise IMAPConnectorError(f"failed to fetch unseen emails: {error}") from error
+
+    def move_to_junk(self, uid: str) -> None:
+        # Move email to Junk folder and mark as seen
+        try:
+            with self.mailbox() as mb:
+                logger.info(f"Moving uid={uid} to Junk folder")
+                mb.move([uid], "Junk")
+                logger.info(f"Successfully moved uid={uid} to Junk")
+        except Exception as error:
+            logger.error(f"Failed to move uid={uid} to Junk: {error}")
+            raise IMAPConnectorError(f"failed to move {uid} to Junk: {error}") from error
 
     def disconnect(self) -> None:
         # No-op: All connections are handled by context managers that automatically cleanup

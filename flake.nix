@@ -24,7 +24,12 @@
               python -m venv venv
             fi
             source venv/bin/activate
+            
+            # Set PYTHONPATH to include project root for imports
+            export PYTHONPATH="$PWD:$PYTHONPATH"
+            
             echo "Virtual environment activated"
+            echo "PYTHONPATH set to: $PYTHONPATH"
             echo "Run 'pip install -e .' to install dependencies"
             echo "Run 'python src/main.py' to start the application"
           '';
