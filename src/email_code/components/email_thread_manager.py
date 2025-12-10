@@ -10,7 +10,7 @@ Top-level declarations:
 
 from typing import Dict, List
 
-from src.app_logging import get_logger
+from src.utils.app_logging import get_logger
 from src.email_code.types import ParsedEmailData  # For message_id
 
 logger = get_logger(__name__)

@@ -10,7 +10,7 @@ Top-level declarations:
 import logging
 from typing import Callable, TypeVar
 
-from src.llm_interface import llm_client
+from src.utils.llm_interface import llm_client
 from .types import XMLParseError
 
 logger = logging.getLogger(__name__)

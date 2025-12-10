@@ -1,7 +1,7 @@
 ---
 name: code-optimizer
 description: Use this agent to find and recommend code optimization opportunities. This agent analyzes code and reports back improvement suggestions - it does NOT make changes itself. The main Claude Code agent will implement approved recommendations.\n\nExamples:\n- User: "I just wrote this function to process emails, can you optimize it?"\n  Assistant: "Let me use the code-optimizer agent to analyze your function for optimization opportunities."\n  <Uses Task tool to launch code-optimizer agent>\n\n- User: "The email processing is slow, can we make it faster?"\n  Assistant: "I'll use the code-optimizer agent to identify performance bottlenecks."\n  <Uses Task tool to launch code-optimizer agent>\n\n- User: "Please review this code for optimization opportunities"\n  Assistant: "I'm launching the code-optimizer agent to find optimization opportunities."\n  <Uses Task tool to launch code-optimizer agent>
-model: opus
+model: sonnet
 color: pink
 ---
 

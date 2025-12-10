@@ -11,7 +11,7 @@ Top-level declarations:
 import yagmail
 import time
 
-from src.app_logging import get_logger
+from src.utils.app_logging import get_logger
 from src.config import config
 from src.email_code.types import ReplyData, ParsedEmailData
 from .email_composer import EmailComposer

@@ -23,13 +23,13 @@ mock_config = Mock()
 mock_config.storage = mock_storage_config
 sys.modules["src.config"] = Mock(config=mock_config)
 
-from src.storage.document_retriever import DocumentRetriever, CacheEntry
+from src.utils.document_retriever import DocumentRetriever, CacheEntry
 
 
 @pytest.fixture
 def mock_s3_client():
     """Mock boto3 S3 client."""
-    with patch("src.storage.document_retriever.boto3.client") as mock_client:
+    with patch("src.utils.document_retriever.boto3.client") as mock_client:
         mock_s3 = MagicMock()
         mock_client.return_value = mock_s3
         yield mock_s3

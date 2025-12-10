@@ -14,7 +14,7 @@ from typing import Optional
 import xml.etree.ElementTree as ET
 from pydantic import BaseModel
 
-from src.storage.document_retriever import DocumentRetriever
+from src.utils.document_retriever import document_retriever
 from src.config import config
 from src.agents.prompt_manager import PromptManager
 from src.agents.types import XMLParseError
@@ -42,9 +42,8 @@ class FeedbackNoteAgent:
     # Agent handling feedback note generation with rank-specific competencies
 
     def __init__(self, prompt_manager: PromptManager):
-        # Initialize with prompt manager and document retriever
+        # Initialize with prompt manager (uses shared document_retriever)
         self.prompt_manager = prompt_manager
-        self.document_retriever = DocumentRetriever()
         self.s3_category = "paceNote"
 
     def process_email(self, email_context: str) -> str:
@@ -159,7 +158,7 @@ class FeedbackNoteAgent:
             logger.warning(f"Unknown rank: {rank}, defaulting to cpl")
             rank_file = RANK_FILES["cpl"]
 
-        competencies = self.document_retriever.get_document(self.s3_category, rank_file)
+        competencies = document_retriever.get_document(self.s3_category, rank_file)
 
         if competencies is None:
             logger.error(f"Failed to load competencies for rank {rank}")
@@ -170,7 +169,7 @@ class FeedbackNoteAgent:
 
     def _load_examples(self) -> str:
         # Load examples from S3
-        examples = self.document_retriever.get_document(self.s3_category, "examples.md")
+        examples = document_retriever.get_document(self.s3_category, "examples.md")
 
         if examples is None:
             logger.error("Failed to load examples")

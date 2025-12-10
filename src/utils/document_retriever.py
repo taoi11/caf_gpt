@@ -173,3 +173,8 @@ class DocumentRetriever:
         # Extract filename from object_key (e.g., "paceNote/cpl.md" -> "cpl.md")
         filename = object_key.split("/")[-1] if "/" in object_key else object_key
         return filename in self.PERSISTENT_FILES
+
+
+# Global instance for application-wide use
+# Shared across all agents to pool S3 connections and share the 25MB cache
+document_retriever = DocumentRetriever()

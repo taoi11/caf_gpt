@@ -28,7 +28,7 @@ def mock_prompt_manager():
 @pytest.fixture
 def feedback_agent(mock_prompt_manager):
     """Create FeedbackNoteAgent with mocked dependencies."""
-    with patch("src.agents.feedback_note_agent.DocumentRetriever"):
+    with patch("src.utils.document_retriever.document_retriever"):
         return FeedbackNoteAgent(mock_prompt_manager)
 
 

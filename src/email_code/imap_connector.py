@@ -16,7 +16,7 @@ from typing import Generator, List
 from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags
 from datetime import datetime
 from src.config import EmailConfig
-from src.app_logging import get_logger
+from src.utils.app_logging import get_logger
 
 logger = get_logger(__name__)
 

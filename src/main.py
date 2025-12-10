@@ -16,7 +16,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from src.config import config
-from src.app_logging import setup_logging, get_logger
+from src.utils.app_logging import setup_logging, get_logger
 
 from src.email_code.simple_email_handler import SimpleEmailProcessor
 

@@ -10,8 +10,8 @@ Top-level declarations:
 import logging
 from typing import Dict, List, Optional
 
-from ...storage.document_retriever import DocumentRetriever
-from src.llm_interface import llm_client
+from src.utils.document_retriever import document_retriever
+from src.utils.llm_interface import llm_client
 from src.config import config
 from src.agents.prompt_manager import PromptManager
 
@@ -22,9 +22,8 @@ class LeaveFooAgent:
     # Agent handling leave-related queries with policy document integration
 
     def __init__(self, prompt_manager: Optional[PromptManager] = None):
-        # Initialize with prompt manager and document retriever
+        # Initialize with prompt manager (uses shared document_retriever)
         self.prompt_manager = prompt_manager
-        self.document_retriever = DocumentRetriever()  # Initialize the document retriever
 
     def research(self, query: str) -> str:
         # Main entry for leave policy research: retrieve policy, build prompt, call LLM
@@ -44,7 +43,7 @@ class LeaveFooAgent:
 
     def _retrieve_leave_policy(self) -> str:
         # Fetch leave policy from storage using DocumentRetriever
-        policy_content = self.document_retriever.get_document("leave", "leave_policy_2025.md")
+        policy_content = document_retriever.get_document("leave", "leave_policy_2025.md")
         if policy_content is None:
             logger.error("Leave policy document not found in storage.")
             return "I'm sorry, but I couldn't retrieve the leave policy information at this time."
