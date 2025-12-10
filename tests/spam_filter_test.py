@@ -46,3 +46,19 @@ class TestSpamFilter:
         """Test that whitespace is properly handled"""
         assert is_sender_allowed("  user@forces.gc.ca  ") is True
         assert is_sender_allowed("\tuser@ecn.forces.gc.ca\n") is True
+
+    def test_allowed_specific_emails(self):
+        """Test that specific whitelisted emails are allowed"""
+        assert is_sender_allowed("luffy@luffy.email") is True
+        assert is_sender_allowed("luffy1749@gmail.com") is True
+
+    def test_allowed_specific_emails_case_insensitive(self):
+        """Test that specific whitelisted emails are case insensitive"""
+        assert is_sender_allowed("Luffy@Luffy.Email") is True
+        assert is_sender_allowed("LUFFY1749@GMAIL.COM") is True
+        assert is_sender_allowed("LuFfY@lUfFy.EmAiL") is True
+
+    def test_allowed_specific_emails_with_whitespace(self):
+        """Test that specific whitelisted emails handle whitespace"""
+        assert is_sender_allowed("  luffy@luffy.email  ") is True
+        assert is_sender_allowed("\tluffy1749@gmail.com\n") is True
