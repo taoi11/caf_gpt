@@ -24,19 +24,41 @@ primary_region = 'iad'
     path = "/health"
 
 [env]
+  DEV_MODE = "false"
+  
+  # ===== Email Configuration (IMAP) =====
   EMAIL__IMAP_HOST = "imap.purelymail.com"
   EMAIL__IMAP_PORT = "993"
   EMAIL__IMAP_USERNAME = "app@caf-gpt.com"
+  # EMAIL__IMAP_PASSWORD is set via fly secrets
+  
+  # ===== Email Configuration (SMTP) =====
   EMAIL__SMTP_HOST = "smtp.purelymail.com"
   EMAIL__SMTP_PORT = "587"
   EMAIL__SMTP_USERNAME = "app@caf-gpt.com"
-  EMAIL__DELETE_AFTER_PROCESS = "true"
+  # EMAIL__SMTP_PASSWORD is set via fly secrets
+  EMAIL__SMTP_USE_TLS = "true"
+  EMAIL__SMTP_USE_SSL = "false"
   EMAIL__EMAIL_PROCESS_INTERVAL = "30"
-  EMAIL__AGENT_EMAILS='["pacenote@caf-gpt.com","policy@caf-gpt.com"]'
+  
+  # ===== LLM Configuration =====
+  # LLM__OPENROUTER_API_KEY is set via fly secrets
+  LLM__OPENROUTER_MODEL = "x-ai/grok-code-fast-1"
+  LLM__PACENOTE_MODEL = "anthropic/claude-haiku-4.5"
+  LLM__PRIME_FOO_MODEL = "google/gemini-3-pro-preview"
+  LLM__LEAVE_FOO_MODEL = "x-ai/grok-4.1-fast"
+  LLM__TEMPERATURE = "0.1"
+  LLM__REQUEST_TIMEOUT_SECONDS = "60.0"
+  
+  # ===== Storage Configuration (S3) =====
   STORAGE__S3_BUCKET_NAME = "policies"
   STORAGE__S3_ENDPOINT_URL = "https://7101c0eb0cce7925fd15056c805c97eb.r2.cloudflarestorage.com"
   STORAGE__S3_REGION = "auto"
-  DEV_MODE = "false"
+  STORAGE__USE_PATH_STYLE_ENDPOINT = "false"
+  # STORAGE__S3_ACCESS_KEY and STORAGE__S3_SECRET_KEY are set via fly secrets
+  
+  # ===== Logging Configuration =====
+  LOG__LOG_LEVEL = "INFO"
 
 [[vm]]
   size = 'shared-cpu-1x'

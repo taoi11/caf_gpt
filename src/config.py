@@ -53,7 +53,6 @@ class EmailConfig(BaseSettings):
     smtp_password: str
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
-    template_dir: str = "src/email_code/templates"
 
     model_config = SettingsConfigDict(env_prefix="EMAIL__", extra="ignore")
 

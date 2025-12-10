@@ -20,13 +20,15 @@ from src.email_code.types import ReplyData, ParsedEmailData
 
 logger = get_logger(__name__)
 
+TEMPLATE_DIR = "src/email_code/templates"
+
 
 class EmailComposer:
     # Class for composing email replies using Jinja templates
 
     def __init__(self):
-        # Initialize Jinja environment with template directory from config
-        template_dir = Path(config.email.template_dir)
+        # Initialize Jinja environment with template directory
+        template_dir = Path(TEMPLATE_DIR)
         if not template_dir.exists():
             raise ValueError(f"Template directory not found: {template_dir}")
         self.jinja_env = jinja2.Environment(
