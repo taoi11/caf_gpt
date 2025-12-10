@@ -16,7 +16,7 @@ from .prompt_manager import PromptManager
 from .types import AgentResponse, PrimeFooResponse, ResearchRequest, XMLParseError
 from .sub_agents.leave_foo_agent import LeaveFooAgent
 from .feedback_note_agent import FeedbackNoteAgent, FeedbackNoteResponse
-from .llm_utils import call_llm_with_retry
+from .llm_utils import call_llm_with_retry, circuit_breaker, increment_circuit_breaker
 from src.config import config
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,7 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
         # Append signature to reply content
         return content + self.SIGNATURE
 
+    @circuit_breaker(max_calls=6)
     def process_email_with_prime_foo(self, email_context: str) -> AgentResponse:
         # Main coordination loop: send to prime_foo, parse response, handle research/reply/no_response iteratively
         try:
@@ -57,11 +58,7 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                 {"role": "user", "content": email_context},
             ]
 
-            # Circuit breaker: limit to 3 LLM calls per email
-            max_llm_calls = 3
-            llm_call_count = 0
-
-            llm_call_count += 1
+            increment_circuit_breaker()
             response, parsed = call_llm_with_retry(
                 messages, config.llm.prime_foo_model, self.parse_prime_foo_response
             )
@@ -77,13 +74,6 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                     reply_with_signature = self._add_signature(parsed.content)
                     return AgentResponse(reply=reply_with_signature)
                 elif parsed.type == "research":
-                    # Check circuit breaker before making another LLM call
-                    if llm_call_count >= max_llm_calls:
-                        logger.error(
-                            f"Circuit breaker triggered: exceeded maximum {max_llm_calls} LLM calls per email"
-                        )
-                        return self.get_generic_error_response()
-
                     if not parsed.research:
                         logger.error("Research type received but research is None")
                         return self.get_generic_error_response()
@@ -94,7 +84,7 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                         {"role": "user", "content": f"Research results: {research_result}"},
                     ]
 
-                    llm_call_count += 1
+                    increment_circuit_breaker()
                     response, parsed = call_llm_with_retry(
                         follow_up_messages,
                         config.llm.prime_foo_model,

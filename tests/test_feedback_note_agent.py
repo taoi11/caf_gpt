@@ -9,6 +9,12 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 import sys
 
+# Mock boto3 before any imports to prevent S3 client initialization
+mock_boto3 = Mock()
+mock_s3_client = Mock()
+mock_boto3.client.return_value = mock_s3_client
+sys.modules["boto3"] = mock_boto3
+
 # Mock the config module before importing FeedbackNoteAgent
 mock_config = Mock()
 mock_config.llm.pacenote_model = "test-model"

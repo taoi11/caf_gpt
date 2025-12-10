@@ -18,7 +18,7 @@ from src.utils.document_retriever import document_retriever
 from src.config import config
 from src.agents.prompt_manager import PromptManager
 from src.agents.types import XMLParseError
-from src.agents.llm_utils import call_llm_with_retry
+from src.agents.llm_utils import call_llm_with_retry, circuit_breaker, increment_circuit_breaker
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +46,7 @@ class FeedbackNoteAgent:
         self.prompt_manager = prompt_manager
         self.s3_category = "paceNote"
 
+    @circuit_breaker(max_calls=3)
     def process_email(self, email_context: str) -> FeedbackNoteResponse:
         # Main loop: send to LLM, parse response, handle rank request loop similar to prime_foo
         # Get base prompt with placeholders
@@ -56,11 +57,7 @@ class FeedbackNoteAgent:
             {"role": "user", "content": email_context},
         ]
 
-        # Circuit breaker: limit to 3 LLM calls per email
-        max_llm_calls = 3
-        llm_call_count = 0
-
-        llm_call_count += 1
+        increment_circuit_breaker()
         response, parsed = call_llm_with_retry(
             messages, config.llm.pacenote_model, self._parse_response, log_response=True
         )
@@ -77,15 +74,6 @@ class FeedbackNoteAgent:
                 return parsed
 
             elif parsed.type == "rank":
-                # Check circuit breaker before making another LLM call
-                if llm_call_count >= max_llm_calls:
-                    logger.error(
-                        f"Circuit breaker triggered: exceeded maximum {max_llm_calls} LLM calls per email"
-                    )
-                    raise RuntimeError(
-                        f"Circuit breaker: exceeded maximum {max_llm_calls} LLM calls per email"
-                    )
-
                 # Add None check
                 if not parsed.rank:
                     raise RuntimeError("Rank type received but rank value is None")
@@ -103,7 +91,7 @@ class FeedbackNoteAgent:
                     }
                 )
 
-                llm_call_count += 1
+                increment_circuit_breaker()
                 response, parsed = call_llm_with_retry(
                     messages,
                     config.llm.pacenote_model,
