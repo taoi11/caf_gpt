@@ -30,13 +30,13 @@ from src.config import EmailConfig, POLICY_AGENT_EMAIL, should_trigger_agent
 
 def test_policy_agent_email_constant() -> None:
     # Verify that POLICY_AGENT_EMAIL constant is set to the correct email address
-    assert POLICY_AGENT_EMAIL == "policy@caf-gpt.com"
+    assert POLICY_AGENT_EMAIL == "agent@caf-gpt.com"
 
 
 def test_should_trigger_agent_with_policy_email() -> None:
     # Verify that should_trigger_agent returns 'policy' when policy email is in recipient list
-    assert should_trigger_agent(["policy@caf-gpt.com"]) == "policy"
-    assert should_trigger_agent(["other@example.com", "policy@caf-gpt.com"]) == "policy"
+    assert should_trigger_agent(["agent@caf-gpt.com"]) == "policy"
+    assert should_trigger_agent(["other@example.com", "agent@caf-gpt.com"]) == "policy"
 
 
 def test_should_trigger_agent_without_policy_email() -> None:

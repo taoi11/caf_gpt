@@ -27,7 +27,7 @@ pytest tests/test_email.py  # Specific file
 ## Agent Architecture Patterns
 ### Email Routing
 Emails route to agents based on **recipient address** (`src/config.py:should_trigger_agent()`):
-- `policy@caf-gpt.com` → Prime Foo Agent (policy questions, can delegate to sub-agents)
+- `agent@caf-gpt.com` → Prime Foo Agent (policy questions, can delegate to sub-agents)
 - `pacenote@caf-gpt.com` → Feedback Note Agent (performance feedback with rank-based competencies)
 - Other addresses → marked as read, no processing
 

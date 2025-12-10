@@ -20,7 +20,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Email address for policy-related agents (prime_foo)
 # Only emails sent to this address should trigger the prime_foo agent workflow
-POLICY_AGENT_EMAIL = "policy@caf-gpt.com"
+POLICY_AGENT_EMAIL = "agent@caf-gpt.com"
 
 # Email address for feedback note agent (pacenote)
 # Only emails sent to this address should trigger the feedback note agent workflow
