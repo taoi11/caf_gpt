@@ -155,8 +155,7 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
     def process_email_with_feedback_note(self, email_context: str) -> AgentResponse:
         # Process email through feedback note agent for pacenote workflow
         try:
-            response = self.feedback_note_agent.process_email(email_context)
-            parsed = self._parse_xml_response(response, parse_research=False)
+            parsed = self.feedback_note_agent.process_email(email_context)
 
             if parsed.type == "no_response":
                 return self.handle_no_response()
