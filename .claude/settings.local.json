@@ -8,7 +8,8 @@
       "Bash(wc:*)",
       "Bash(pytest:*)",
       "Bash(mypy:*)",
-      "Bash(black:*)"
+      "Bash(black:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
