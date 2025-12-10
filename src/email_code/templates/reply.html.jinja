@@ -18,7 +18,7 @@
         <b>Subject:</b> {{ original.subject }}</p>
     </div>
     <div style="margin-top:10pt;">
-        {{ original.body | e | replace('\n', '<br>') | safe }}
+        {{ original.body | replace('\n', '<br>') | safe }}
     </div>
     {% endif %}
 </body>
