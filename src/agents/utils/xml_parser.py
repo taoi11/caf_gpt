@@ -9,6 +9,7 @@ Top-level declarations:
 - parse_xml_response: Main XML parsing function with type-specific handlers
 """
 
+import re
 import xml.etree.ElementTree as ET
 from typing import Optional, Dict, Any, Callable
 from dataclasses import dataclass
@@ -28,37 +29,54 @@ def parse_xml_response(
     response: str,
     type_handlers: Optional[Dict[str, Callable[[ET.Element], Dict[str, Any]]]] = None,
 ) -> ParsedXMLResponse:
-    # Parse XML response string with optional custom type handlers for specific tags
-    # Default behavior extracts type, content from text or <body> element
+    # Parse XML response by extracting known tags (reply, no_response, research, rank)
+    # Ignores everything outside the tags (markdown fences, explanations, etc)
     # Custom handlers can extract additional data into 'extra' field
-    # Raises XMLParseError if parsing fails or unknown tag encountered
+    # Raises XMLParseError if no valid tags found or parsing fails
     try:
-        root = ET.fromstring(response)
-        type_ = root.tag
-        content = root.text.strip() if root.text else ""
-        extra: Dict[str, Any] = {}
+        # Known tags we're looking for
+        known_tags = ["reply", "no_response", "research", "rank"]
+        
+        # Try to find any of our known tags (handle both <tag>...</tag> and <tag/>)
+        for tag in known_tags:
+            # First try self-closing tag
+            self_closing_pattern = f"<{tag}\\s*/>"
+            match = re.search(self_closing_pattern, response)
+            if match:
+                # Self-closing tag with no content
+                return ParsedXMLResponse(type=tag, content="", extra=None)
+            
+            # Then try regular tag with content
+            pattern = f"<{tag}>(.*?)</{tag}>"
+            match = re.search(pattern, response, re.DOTALL)
+            if match:
+                # Extract the full tag with content
+                xml_content = match.group(0)
+                
+                # Parse the extracted XML
+                root = ET.fromstring(xml_content)
+                type_ = root.tag
+                content = root.text.strip() if root.text else ""
+                extra: Dict[str, Any] = {}
 
-        # Apply custom handler if provided for this type
-        if type_handlers and type_ in type_handlers:
-            handler_result = type_handlers[type_](root)
-            extra.update(handler_result)
-            # Allow handler to override content
-            if "content" in handler_result:
-                content = handler_result["content"]
+                # Apply custom handler if provided for this type
+                if type_handlers and type_ in type_handlers:
+                    handler_result = type_handlers[type_](root)
+                    extra.update(handler_result)
+                    # Allow handler to override content
+                    if "content" in handler_result:
+                        content = handler_result["content"]
 
-        # Default behavior: extract body element if present
-        elif type_ == "reply":
-            body_elem = root.find("body")
-            if body_elem is not None and body_elem.text:
-                content = body_elem.text.strip()
+                # Default behavior: extract body element if present
+                elif type_ == "reply":
+                    body_elem = root.find("body")
+                    if body_elem is not None and body_elem.text:
+                        content = body_elem.text.strip()
 
-        # Validate known types (extend this list as needed)
-        elif type_ not in ["reply", "no_response"]:
-            # Unknown type without handler
-            if not type_handlers or type_ not in type_handlers:
-                raise XMLParseError(response, f"Unknown XML tag: {type_}")
-
-        return ParsedXMLResponse(type=type_, content=content, extra=extra if extra else None)
+                return ParsedXMLResponse(type=type_, content=content, extra=extra if extra else None)
+        
+        # No known tags found
+        raise XMLParseError(response, "No valid XML tags found (reply, no_response, research, rank)")
 
     except ET.ParseError as e:
         raise XMLParseError(response, str(e))
