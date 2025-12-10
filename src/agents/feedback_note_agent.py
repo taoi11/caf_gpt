@@ -112,6 +112,10 @@ class FeedbackNoteAgent:
                         f"Circuit breaker: exceeded maximum {max_llm_calls} LLM calls per email"
                     )
 
+                # Add None check
+                if not parsed.rank:
+                    raise RuntimeError("Rank type received but rank value is None")
+
                 # Load competencies for requested rank
                 competency_list = self._load_competencies(parsed.rank)
                 examples = self._load_examples()

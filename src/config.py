@@ -111,4 +111,4 @@ class AppConfig(BaseSettings):
     )
 
 
-config = AppConfig()
+config = AppConfig()  # type: ignore[call-arg]

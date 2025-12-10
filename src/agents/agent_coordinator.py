@@ -80,9 +80,15 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                     return self.handle_no_response()
                 elif parsed.type == "reply":
                     # Append signature to policy agent replies
+                    if not parsed.content:
+                        logger.error("Reply type received but content is None")
+                        return self.get_generic_error_response()
                     reply_with_signature = parsed.content + self.SIGNATURE
                     return AgentResponse(reply=reply_with_signature)
                 elif parsed.type == "research":
+                    if not parsed.research:
+                        logger.error("Research type received but research is None")
+                        return self.get_generic_error_response()
                     research_result = self.handle_research_request(parsed.research)
                     # Send research results back to prime_foo
                     follow_up_messages = messages + [
@@ -167,6 +173,9 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                 return self.handle_no_response()
             elif parsed.type == "reply":
                 # Append signature to feedback note replies
+                if not parsed.content:
+                    logger.error("Reply type received but content is None")
+                    return self.get_generic_error_response()
                 reply_with_signature = parsed.content + self.SIGNATURE
                 return AgentResponse(reply=reply_with_signature)
             else:

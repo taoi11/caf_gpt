@@ -70,7 +70,7 @@ class LLMInterface:
             data = response.json()
 
             if "choices" in data and len(data["choices"]) > 0:
-                return data["choices"][0]["message"]["content"]
+                return str(data["choices"][0]["message"]["content"])
             else:
                 raise ValueError(f"Unexpected OpenRouter response format: {data}")
 

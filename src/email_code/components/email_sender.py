@@ -88,3 +88,4 @@ class EmailSender:
                         f"Failed to send reply after all retries: {e} subject={reply_data.subject} to={to_str}"
                     )
                     return False
+        return False

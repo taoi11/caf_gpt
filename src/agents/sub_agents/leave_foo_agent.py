@@ -13,6 +13,7 @@ from typing import Dict, List, Optional
 from ...storage.document_retriever import DocumentRetriever
 from src.llm_interface import llm_client
 from src.config import config
+from src.agents.prompt_manager import PromptManager
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 class LeaveFooAgent:
     # Agent handling leave-related queries with policy document integration
 
-    def __init__(self, prompt_manager: Optional["PromptManager"] = None):
+    def __init__(self, prompt_manager: Optional[PromptManager] = None):
         # Initialize with prompt manager and document retriever
         self.prompt_manager = prompt_manager
         self.document_retriever = DocumentRetriever()  # Initialize the document retriever

@@ -19,7 +19,7 @@ ALLOWED_DOMAINS = [
     "ecn.forces.gc.ca",
 ]
 
-ALLOWED_EMAILS = []
+ALLOWED_EMAILS: list[str] = []
 
 
 def is_sender_allowed(sender_email: str) -> bool:

@@ -106,7 +106,7 @@ class DocumentRetriever:
         # Fetch the raw content of an S3 object
         try:
             response = self.s3_client.get_object(Bucket=config.storage.s3_bucket_name, Key=key)
-            return response["Body"].read()
+            return bytes(response["Body"].read())
         except ClientError as e:
             logger.error(f"Failed to fetch {key} from S3: {e}")
             raise
