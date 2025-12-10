@@ -116,4 +116,3 @@ Skip an optimization when:
 - No clear, simple improvements remain
 
 **Remember:** The goal is to make code simpler, not just different.
-
