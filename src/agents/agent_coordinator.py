@@ -97,30 +97,38 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
             return self.get_generic_error_response()
 
     def _parse_xml_response(self, response: str, parse_research: bool = False) -> PrimeFooResponse:
-        # Shared XML parser for both prime_foo and feedback_note responses
-        # Raises XMLParseError if response is not valid XML
-        try:
-            root = ET.fromstring(response)
-            type_ = root.tag
-            content = root.text.strip() if root.text else ""
-            research = None
-            if type_ == "research" and parse_research:
-                sub_agent_elem = root.find("sub_agent")
-                if sub_agent_elem is not None:
-                    agent_type = sub_agent_elem.get("name", "")
-                    queries = []
-                    for query_elem in sub_agent_elem.findall("query"):
-                        if query_elem.text:
-                            queries.append(query_elem.text.strip())
+        # Parse XML response by extracting expected tags, ignoring surrounding content
+        # Raises XMLParseError if expected tags are not found
+        import re
+        
+        # Try to find <no_response>
+        if re.search(r'<no_response\s*/?\s*>', response, re.IGNORECASE):
+            return PrimeFooResponse(type="no_response", content="")
+        
+        # Try to find <reply><body>...</body></reply>
+        body_match = re.search(r'<reply>.*?<body>(.*?)</body>.*?</reply>', response, re.DOTALL | re.IGNORECASE)
+        if body_match:
+            content = body_match.group(1).strip()
+            return PrimeFooResponse(type="reply", content=content)
+        
+        # Try to find <research> with sub_agent
+        if parse_research:
+            research_match = re.search(r'<research>(.*?)</research>', response, re.DOTALL | re.IGNORECASE)
+            if research_match:
+                research_content = research_match.group(1)
+                # Extract sub_agent name
+                agent_match = re.search(r'<sub_agent\s+name=["\']([^"\']+)["\']', research_content, re.IGNORECASE)
+                if agent_match:
+                    agent_type = agent_match.group(1)
+                    # Extract all queries
+                    queries = re.findall(r'<query>(.*?)</query>', research_content, re.DOTALL | re.IGNORECASE)
+                    queries = [q.strip() for q in queries if q.strip()]
                     if queries:
                         research = ResearchRequest(queries=queries, agent_type=agent_type)
-            elif type_ == "reply":
-                body_elem = root.find("body")
-                if body_elem is not None and body_elem.text:
-                    content = body_elem.text.strip()
-            return PrimeFooResponse(type=type_, content=content, research=research)
-        except ET.ParseError as e:
-            raise XMLParseError(response, str(e))
+                        return PrimeFooResponse(type="research", content="", research=research)
+        
+        # If none of the expected tags found, raise error
+        raise XMLParseError(response, "No recognized XML tags found (expected: <no_response>, <reply><body>, or <research>)")
 
     def parse_prime_foo_response(self, response: str) -> PrimeFooResponse:
         # Parse XML for prime_foo responses, raises XMLParseError on failure
