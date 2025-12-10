@@ -44,6 +44,10 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
         # Dynamically load sub-agents like LeaveFooAgent with prompt manager access
         self.sub_agents["leave_foo"] = LeaveFooAgent(self.prompt_manager)
 
+    def _add_signature(self, content: str) -> str:
+        # Append signature to reply content
+        return content + self.SIGNATURE
+
     def _call_llm_with_retry(self, messages: list, model: str) -> tuple[str, "PrimeFooResponse"]:
         # Call LLM and parse response, with 1 retry on XML parse failure
         response = llm_client.generate_response(messages, openrouter_model=model)
@@ -83,7 +87,7 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                     if not parsed.content:
                         logger.error("Reply type received but content is None")
                         return self.get_generic_error_response()
-                    reply_with_signature = parsed.content + self.SIGNATURE
+                    reply_with_signature = self._add_signature(parsed.content)
                     return AgentResponse(reply=reply_with_signature)
                 elif parsed.type == "research":
                     if not parsed.research:
@@ -176,7 +180,7 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                 if not parsed.content:
                     logger.error("Reply type received but content is None")
                     return self.get_generic_error_response()
-                reply_with_signature = parsed.content + self.SIGNATURE
+                reply_with_signature = self._add_signature(parsed.content)
                 return AgentResponse(reply=reply_with_signature)
             else:
                 return self.get_generic_error_response()
