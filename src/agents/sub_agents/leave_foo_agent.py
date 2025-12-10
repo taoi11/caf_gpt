@@ -11,7 +11,7 @@ import logging
 from typing import Dict, List, Optional
 
 from src.utils.document_retriever import document_retriever
-from src.utils.llm_interface import llm_client
+from src.agents.llm_utils import llm_client
 from src.config import config
 from src.agents.prompt_manager import PromptManager
 
