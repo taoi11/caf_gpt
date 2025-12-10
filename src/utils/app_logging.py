@@ -5,7 +5,6 @@ Centralized logging configuration using standard library logging.
 
 Top-level declarations:
 - setup_logging: Configure stdlib logging based on app config
-- get_logger: Get a logger instance by name
 """
 
 import logging
@@ -34,8 +33,3 @@ def setup_logging(config: AppConfig) -> None:
         level=getattr(logging, effective_log_level.upper()),
         handlers=[handler],
     )
-
-
-def get_logger(name: str) -> logging.Logger:
-    # Get a logger instance by name
-    return logging.getLogger(name)
