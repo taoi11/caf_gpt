@@ -43,8 +43,7 @@ primary_region = 'iad'
   
   # ===== LLM Configuration =====
   # LLM__OPENROUTER_API_KEY is set via fly secrets
-  LLM__OPENROUTER_MODEL = "x-ai/grok-code-fast-1"
-  LLM__PACENOTE_MODEL = "anthropic/claude-haiku-4.5"
+  LLM__PACENOTE_MODEL = "x-ai/grok-4.1-fast"
   LLM__PRIME_FOO_MODEL = "google/gemini-3-pro-preview"
   LLM__LEAVE_FOO_MODEL = "x-ai/grok-4.1-fast"
   LLM__TEMPERATURE = "0.1"
