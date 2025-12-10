@@ -71,8 +71,8 @@ class LLMConfig(BaseSettings):
 
     # Agent-specific models
     pacenote_model: str = "anthropic/claude-haiku-4.5"
-    prime_foo_model: str = "mistralai/mistral-large-2512"
-    leave_foo_model: str = "x-ai/grok-4.1-fast"
+    prime_foo_model: str = "anthropic/claude-sonnet-4.5"
+    leave_foo_model: str = "anthropic/claude-haiku-4.5"
 
     # Common
     temperature: float = 0.7
