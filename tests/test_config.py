@@ -47,6 +47,16 @@ def test_should_trigger_agent_without_policy_email() -> None:
     assert should_trigger_agent([]) is None
 
 
+def test_should_trigger_agent_with_both_emails() -> None:
+    # Verify that pacenote takes priority when both emails are present
+    assert should_trigger_agent(["agent@caf-gpt.com", "pacenote@caf-gpt.com"]) == "pacenote"
+    assert should_trigger_agent(["pacenote@caf-gpt.com", "agent@caf-gpt.com"]) == "pacenote"
+    assert (
+        should_trigger_agent(["other@example.com", "agent@caf-gpt.com", "pacenote@caf-gpt.com"])
+        == "pacenote"
+    )
+
+
 def test_defaults_are_set() -> None:
     # Confirm that default values are applied correctly for processing flags
     config = EmailConfig(

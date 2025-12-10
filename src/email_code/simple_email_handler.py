@@ -111,6 +111,7 @@ class SimpleEmailProcessor:
                 return
 
             # Check which agent should process this email
+            email_logger.debug(f"Email recipients TO: {parsed_data.recipients.to}, CC: {parsed_data.recipients.cc}")
             agent_type = should_trigger_agent(parsed_data.recipients.to)
 
             if agent_type:

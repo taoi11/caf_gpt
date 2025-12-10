@@ -30,10 +30,15 @@ PACENOTE_AGENT_EMAIL = "pacenote@caf-gpt.com"
 def should_trigger_agent(to_addresses: List[str]) -> Optional[str]:
     # Determine which agent should process the email based on recipient address
     # Returns: "policy" for policy agent, "pacenote" for feedback note agent, None if no agent needed
-    if POLICY_AGENT_EMAIL in to_addresses:
-        return "policy"
-    if PACENOTE_AGENT_EMAIL in to_addresses:
+    # Priority: If both addresses present, prefer the more specific pacenote agent
+    has_policy = POLICY_AGENT_EMAIL in to_addresses
+    has_pacenote = PACENOTE_AGENT_EMAIL in to_addresses
+    
+    # If both present, prefer pacenote (more specific)
+    if has_pacenote:
         return "pacenote"
+    if has_policy:
+        return "policy"
     return None
 
 
