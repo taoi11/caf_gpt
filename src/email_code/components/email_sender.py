@@ -56,6 +56,9 @@ class EmailSender:
                     headers["In-Reply-To"] = composed["in_reply_to"]
                 if composed.get("references"):
                     headers["References"] = composed["references"]
+                
+                # Override From address to match the agent handling this email
+                headers["From"] = agent_email
 
                 # Send the email
                 # Pass contents as a list to ensure yagmail treats it correctly
