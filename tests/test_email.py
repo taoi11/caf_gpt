@@ -144,7 +144,7 @@ def test_email_composer_composes_reply():
     assert composed["subject"].startswith("Re: Test Subject")
     assert "Reply body" in composed["html_body"]
     assert "From:" in composed["html_body"]  # From template
-    assert "CAF-GPT Email Agent" in composed["html_body"]
+    assert "Calibri" in composed["html_body"]  # Outlook-style font
     assert composed["to"] == ["test@example.com"]
     assert composed["in_reply_to"] == "<test123@domain.com>"
 
