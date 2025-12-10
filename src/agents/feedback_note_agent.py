@@ -146,22 +146,21 @@ class FeedbackNoteAgent:
             logger.warning(f"Unknown rank: {rank}, defaulting to cpl")
             rank_file = RANK_FILES["cpl"]
 
-        competencies = document_retriever.get_document(self.s3_category, rank_file)
-
-        if competencies is None:
-            logger.error(f"Failed to load competencies for rank {rank}")
-            return "Competencies not available at this time."
-
-        logger.info(f"Successfully loaded competencies for rank {rank}")
-        return competencies
+        return self._load_document(
+            rank_file, f"competencies for rank {rank}", "Competencies not available at this time."
+        )
 
     def _load_examples(self) -> str:
         # Load examples from S3
-        examples = document_retriever.get_document(self.s3_category, "examples.md")
+        return self._load_document("examples.md", "examples", "Examples not available at this time.")
 
-        if examples is None:
-            logger.error("Failed to load examples")
-            return "Examples not available at this time."
+    def _load_document(self, filename: str, doc_type: str, fallback_message: str) -> str:
+        # Load a document from S3 with consistent error handling and logging
+        document = document_retriever.get_document(self.s3_category, filename)
 
-        logger.info("Successfully loaded examples")
-        return examples
+        if document is None:
+            logger.error(f"Failed to load {doc_type}")
+            return fallback_message
+
+        logger.info(f"Successfully loaded {doc_type}")
+        return document

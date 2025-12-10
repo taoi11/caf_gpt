@@ -10,7 +10,7 @@ __pycache__/
 # Virtual environments
 .env*
 .envrc
-.direnv
+.direnv/
 env/
 venv/
 .venv/
