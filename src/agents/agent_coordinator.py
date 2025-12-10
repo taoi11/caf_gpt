@@ -16,7 +16,7 @@ from .prompt_manager import PromptManager
 from .types import AgentResponse, PrimeFooResponse, ResearchRequest, XMLParseError
 from .sub_agents.leave_foo_agent import LeaveFooAgent
 from .feedback_note_agent import FeedbackNoteAgent
-from src.llm_interface import llm_client
+from .llm_utils import call_llm_with_retry
 from src.config import config
 
 logger = logging.getLogger(__name__)
@@ -48,27 +48,6 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
         # Append signature to reply content
         return content + self.SIGNATURE
 
-    def _call_llm_with_retry(self, messages: list, model: str) -> tuple[str, "PrimeFooResponse"]:
-        # Call LLM and parse response, with 1 retry on XML parse failure
-        response = llm_client.generate_response(messages, openrouter_model=model)
-        try:
-            parsed = self.parse_prime_foo_response(response)
-            return response, parsed
-        except XMLParseError as e:
-            logger.warning(f"XML parse failed, retrying: {e.parse_error}")
-            # Send error feedback and retry once
-            retry_messages = messages + [
-                {"role": "assistant", "content": response},
-                {
-                    "role": "user",
-                    "content": f"Your response was not valid XML. Parse error: {e.parse_error}. Please respond with properly formatted XML.",
-                },
-            ]
-            response = llm_client.generate_response(retry_messages, openrouter_model=model)
-            # No more retries - let it raise if it fails again
-            parsed = self.parse_prime_foo_response(response)
-            return response, parsed
-
     def process_email_with_prime_foo(self, email_context: str) -> AgentResponse:
         # Main coordination loop: send to prime_foo, parse response, handle research/reply/no_response iteratively
         try:
@@ -77,7 +56,15 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                 {"role": "system", "content": prime_prompt},
                 {"role": "user", "content": email_context},
             ]
-            response, parsed = self._call_llm_with_retry(messages, config.llm.prime_foo_model)
+
+            # Circuit breaker: limit to 3 LLM calls per email
+            max_llm_calls = 3
+            llm_call_count = 0
+
+            llm_call_count += 1
+            response, parsed = call_llm_with_retry(
+                messages, config.llm.prime_foo_model, self.parse_prime_foo_response
+            )
 
             while True:
                 if parsed.type == "no_response":
@@ -90,6 +77,13 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                     reply_with_signature = self._add_signature(parsed.content)
                     return AgentResponse(reply=reply_with_signature)
                 elif parsed.type == "research":
+                    # Check circuit breaker before making another LLM call
+                    if llm_call_count >= max_llm_calls:
+                        logger.error(
+                            f"Circuit breaker triggered: exceeded maximum {max_llm_calls} LLM calls per email"
+                        )
+                        return self.get_generic_error_response()
+
                     if not parsed.research:
                         logger.error("Research type received but research is None")
                         return self.get_generic_error_response()
@@ -99,8 +93,12 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
                         {"role": "assistant", "content": response},
                         {"role": "user", "content": f"Research results: {research_result}"},
                     ]
-                    response, parsed = self._call_llm_with_retry(
-                        follow_up_messages, config.llm.prime_foo_model
+
+                    llm_call_count += 1
+                    response, parsed = call_llm_with_retry(
+                        follow_up_messages,
+                        config.llm.prime_foo_model,
+                        self.parse_prime_foo_response,
                     )
                 else:
                     return self.get_generic_error_response()

@@ -15,10 +15,10 @@ import xml.etree.ElementTree as ET
 from pydantic import BaseModel
 
 from src.storage.document_retriever import DocumentRetriever
-from src.llm_interface import llm_client
 from src.config import config
 from src.agents.prompt_manager import PromptManager
 from src.agents.types import XMLParseError
+from src.agents.llm_utils import call_llm_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -47,33 +47,6 @@ class FeedbackNoteAgent:
         self.document_retriever = DocumentRetriever()
         self.s3_category = "paceNote"
 
-    def _call_llm_with_retry(self, messages: list) -> tuple[str, FeedbackNoteResponse]:
-        # Call LLM and parse response, with 1 retry on XML parse failure
-        response = llm_client.generate_response(
-            messages, openrouter_model=config.llm.pacenote_model
-        )
-        logger.info(f"LLM raw response: {response}")
-        try:
-            parsed = self._parse_response(response)
-            return response, parsed
-        except XMLParseError as e:
-            logger.warning(f"XML parse failed, retrying: {e.parse_error}")
-            # Send error feedback and retry once
-            retry_messages = messages + [
-                {"role": "assistant", "content": response},
-                {
-                    "role": "user",
-                    "content": f"Your response was not valid XML. Parse error: {e.parse_error}. Please respond with properly formatted XML.",
-                },
-            ]
-            response = llm_client.generate_response(
-                retry_messages, openrouter_model=config.llm.pacenote_model
-            )
-            logger.info(f"LLM retry response: {response}")
-            # No more retries - let it raise if it fails again
-            parsed = self._parse_response(response)
-            return response, parsed
-
     def process_email(self, email_context: str) -> str:
         # Main loop: send to LLM, parse response, handle rank request loop similar to prime_foo
         # Get base prompt with placeholders
@@ -89,7 +62,9 @@ class FeedbackNoteAgent:
         llm_call_count = 0
 
         llm_call_count += 1
-        response, parsed = self._call_llm_with_retry(messages)
+        response, parsed = call_llm_with_retry(
+            messages, config.llm.pacenote_model, self._parse_response, log_response=True
+        )
         logger.info(
             f"Parsed response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}"
         )
@@ -130,7 +105,12 @@ class FeedbackNoteAgent:
                 )
 
                 llm_call_count += 1
-                response, parsed = self._call_llm_with_retry(messages)
+                response, parsed = call_llm_with_retry(
+                    messages,
+                    config.llm.pacenote_model,
+                    self._parse_response,
+                    log_response=True,
+                )
                 logger.info(
                     f"Parsed follow-up response type: {parsed.type}, content: {parsed.content}, rank: {parsed.rank}"
                 )

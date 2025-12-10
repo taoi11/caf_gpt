@@ -32,7 +32,7 @@ def feedback_agent(mock_prompt_manager):
         return FeedbackNoteAgent(mock_prompt_manager)
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_triggers_on_fourth_call(mock_llm_client, feedback_agent):
     """Test that circuit breaker triggers when LLM call limit is exceeded."""
     # Mock LLM responses that keep requesting ranks
@@ -54,7 +54,7 @@ def test_circuit_breaker_triggers_on_fourth_call(mock_llm_client, feedback_agent
     assert mock_llm_client.generate_response.call_count == 3
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_allows_three_calls(mock_llm_client, feedback_agent):
     """Test that circuit breaker allows up to 3 LLM calls."""
     # Mock LLM responses: 2 rank requests + 1 reply
@@ -77,7 +77,7 @@ def test_circuit_breaker_allows_three_calls(mock_llm_client, feedback_agent):
     assert mock_llm_client.generate_response.call_count == 3
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_allows_single_call(mock_llm_client, feedback_agent):
     """Test that circuit breaker allows single LLM call with immediate reply."""
     # Mock LLM response with immediate reply
@@ -93,7 +93,7 @@ def test_circuit_breaker_allows_single_call(mock_llm_client, feedback_agent):
     assert mock_llm_client.generate_response.call_count == 1
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_allows_two_calls(mock_llm_client, feedback_agent):
     """Test that circuit breaker allows 2 LLM calls."""
     # Mock LLM responses: 1 rank request + 1 reply
@@ -115,7 +115,7 @@ def test_circuit_breaker_allows_two_calls(mock_llm_client, feedback_agent):
     assert mock_llm_client.generate_response.call_count == 2
 
 
-@patch("src.agents.feedback_note_agent.llm_client")
+@patch("src.agents.llm_utils.llm_client")
 def test_circuit_breaker_handles_no_response(mock_llm_client, feedback_agent):
     """Test that circuit breaker handles no_response type."""
     # Mock LLM response with no_response
