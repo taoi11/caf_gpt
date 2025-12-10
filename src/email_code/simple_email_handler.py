@@ -12,6 +12,7 @@ Top-level declarations:
 from __future__ import annotations
 
 import logging
+import textwrap
 import threading
 
 from dataclasses import dataclass
@@ -155,15 +156,15 @@ class SimpleEmailProcessor:
 
     def _build_email_context(self, parsed_data: ParsedEmailData) -> str:
         # Build email context string for LLM processing
-        return f"""
-                        Subject: {parsed_data.subject or '<no subject>'}
-                        From: {parsed_data.from_addr}
-                        To: {', '.join(parsed_data.recipients.to)}
-                        Date: {parsed_data.date or 'Unknown'}
+        return textwrap.dedent(f"""
+            Subject: {parsed_data.subject or '<no subject>'}
+            From: {parsed_data.from_addr}
+            To: {', '.join(parsed_data.recipients.to)}
+            Date: {parsed_data.date or 'Unknown'}
 
-                        Body:
-                        {parsed_data.body}
-                        """
+            Body:
+            {parsed_data.body}
+        """).strip()
 
     def _get_agent_response(
         self,
