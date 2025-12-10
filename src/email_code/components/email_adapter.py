@@ -43,5 +43,8 @@ class EmailAdapter:
     @staticmethod
     def _strip_html(html: str) -> str:
         # Basic HTML stripping for fallback when text content is not available
-        clean = re.sub(r"<[^>]+>", "", html)
+        # First convert <br> tags to newlines to preserve line breaks
+        clean = re.sub(r"<br\s*/?>", "\n", html, flags=re.IGNORECASE)
+        # Then strip all remaining HTML tags
+        clean = re.sub(r"<[^>]+>", "", clean)
         return unescape(clean).strip()
