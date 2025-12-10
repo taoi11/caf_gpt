@@ -8,7 +8,7 @@ Top-level declarations:
 - EmailComposer: Class for composing email replies using Jinja templates
 """
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 import jinja2
 from markupsafe import Markup, escape
 from pathlib import Path
@@ -26,7 +26,7 @@ TEMPLATE_DIR = "src/email_code/templates"
 class EmailComposer:
     # Class for composing email replies using Jinja templates
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Initialize Jinja environment with template directory
         template_dir = Path(TEMPLATE_DIR)
         if not template_dir.exists():
@@ -40,7 +40,7 @@ class EmailComposer:
 
     def compose_reply(
         self, reply_data: ReplyData, original: ParsedEmailData, agent_email: str
-    ) -> Dict:
+    ) -> Dict[str, Any]:
         # Compose professional HTML reply using Jinja template with threading and validation
         # :param reply_data: Structured reply info (body, to, cc, subject, in_reply_to, references)
         # :param original: Original parsed email for quoting and threading

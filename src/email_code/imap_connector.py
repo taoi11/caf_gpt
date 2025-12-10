@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from typing import Generator, List
-from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags
+from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags  # type: ignore[attr-defined]
 from datetime import datetime
 from src.config import EmailConfig
 from src.utils.app_logging import get_logger
@@ -37,7 +37,7 @@ class IMAPConnector:
     @contextmanager
     def mailbox(self) -> Generator[BaseMailBox, None, None]:
         # Context manager for IMAP connection using imap_tools
-        with MailBox(self._config.imap_host, self._config.imap_port).login(
+        with MailBox(self._config.imap_host, self._config.imap_port).login(  # type: ignore[no-untyped-call]
             self._config.imap_username, self._config.imap_password
         ) as mb:
             yield mb

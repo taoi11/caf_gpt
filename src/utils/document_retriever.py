@@ -38,7 +38,7 @@ class DocumentRetriever:
     MAX_CACHE_SIZE_BYTES = 25 * 1024 * 1024  # 25MB
     PERSISTENT_FILES = {"examples.md", "cpl.md", "mcpl.md", "sgt.md", "wo.md"}
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Initialize the S3 client with configuration from AppConfig
         storage_config = config.storage
 

@@ -13,7 +13,7 @@ Top-level declarations:
 import logging
 import requests
 from functools import wraps
-from typing import Callable, TypeVar, List, Dict, Optional
+from typing import Callable, TypeVar, List, Dict, Optional, Any
 
 from src.config import config
 from .types import XMLParseError
@@ -26,7 +26,7 @@ T = TypeVar("T")
 class LLMInterface:
     # Interface for interacting with LLMs via OpenRouter API
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Initialize with LLM configuration from app settings
         self.config = config.llm
 
@@ -89,13 +89,13 @@ class LLMInterface:
 llm_client = LLMInterface()
 
 
-def circuit_breaker(max_calls: int = 3):
+def circuit_breaker(max_calls: int = 3) -> Callable[[Callable[..., T]], Callable[..., T]]:
     # Decorator to limit the number of LLM calls within a method execution
     # Tracks calls across the decorated method's execution and raises RuntimeError when exceeded
     # Default limit is 3 calls for backward compatibility
-    def decorator(func):
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             # Store call count in wrapper closure
             wrapper.llm_call_count = 0  # type: ignore[attr-defined]
             wrapper.max_llm_calls = max_calls  # type: ignore[attr-defined]
@@ -111,7 +111,7 @@ def circuit_breaker(max_calls: int = 3):
     return decorator
 
 
-def increment_circuit_breaker():
+def increment_circuit_breaker() -> None:
     # Helper to increment and check circuit breaker from within decorated method
     # Call this before each LLM invocation to enforce the limit
     import inspect

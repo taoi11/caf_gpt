@@ -31,7 +31,7 @@ class ParsedEmailData(BaseModel):
 
     @field_validator("body", mode="before")
     @classmethod
-    def extract_body(cls, v):
+    def extract_body(cls, v: str | None) -> str:
         # Ensure body is never None, fallback to empty string
         return v or ""
 

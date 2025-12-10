@@ -41,7 +41,7 @@ How to use CAF-GPT: [Documentation](placeholder_for_docs_link)"""
         # Initialize feedback note agent
         self.feedback_note_agent = FeedbackNoteAgent(self.prompt_manager)
 
-    def _load_sub_agents(self):
+    def _load_sub_agents(self) -> None:
         # Dynamically load sub-agents like LeaveFooAgent with prompt manager access
         self.sub_agents["leave_foo"] = LeaveFooAgent(self.prompt_manager)
 

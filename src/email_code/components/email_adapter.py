@@ -11,7 +11,7 @@ Top-level declarations:
 import re
 from html import unescape
 
-from imap_tools import MailMessage
+from imap_tools import MailMessage  # type: ignore[attr-defined]
 
 from src.email_code.types import ParsedEmailData, EmailRecipients
 

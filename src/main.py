@@ -11,6 +11,7 @@ Top-level declarations:
 
 from contextlib import asynccontextmanager
 import threading
+from typing import Callable, Any, AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -27,24 +28,24 @@ logger = get_logger(__name__)
 
 class StoppableThread:
     # Helper to run stoppable loop in thread with graceful shutdown
-    def __init__(self, target, args=()):
+    def __init__(self, target: Callable[..., Any], args: tuple[Any, ...] = ()) -> None:
         self.target = target
         self.args = args
         self.stop_event = threading.Event()
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
 
-    def _run(self):
+    def _run(self) -> None:
         while not self.stop_event.wait(timeout=1):  # Check every second
             self.target(*self.args)
 
-    def stop(self):
+    def stop(self) -> None:
         self.stop_event.set()
         self.thread.join(timeout=5)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup: Initialize components and start email queue processor in background thread
     logger.info("Application starting up")
 
@@ -78,7 +79,7 @@ app = FastAPI(
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> JSONResponse:
     # Health check endpoint returning application status and version
     return JSONResponse(content={"status": "healthy", "version": "0.1.0"}, status_code=200)
 

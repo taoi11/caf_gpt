@@ -21,7 +21,7 @@ def setup_logging(config: AppConfig) -> None:
 
     # Custom formatter to include UID from LoggerAdapter extra context
     class UIDFormatter(logging.Formatter):
-        def format(self, record):
+        def format(self, record: logging.LogRecord) -> str:
             # Add UID prefix if present in extra context
             if hasattr(record, "uid"):
                 record.msg = f"[uid={record.uid}] {record.msg}"
