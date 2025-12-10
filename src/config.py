@@ -71,7 +71,7 @@ class LLMConfig(BaseSettings):
 
     # Agent-specific models
     pacenote_model: str = "anthropic/claude-haiku-4.5"
-    prime_foo_model: str = "google/gemini-3-pro-preview"
+    prime_foo_model: str = "mistralai/mistral-large-2512"
     leave_foo_model: str = "x-ai/grok-4.1-fast"
 
     # Common

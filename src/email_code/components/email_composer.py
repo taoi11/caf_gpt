@@ -58,6 +58,7 @@ class EmailComposer:
                 "from_addr": original.from_addr,
                 "date": original.date or "Unknown date",
                 "to": original.recipients.to,
+                "cc": original.recipients.cc,
                 "subject": original.subject,
                 "body": original.body,
             }
