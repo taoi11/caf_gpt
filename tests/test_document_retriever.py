@@ -213,7 +213,7 @@ def test_persistent_files_identification(retriever):
 
 def test_cache_size_calculation(retriever, mock_s3_client):
     """Test that cache size is calculated using len(content.encode('utf-8'))."""
-    content = "Test UTF-8 content with émojis 🎉"
+    content = "Test UTF-8 content with emojis 🎉"
     expected_size = len(content.encode("utf-8"))
 
     mock_response = {"Body": MagicMock()}

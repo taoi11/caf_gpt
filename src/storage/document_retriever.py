@@ -84,7 +84,7 @@ class DocumentRetriever:
             decoded_content = self._decode_content(content)
 
             # Add to cache
-            self._add_to_cache(object_key, decoded_content, filename)
+            self._add_to_cache(object_key, decoded_content)
 
             return decoded_content
         except (NoCredentialsError, PartialCredentialsError) as e:
@@ -123,7 +123,7 @@ class DocumentRetriever:
                 logger.error(f"Failed to decode content: {e}")
                 raise ValueError("Unable to decode document content")
 
-    def _add_to_cache(self, object_key: str, content: str, filename: str) -> None:
+    def _add_to_cache(self, object_key: str, content: str) -> None:
         # Add document to cache, evicting oldest non-persistent entries if needed
         content_size = len(content.encode("utf-8"))
 
