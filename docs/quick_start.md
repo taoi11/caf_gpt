@@ -1,34 +1,32 @@
 # How to Use CAF-GPT
 
 ## Here Be Dragons
-CAF-GPT is an AI-powered email agent that is vibe coded, you at your own risk.
+CAF-GPT is an AI-powered email agent that is vibe coded, use at your own risk.
 
 ## Getting Started
 
 ### Sending Emails to CAF-GPT
 Simply send an email to one of the following addresses:
 
-#### 1. `pacenote@caf-gpt.com` - Feedback Notes Agent
+#### 1. <pacenote@caf-gpt.com> - Feedback Notes Agent
 Use this address to generate performance PACE feedback notes
 
 ##### Best practices
 - Be specific about the actions or behaviors you want in the feedback note
-- Provide context such as rank for the competencies to be targeted
+- Provide context, such as your rank for the competencies to be targeted
   - IF you are writing for yourself, your signature block will be used to infer your rank
-- Use simple and plan language to describe the events and actions
+- Use simple and plain language to describe the events and actions
 - As with any AI **Garbage In, Garbage Out**
 
-
-#### 2. **agent@caf-gpt.com** - Policy & Research Agent
+#### 2. <agent@caf-gpt.com> - Policy & Research Agent
 Use this address for questions about:
 - Leave policy
 - _more policies to be added_
 
 ##### Best practices
-- The subject line waighed heavily by AI to select relevant policies to research
+- The subject line is weighted heavily by the AI to select relevant policies to research
 - Use clear and concise language to describe your question in the email body
-- Stick to one topic per email
-  - Its ok to have 2 or 3 questions about the same topic
+- Recommend one topic per email thread, though 2-3 related questions on the same topic are fine
 - As with any AI **Garbage In, Garbage Out**
 
 ## What Happens with Your Email

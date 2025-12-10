@@ -31,7 +31,7 @@ class AgentCoordinator:
 
 CAF-GPT
 <a href="https://github.com/taoi11/caf_gpt">Source Code</a>
-How to use CAF-GPT: <a href="placeholder_for_docs_link">Documentation</a>"""
+How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/quick_start.md">Documentation</a>"""
 
     def __init__(self, prompt_manager: PromptManager):
         # Initialize with prompt manager and load available sub-agents
