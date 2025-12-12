@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class EmailSender:
     # Class for sending emails via SMTP with retry logic
+    # Handles connection, authentication, and sending composed replies with retries
 
     def __init__(self) -> None:
         # Initialize yagmail SMTP with config from app settings

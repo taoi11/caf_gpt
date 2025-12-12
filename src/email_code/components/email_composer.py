@@ -25,6 +25,7 @@ TEMPLATE_DIR = "src/email_code/templates"
 
 class EmailComposer:
     # Class for composing email replies using Jinja templates
+    # Builds properly formatted emails with threading headers and original message quoting
 
     def __init__(self) -> None:
         # Initialize Jinja environment with template directory

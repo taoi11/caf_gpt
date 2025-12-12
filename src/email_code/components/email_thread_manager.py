@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class EmailThreadManager:
     # Static class for building email threading headers
+    # Generates In-Reply-To and References headers for proper email conversation tracking
 
     @staticmethod
     def build_threading_headers(original: ParsedEmailData) -> Dict[str, str]:

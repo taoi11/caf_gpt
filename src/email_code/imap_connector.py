@@ -23,12 +23,14 @@ logger = logging.getLogger(__name__)
 
 class IMAPConnectorError(Exception):
     """Custom exception raised when IMAP operations fail"""
+    # Used for error handling in IMAP operations
 
     pass
 
 
 class IMAPConnector:
-    # IMAP client wrapper using imap_tools for simplified operations
+    # IMAP client wrapper using imap_tools for simplified email operations
+    # Optimized to exclude attachments from download to reduce bandwidth usage
 
     def __init__(self, config: EmailConfig) -> None:
         # Initialize with email configuration

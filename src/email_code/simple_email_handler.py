@@ -34,7 +34,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class LoggedEmail:
-    """Dataclass holding metadata for logged emails: UID, sender, subject, and content preview"""
+    # Dataclass holding metadata for logged emails: UID, sender, subject, and content preview
+    # Used for logging email metadata with truncated previews for readability
 
     uid: str
     sender: str
@@ -44,6 +45,7 @@ class LoggedEmail:
 
 class SimpleEmailProcessor:
     # Basic processor for polling IMAP inbox, parsing new emails with imap_tools, and logging them
+    # Uses threading.Lock to prevent IMAP race conditions and processes emails oldest-first
 
     def __init__(self, config: EmailConfig) -> None:
         # Initialize with email config, connector, and components
