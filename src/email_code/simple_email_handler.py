@@ -12,6 +12,7 @@ Top-level declarations:
 from __future__ import annotations
 
 import logging
+import textwrap
 import threading
 
 from dataclasses import dataclass
@@ -33,7 +34,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class LoggedEmail:
-    """Dataclass holding metadata for logged emails: UID, sender, subject, and content preview"""
+    # Dataclass holding metadata for logged emails: UID, sender, subject, and content preview
+    # Used for logging email metadata with truncated previews for readability
 
     uid: str
     sender: str
@@ -43,6 +45,7 @@ class LoggedEmail:
 
 class SimpleEmailProcessor:
     # Basic processor for polling IMAP inbox, parsing new emails with imap_tools, and logging them
+    # Uses threading.Lock to prevent IMAP race conditions and processes emails oldest-first
 
     def __init__(self, config: EmailConfig) -> None:
         # Initialize with email config, connector, and components
@@ -155,15 +158,15 @@ class SimpleEmailProcessor:
 
     def _build_email_context(self, parsed_data: ParsedEmailData) -> str:
         # Build email context string for LLM processing
-        return f"""
-                        Subject: {parsed_data.subject or '<no subject>'}
-                        From: {parsed_data.from_addr}
-                        To: {', '.join(parsed_data.recipients.to)}
-                        Date: {parsed_data.date or 'Unknown'}
+        return textwrap.dedent(f"""
+            Subject: {parsed_data.subject or '<no subject>'}
+            From: {parsed_data.from_addr}
+            To: {', '.join(parsed_data.recipients.to)}
+            Date: {parsed_data.date or 'Unknown'}
 
-                        Body:
-                        {parsed_data.body}
-                        """
+            Body:
+            {parsed_data.body}
+        """).strip()
 
     def _get_agent_response(
         self,

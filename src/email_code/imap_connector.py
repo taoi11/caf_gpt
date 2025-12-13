@@ -11,24 +11,26 @@ Top-level declarations:
 
 from __future__ import annotations
 
+import logging
 from contextlib import contextmanager
 from typing import Generator, List
 from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags  # type: ignore[attr-defined]
 from datetime import datetime
 from src.config import EmailConfig
-from src.utils.app_logging import get_logger
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class IMAPConnectorError(Exception):
     """Custom exception raised when IMAP operations fail"""
+    # Used for error handling in IMAP operations
 
     pass
 
 
 class IMAPConnector:
-    # IMAP client wrapper using imap_tools for simplified operations
+    # IMAP client wrapper using imap_tools for simplified email operations
+    # Optimized to exclude attachments from download to reduce bandwidth usage
 
     def __init__(self, config: EmailConfig) -> None:
         # Initialize with email configuration
@@ -46,35 +48,12 @@ class IMAPConnector:
         # Mark email as seen using direct UID flag (no fetch needed)
         try:
             with self.mailbox() as mb:
-                logger.info(f"Attempting to mark uid={uid} as SEEN")
-
-                # Check current flags before marking
-                try:
-                    msgs_before = list(mb.fetch(f"UID {uid}", mark_seen=False))
-                    if msgs_before:
-                        logger.info(f"Flags before marking uid={uid}: {msgs_before[0].flags}")
-                except Exception as e:
-                    logger.warning(f"Could not fetch flags before marking: {e}")
-
+                logger.info(f"Marking uid={uid} as SEEN")
                 # Use flag() to set the SEEN flag
                 mb.flag([uid], [MailMessageFlags.SEEN], True)
-                logger.info(f"Mark seen operation completed for uid={uid}")
-
                 # Force IMAP to persist the flag change
                 mb.client.noop()
-
-                # Verify the flag was set
-                try:
-                    msgs_after = list(mb.fetch(f"UID {uid}", mark_seen=False))
-                    if msgs_after:
-                        logger.info(f"Flags after marking uid={uid}: {msgs_after[0].flags}")
-                        if MailMessageFlags.SEEN in msgs_after[0].flags:
-                            logger.info(f"✓ Successfully verified uid={uid} is marked as SEEN")
-                        else:
-                            logger.error(f"✗ uid={uid} is NOT marked as SEEN after operation!")
-                except Exception as e:
-                    logger.warning(f"Could not verify flags after marking: {e}")
-
+                logger.info(f"Successfully marked uid={uid} as SEEN")
         except Exception as error:
             logger.error(f"Failed to mark uid={uid} as seen: {error}")
             raise IMAPConnectorError(f"failed to mark {uid} as seen: {error}") from error

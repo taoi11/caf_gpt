@@ -10,6 +10,7 @@ Top-level declarations:
 """
 
 from contextlib import asynccontextmanager
+import logging
 import threading
 from typing import Callable, Any, AsyncGenerator
 
@@ -17,13 +18,35 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from src.config import config
-from src.utils.app_logging import setup_logging, get_logger
-
 from src.email_code.simple_email_handler import SimpleEmailProcessor
 
-setup_logging(config)
 
-logger = get_logger(__name__)
+def _setup_logging() -> None:
+    # Configure standard library logging based on app config
+    # Uses DEBUG level when DEV_MODE is enabled for verbose logging, else respects config.log.log_level
+    # Format includes optional UID context from LoggerAdapter for email processing
+    effective_log_level = "DEBUG" if config.dev_mode else config.log.log_level
+
+    # Custom formatter to include UID from LoggerAdapter extra context
+    class UIDFormatter(logging.Formatter):
+        def format(self, record: logging.LogRecord) -> str:
+            # Add UID prefix if present in extra context
+            if hasattr(record, "uid"):
+                record.msg = f"[uid={record.uid}] {record.msg}"
+            return super().format(record)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(UIDFormatter("%(asctime)s %(name)s: %(message)s"))
+
+    logging.basicConfig(
+        level=getattr(logging, effective_log_level.upper()),
+        handlers=[handler],
+    )
+
+
+_setup_logging()
+
+logger = logging.getLogger(__name__)
 
 
 class StoppableThread:
@@ -36,10 +59,12 @@ class StoppableThread:
         self.thread.start()
 
     def _run(self) -> None:
+        # Main thread execution loop that runs target function until stop event is set
         while not self.stop_event.wait(timeout=1):  # Check every second
             self.target(*self.args)
 
     def stop(self) -> None:
+        # Gracefully stop the thread by setting stop event and waiting for completion
         self.stop_event.set()
         self.thread.join(timeout=5)
 

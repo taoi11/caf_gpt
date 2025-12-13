@@ -9,15 +9,16 @@ Top-level declarations:
 """
 
 from typing import Dict, List
+import logging
 
-from src.utils.app_logging import get_logger
 from src.email_code.types import ParsedEmailData  # For message_id
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class EmailThreadManager:
     # Static class for building email threading headers
+    # Generates In-Reply-To and References headers for proper email conversation tracking
 
     @staticmethod
     def build_threading_headers(original: ParsedEmailData) -> Dict[str, str]:

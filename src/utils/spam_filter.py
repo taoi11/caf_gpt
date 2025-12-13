@@ -26,15 +26,8 @@ ALLOWED_EMAILS: list[str] = [
 
 
 def is_sender_allowed(sender_email: str) -> bool:
-    """
-    Check if sender email is allowed based on domain or explicit email match.
-
-    Args:
-        sender_email: Email address to validate
-
-    Returns:
-        True if sender is allowed, False otherwise
-    """
+    # Check if sender email is allowed based on domain or explicit email match
+    # Validates against hardcoded allowlists for domains and specific email addresses
     if not sender_email:
         return False
 

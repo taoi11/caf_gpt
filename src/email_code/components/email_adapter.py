@@ -18,6 +18,7 @@ from src.email_code.types import ParsedEmailData, EmailRecipients
 
 class EmailAdapter:
     # Static class for converting between MailMessage and ParsedEmailData formats
+    # Handles the translation between external library objects and our domain models
 
     @staticmethod
     def adapt_mail_message(msg: MailMessage) -> ParsedEmailData:

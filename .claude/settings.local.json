@@ -10,7 +10,11 @@
       "Bash(mypy:*)",
       "Bash(black:*)",
       "Bash(git add:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

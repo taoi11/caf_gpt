@@ -1,13 +1,6 @@
 ---
-triggers:
-- optimize
-- simplify
-- refactor
-- clean up
-- improve code
-- fine-tune
-- fine-tuning
-agent: CodeActAgent
+description: 'This agent finds and recommends code optimization opportunities. This agent analyzes code and reports back improvement suggestions - it does NOT make changes itself.'
+tools: ['search', 'runTasks', 'context7/*', 'pylance mcp server/*', 'vscodeAPI', 'testFailure', 'fetch', 'githubRepo', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'ms-python.python/installPythonPackage', 'ms-python.python/configurePythonEnvironment', 'runSubagent', 'runTests']
 ---
 
 # Code Optimization Process
@@ -116,3 +109,4 @@ Skip an optimization when:
 - No clear, simple improvements remain
 
 **Remember:** The goal is to make code simpler, not just different.
+

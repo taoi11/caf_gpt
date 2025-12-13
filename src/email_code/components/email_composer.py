@@ -9,22 +9,23 @@ Top-level declarations:
 """
 
 from typing import Dict, Optional, Any
+import logging
 import jinja2
 from markupsafe import Markup, escape
 from pathlib import Path
 import re
 
-from src.utils.app_logging import get_logger
 from src.config import config
 from src.email_code.types import ReplyData, ParsedEmailData
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 TEMPLATE_DIR = "src/email_code/templates"
 
 
 class EmailComposer:
     # Class for composing email replies using Jinja templates
+    # Builds properly formatted emails with threading headers and original message quoting
 
     def __init__(self) -> None:
         # Initialize Jinja environment with template directory
@@ -124,17 +125,17 @@ class EmailComposer:
     def _format_subject(reply_subject: Optional[str], original_subject: str) -> str:
         # Format subject with 'Re:' prefix if not present, preferring reply_subject
         try:
-            if reply_subject:
-                # Ensure 'Re:' if replying but not present
-                if not reply_subject.startswith("Re:") and original_subject:
-                    return f"Re: {reply_subject}"
-                return reply_subject
-            # Fallback to original with Re:
-            if original_subject:
-                if not original_subject.startswith("Re:"):
-                    return f"Re: {original_subject}"
-                return original_subject
-            return "Re:"
+            # Choose which subject to use
+            chosen_subject = reply_subject if reply_subject else original_subject
+            
+            if not chosen_subject:
+                return "Re:"
+            
+            # Add 'Re:' prefix if not already present
+            if not chosen_subject.startswith("Re:"):
+                return f"Re: {chosen_subject}"
+            return chosen_subject
+            
         except Exception as e:
             logger.error(f"Failed to format subject: {e} original_subject={original_subject}")
             return "Re:"

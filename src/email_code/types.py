@@ -15,12 +15,14 @@ from pydantic import BaseModel, EmailStr, field_validator, Field
 
 class EmailRecipients(BaseModel):
     # Model for email recipient lists with to and cc fields
+    # Used for storing and validating email recipients
     to: List[EmailStr] = Field(default_factory=list)
     cc: List[EmailStr] = Field(default_factory=list)
 
 
 class ParsedEmailData(BaseModel):
     # Model for parsed incoming email data with all required fields
+    # Represents the structure of an incoming email
     message_id: str
     from_addr: EmailStr
     recipients: EmailRecipients = Field(default_factory=EmailRecipients)
@@ -38,6 +40,7 @@ class ParsedEmailData(BaseModel):
 
 class ReplyData(BaseModel):
     # Model for email reply data structure with threading support
+    # Used for constructing email replies with proper threading headers
     to: List[EmailStr]
     cc: List[EmailStr] = Field(default_factory=list)
     subject: str
