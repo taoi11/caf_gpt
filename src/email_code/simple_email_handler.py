@@ -67,7 +67,7 @@ class SimpleEmailProcessor:
                 self._stop_event.wait(self._config.email_process_interval)
         finally:
             logger.info("IMAP poll loop stopped")
-            self._connector.disconnect()
+            
 
     def stop(self) -> None:
         # Signal the processing loop to stop

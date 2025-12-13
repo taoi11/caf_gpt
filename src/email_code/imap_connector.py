@@ -94,6 +94,3 @@ class IMAPConnector:
             logger.error(f"Failed to move uid={uid} to Junk: {error}")
             raise IMAPConnectorError(f"failed to move {uid} to Junk: {error}") from error
 
-    def disconnect(self) -> None:
-        # No-op: All connections are handled by context managers that automatically cleanup
-        pass

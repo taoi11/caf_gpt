@@ -11,8 +11,6 @@ Top-level declarations:
 import logging
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
-
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 
