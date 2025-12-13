@@ -240,8 +240,7 @@ class SimpleEmailProcessor:
         preview = data.body.strip()[:200] if data.body else ""
         return LoggedEmail(uid=uid, sender=sender, subject=subject, preview=preview)
 
-    @staticmethod
-    def _log_email(entry: LoggedEmail) -> None:
+    def _log_email(self, entry: LoggedEmail) -> None:
         # Log email entry with truncated preview for readability
         preview = entry.preview[:50] + "..." if len(entry.preview) > 50 else entry.preview
         logger.info(
