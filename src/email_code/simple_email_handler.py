@@ -220,12 +220,11 @@ class SimpleEmailProcessor:
         )
 
         # Send reply
-        email_logger.info("Sending agent reply")
+        email_logger.debug("Sending agent reply")
         sent = self.sender.send_reply(reply_data, parsed_data, agent_email)
         if sent:
-            email_logger.info("Agent reply sent successfully")
+            email_logger.info("Agent reply sent and email marked as read")
             self._connector.mark_seen(uid_str)
-            email_logger.info("Email marked as read")
         else:
             email_logger.error("Failed to send agent reply - email left unread for retry")
 
@@ -234,15 +233,16 @@ class SimpleEmailProcessor:
         return EmailAdapter.adapt_mail_message(msg)
 
     def _build_log_entry(self, uid: str, data: ParsedEmailData) -> LoggedEmail:
-        # Construct LoggedEmail instance from parsed data
+        # Construct LoggedEmail instance from parsed data with truncated preview
         sender = data.from_addr
         subject = data.subject or "<no subject>"
-        preview = data.body.strip()[:200] if data.body else ""
+        body_preview = data.body.strip() if data.body else ""
+        # Truncate preview to 50 chars for logging readability
+        preview = body_preview[:50] + "..." if len(body_preview) > 50 else body_preview
         return LoggedEmail(uid=uid, sender=sender, subject=subject, preview=preview)
 
     def _log_email(self, entry: LoggedEmail) -> None:
-        # Log email entry with truncated preview for readability
-        preview = entry.preview[:50] + "..." if len(entry.preview) > 50 else entry.preview
+        # Log email entry with already-truncated preview
         logger.info(
-            f"Received email uid={entry.uid} from={entry.sender} subject={entry.subject} preview={preview}"
+            f"Received email uid={entry.uid} from={entry.sender} subject={entry.subject} preview={entry.preview}"
         )

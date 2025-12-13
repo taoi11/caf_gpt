@@ -12,7 +12,7 @@ Top-level declarations:
 from contextlib import asynccontextmanager
 import logging
 import threading
-from typing import Callable, Any, AsyncGenerator
+from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -49,26 +49,6 @@ _setup_logging()
 logger = logging.getLogger(__name__)
 
 
-class StoppableThread:
-    # Helper to run stoppable loop in thread with graceful shutdown
-    def __init__(self, target: Callable[..., Any], args: tuple[Any, ...] = ()) -> None:
-        self.target = target
-        self.args = args
-        self.stop_event = threading.Event()
-        self.thread = threading.Thread(target=self._run, daemon=True)
-        self.thread.start()
-
-    def _run(self) -> None:
-        # Main thread execution loop that runs target function until stop event is set
-        while not self.stop_event.wait(timeout=1):  # Check every second
-            self.target(*self.args)
-
-    def stop(self) -> None:
-        # Gracefully stop the thread by setting stop event and waiting for completion
-        self.stop_event.set()
-        self.thread.join(timeout=5)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup: Initialize components and start email queue processor in background thread
@@ -77,10 +57,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Initialize email processor with imap_tools
     processor = SimpleEmailProcessor(config.email)
 
-    # Start processor in stoppable thread
-    processor_thread = StoppableThread(target=processor.run_loop)
+    # Start processor in daemon thread
+    processor_thread = threading.Thread(target=processor.run_loop, daemon=True)
+    processor_thread.start()
     logger.info(
-        "Email queue processor thread started", extra={"thread_id": processor_thread.thread.ident}
+        "Email queue processor thread started", extra={"thread_id": processor_thread.ident}
     )
 
     try:
@@ -88,8 +69,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     finally:
         logger.info("Application shutting down")
         processor.stop()
-        processor_thread.stop()
-        if processor_thread.thread.is_alive():
+        processor_thread.join(timeout=5)
+        if processor_thread.is_alive():
             logger.warning("Processor thread did not stop within timeout")
         else:
             logger.info("Email queue processor stopped gracefully")

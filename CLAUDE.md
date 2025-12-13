@@ -110,7 +110,7 @@ Every Python module must have a module docstring at the **very top** that:
 2. States the responsibility/purpose of the code in the file
 3. Lists all top-level functions or classes
 
-#### Example:
+### Example
 ```python
 """
 src/utils/env_utils.py
@@ -128,7 +128,7 @@ Every top-level function or class must have inline # comments immediately after 
 2. Provide additional context about its purpose or behavior
 3. Minimum one line, maximum three lines
 
-#### Example:
+### Example
 ```python
 def my_function():
     # Brief description expanding on the module docstring reference
