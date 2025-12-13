@@ -53,6 +53,15 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
         from markupsafe import Markup
         return content + Markup(self.SIGNATURE)
 
+    def _handle_agent_errors(self, agent_name: str, error: Exception) -> AgentResponse:
+        # Centralized error handling for agent processing failures
+        # Logs specific error types and returns generic error response
+        if isinstance(error, XMLParseError):
+            logger.error(f"XML parse failed in {agent_name}: {error.parse_error}")
+        else:
+            logger.error(f"Error in {agent_name}: {error}")
+        return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
+
     @circuit_breaker(max_calls=6)
     def process_email_with_prime_foo(self, email_context: str) -> AgentResponse:
         # Main coordination loop: send to prime_foo, parse response, handle research/reply/no_response iteratively
@@ -97,12 +106,8 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                     )
                 else:
                     return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
-        except XMLParseError as e:
-            logger.error(f"XML parse failed after retry: {e.parse_error}")
-            return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
-        except Exception as e:
-            logger.error(f"Error in coordination: {e}")
-            return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
+        except (XMLParseError, Exception) as e:
+            return self._handle_agent_errors("prime_foo coordination", e)
 
     def parse_prime_foo_response(self, response: str) -> PrimeFooResponse:
         # Parse XML for prime_foo responses using shared parser with research handler
@@ -161,9 +166,5 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
             else:
                 return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
 
-        except XMLParseError as e:
-            logger.error(f"XML parse failed in feedback note: {e.parse_error}")
-            return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
-        except Exception as e:
-            logger.error(f"Error in feedback note coordination: {e}")
-            return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
+        except (XMLParseError, Exception) as e:
+            return self._handle_agent_errors("feedback note coordination", e)
