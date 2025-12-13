@@ -16,7 +16,6 @@ docker-compose up --build
 # Tests (always run before pushing - we debug on main)
 pytest                    # Run all tests
 pytest -v                 # Verbose output
-pytest tests/test_email.py  # Specific file
 ```
 
 ### Development Philosophy
