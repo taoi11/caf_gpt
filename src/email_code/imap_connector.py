@@ -69,19 +69,10 @@ class IMAPConnector:
 
                 logger.info(f"Fetching {len(uids)} unseen messages without attachments")
 
-                # Fetch messages using custom command that excludes attachment bodies
-                # Use BODY.PEEK to not mark as seen, fetch only headers and text parts
-                msgs = []
-                for uid in uids:
-                    try:
-                        # Fetch message with text content but minimal attachment data
-                        # This fetches headers, text/plain, text/html but not attachment bodies
-                        msg_list = list(mb.fetch(f"UID {uid}", mark_seen=False))
-                        if msg_list:
-                            msgs.append(msg_list[0])
-                    except Exception as e:
-                        logger.warning(f"Failed to fetch UID {uid}: {e}")
-                        continue
+                # Batch fetch all messages in a single call to avoid N+1 query pattern
+                # Build UID criteria string (e.g., "UID 1,2,3")
+                uid_str = ",".join(uids)
+                msgs = list(mb.fetch(f"UID {uid_str}", mark_seen=False))
 
                 # Sort by date (oldest first)
                 if msgs:

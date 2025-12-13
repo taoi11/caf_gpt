@@ -53,6 +53,9 @@ class FeedbackNoteAgent:
         # Get base prompt with placeholders
         base_prompt = self._get_base_prompt()
 
+        # Load examples once at the start to avoid redundant S3 calls in rank loop
+        examples = self._load_examples()
+
         messages = [
             {"role": "system", "content": base_prompt},
             {"role": "user", "content": email_context},
@@ -79,9 +82,8 @@ class FeedbackNoteAgent:
                 if not parsed.rank:
                     raise RuntimeError("Rank type received but rank value is None")
 
-                # Load competencies for requested rank
+                # Load competencies for requested rank (examples already cached above)
                 competency_list = self._load_competencies(parsed.rank)
-                examples = self._load_examples()
 
                 # Continue conversation by appending to existing messages
                 messages.append({"role": "assistant", "content": response})

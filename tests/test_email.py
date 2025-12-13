@@ -79,8 +79,8 @@ def test_imap_connector_fetch_unseen_sorted(mock_mailbox, mock_config):
     mock_msg2.uid = "1"
     mock_msg2.date = datetime(2023, 1, 1)  # Older
 
-    # Mock fetch to return one message at a time
-    mock_mb.fetch.side_effect = [[mock_msg2], [mock_msg1]]
+    # Mock fetch to return all messages in one batch call
+    mock_mb.fetch.return_value = [mock_msg2, mock_msg1]
 
     connector = IMAPConnector(mock_config)
     msgs = connector.fetch_unseen_sorted()
