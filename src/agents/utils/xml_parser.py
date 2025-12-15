@@ -36,7 +36,7 @@ def parse_xml_response(
     try:
         # Known tags we're looking for
         known_tags = ["reply", "no_response", "research", "rank", "feedback_note"]
-        
+
         # Try to find any of our known tags (handle both <tag>...</tag> and <tag/>)
         for tag in known_tags:
             # First try self-closing tag
@@ -45,14 +45,14 @@ def parse_xml_response(
             if match:
                 # Self-closing tag with no content
                 return ParsedXMLResponse(type=tag, content="", extra=None)
-            
+
             # Then try regular tag with content
             pattern = f"<{tag}>(.*?)</{tag}>"
             match = re.search(pattern, response, re.DOTALL)
             if match:
                 # Extract the full tag with content
                 xml_content = match.group(0)
-                
+
                 # Parse the extracted XML
                 root = ET.fromstring(xml_content)
                 type_ = root.tag
@@ -73,10 +73,14 @@ def parse_xml_response(
                     if body_elem is not None and body_elem.text:
                         content = body_elem.text.strip()
 
-                return ParsedXMLResponse(type=type_, content=content, extra=extra if extra else None)
-        
+                return ParsedXMLResponse(
+                    type=type_, content=content, extra=extra if extra else None
+                )
+
         # No known tags found
-        raise XMLParseError(response, "No valid XML tags found (reply, no_response, research, rank, feedback_note)")
+        raise XMLParseError(
+            response, "No valid XML tags found (reply, no_response, research, rank, feedback_note)"
+        )
 
     except ET.ParseError as e:
         raise XMLParseError(response, str(e))

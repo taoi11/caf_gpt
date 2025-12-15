@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from contextlib import contextmanager
 from typing import Generator, List
-from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags  # type: ignore[attr-defined]
+from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags
 from datetime import datetime
 from src.config import EmailConfig
 
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class IMAPConnectorError(Exception):
     """Custom exception raised when IMAP operations fail"""
+
     # Used for error handling in IMAP operations
 
     pass
@@ -39,7 +40,7 @@ class IMAPConnector:
     @contextmanager
     def mailbox(self) -> Generator[BaseMailBox, None, None]:
         # Context manager for IMAP connection using imap_tools
-        with MailBox(self._config.imap_host, self._config.imap_port).login(  # type: ignore[no-untyped-call]
+        with MailBox(self._config.imap_host, self._config.imap_port).login(
             self._config.imap_username, self._config.imap_password
         ) as mb:
             yield mb
@@ -93,4 +94,3 @@ class IMAPConnector:
         except Exception as error:
             logger.error(f"Failed to move uid={uid} to Junk: {error}")
             raise IMAPConnectorError(f"failed to move {uid} to Junk: {error}") from error
-

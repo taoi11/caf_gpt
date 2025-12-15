@@ -13,7 +13,13 @@ import xml.etree.ElementTree as ET
 
 
 from .prompt_manager import PromptManager
-from .types import AgentResponse, PrimeFooResponse, ResearchRequest, FeedbackNoteRequest, XMLParseError
+from .types import (
+    AgentResponse,
+    PrimeFooResponse,
+    ResearchRequest,
+    FeedbackNoteRequest,
+    XMLParseError,
+)
 from .sub_agents.leave_foo_agent import LeaveFooAgent
 from .sub_agents.pacenote_agent import PacenoteAgent
 from .llm_utils import call_llm_with_retry, circuit_breaker, increment_circuit_breaker
@@ -50,6 +56,7 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
     def _add_signature(self, content: str) -> str:
         # Append signature to reply content, marking HTML as safe for email composer
         from markupsafe import Markup
+
         return content + Markup(self.SIGNATURE)
 
     def _handle_agent_errors(self, agent_name: str, error: Exception) -> AgentResponse:

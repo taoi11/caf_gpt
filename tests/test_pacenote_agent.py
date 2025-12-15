@@ -15,7 +15,9 @@ from src.agents.sub_agents.pacenote_agent import PacenoteAgent, RANK_FILES
 def mock_prompt_manager():
     # Mock PromptManager for testing
     manager = Mock()
-    manager.get_prompt.return_value = "Test prompt with {{competencies}} and {{examples}} for {{rank}}"
+    manager.get_prompt.return_value = (
+        "Test prompt with {{competencies}} and {{examples}} for {{rank}}"
+    )
     return manager
 
 
@@ -29,13 +31,18 @@ def pacenote_agent(mock_prompt_manager):
 @patch("src.agents.sub_agents.pacenote_agent.llm_client")
 def test_generate_note_success(mock_llm_client, pacenote_agent):
     # Test that generate_note returns LLM response for valid rank and context
-    mock_llm_client.generate_response.return_value = "The member organized a successful event. This demonstrates strong leadership competencies."
+    mock_llm_client.generate_response.return_value = (
+        "The member organized a successful event. This demonstrates strong leadership competencies."
+    )
 
     with patch.object(pacenote_agent, "_load_competencies", return_value="Mock competencies"):
         with patch.object(pacenote_agent, "_load_examples", return_value="Mock examples"):
             result = pacenote_agent.generate_note("mcpl", "MCpl Smith organized a BBQ event")
 
-    assert result == "The member organized a successful event. This demonstrates strong leadership competencies."
+    assert (
+        result
+        == "The member organized a successful event. This demonstrates strong leadership competencies."
+    )
     assert mock_llm_client.generate_response.call_count == 1
 
 
@@ -46,7 +53,9 @@ def test_generate_note_with_different_ranks(mock_llm_client, pacenote_agent):
 
     for rank in ["cpl", "mcpl", "sgt", "wo"]:
         mock_llm_client.reset_mock()
-        with patch.object(pacenote_agent, "_load_competencies", return_value=f"Competencies for {rank}"):
+        with patch.object(
+            pacenote_agent, "_load_competencies", return_value=f"Competencies for {rank}"
+        ):
             with patch.object(pacenote_agent, "_load_examples", return_value="Mock examples"):
                 result = pacenote_agent.generate_note(rank, "Test context")
 

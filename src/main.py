@@ -60,9 +60,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Start processor in daemon thread
     processor_thread = threading.Thread(target=processor.run_loop, daemon=True)
     processor_thread.start()
-    logger.info(
-        "Email queue processor thread started", extra={"thread_id": processor_thread.ident}
-    )
+    logger.info("Email queue processor thread started", extra={"thread_id": processor_thread.ident})
 
     try:
         yield

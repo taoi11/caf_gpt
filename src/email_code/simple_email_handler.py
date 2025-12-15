@@ -16,7 +16,7 @@ import textwrap
 import threading
 
 from dataclasses import dataclass
-from imap_tools import MailMessage  # type: ignore[attr-defined]
+from imap_tools import MailMessage
 
 from src.config import EmailConfig, should_trigger_agent, POLICY_AGENT_EMAIL, PACENOTE_AGENT_EMAIL
 from src.email_code.imap_connector import IMAPConnector, IMAPConnectorError
@@ -67,7 +67,6 @@ class SimpleEmailProcessor:
                 self._stop_event.wait(self._config.email_process_interval)
         finally:
             logger.info("IMAP poll loop stopped")
-            
 
     def stop(self) -> None:
         # Signal the processing loop to stop
@@ -114,7 +113,9 @@ class SimpleEmailProcessor:
                 return
 
             # Check which agent should process this email
-            email_logger.debug(f"Email recipients TO: {parsed_data.recipients.to}, CC: {parsed_data.recipients.cc}")
+            email_logger.debug(
+                f"Email recipients TO: {parsed_data.recipients.to}, CC: {parsed_data.recipients.cc}"
+            )
             agent_type = should_trigger_agent(parsed_data.recipients.to)
 
             if agent_type:
@@ -163,8 +164,9 @@ class SimpleEmailProcessor:
         pacenote_indicator = ""
         if is_pacenote:
             pacenote_indicator = "\n[NOTE: This email was sent to pacenote@caf-gpt.com - the user wants a feedback note]"
-        
-        return textwrap.dedent(f"""
+
+        return textwrap.dedent(
+            f"""
             Subject: {parsed_data.subject or '<no subject>'}
             From: {parsed_data.from_addr}
             To: {', '.join(parsed_data.recipients.to)}
@@ -172,7 +174,8 @@ class SimpleEmailProcessor:
 
             Body:
             {parsed_data.body}
-        """).strip()
+        """
+        ).strip()
 
     def _get_agent_response(
         self,

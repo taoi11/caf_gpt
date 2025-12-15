@@ -103,6 +103,4 @@ class PacenoteAgent:
 
     def _call_with_context(self, messages: List[Dict[str, str]]) -> str:
         # Call llm_client with messages using pacenote model
-        return llm_client.generate_response(
-            messages, openrouter_model=config.llm.pacenote_model
-        )
+        return llm_client.generate_response(messages, openrouter_model=config.llm.pacenote_model)
