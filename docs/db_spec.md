@@ -108,8 +108,7 @@ The memory agent MUST follow these rules:
 | General role | "The user is a Corporal in a combat engineer trade" |
 | Interaction patterns | "Frequently asks about leave policy" |
 | Preferences | "Prefers concise, direct answers" |
-| Op names + high-level | "Participated in Op REASSURANCE" |
-| Agent preferences | "Primarily uses the pacenote agent for MCpl feedback notes" |
+| Op names + high-level | "Participated in Op REASSURANCE as an EO Tech" |
 
 ### NOT ALLOWED
 
@@ -119,7 +118,7 @@ The memory agent MUST follow these rules:
 | Service numbers | Any SN format (e.g., A12 345 678) |
 | Specific dates | "Going on leave March 15th" |
 | Unit/location | "Posted to 1 CER Edmonton" |
-| Detailed op info | Specific roles, dates, locations within operations |
+| Detailed op info | Specific dates, locations within operations |
 
 ## Integration with Agents
 
