@@ -7,21 +7,15 @@ FastAPI for healthy API endpoints.
 ## Essential Workflows
 ### Running & Testing
 ```bash
-# Run locally (uses .env for config)
-uvicorn src.main:app --reload
-
-# Docker (preferred for production)
-docker-compose up --build
-
 # Tests (always run before pushing - we debug on main)
 pytest -q                 # Run all tests
 pytest -v                 # Verbose output
 ```
 
 ### Development Philosophy
-- **"Leroy Jenkins - We push to main"**: This is a hobby app, direct commits to main are expected
+- **"Leroy Jenkins - We push to main"**: This is a hobby app, debugging directly on main is expected
 - Always run tests before pushing to validate changes
-- No staging/dev branch complexity - debug in production if needed
+- No staging branch complexity - build on dev and fix on main
 
 ## Agent Architecture Patterns
 ### Email Routing
@@ -47,14 +41,13 @@ Emails route to agents based on **recipient address** (`src/config.py:should_tri
 ### XML Parsing with Retry
 All agents use `call_llm_with_retry()` pattern:
 - Parse LLM response as XML
-- On `XMLParseError`: send parse error back to LLM, retry once
-- No more retries after first failure - raises exception for error handling
+- On `XMLParseError`: send parse error back to LLM, retry ONCE only
 
 ## Storage & Document Retrieval
 S3 organization: `s3://bucket/category/filename`
 - Categories: `leave/` (policy docs), `paceNote/` (rank competencies)
 - Access via: `document_retriever.get_document("paceNote", "mcpl.md")`
-- DocumentRetriever handles encoding detection (UTF-8 → ISO-8859-1 fallback)
+- All documents are UTF-8 encoded markdown files
 
 ## Adding New Agents/Sub-agents
 1. Create agent class in `src/agents/sub_agents/your_agent.py`
