@@ -7,6 +7,7 @@ Top-level declarations:
 - AgentResponse: Final response from coordinator (reply, no_response, or error)
 - PrimeFooResponse: Parsed prime_foo response structure
 - ResearchRequest: Sub-agent research query with multiple queries and agent type
+- FeedbackNoteRequest: Request for pacenote sub-agent with rank and context
 - XMLParseError: Exception raised when LLM response cannot be parsed as valid XML
 """
 
@@ -46,12 +47,19 @@ class AgentResponse(BaseModel):
 
 class PrimeFooResponse(BaseModel):
     # Parsed prime_foo response structure
-    type: str  # 'no_response', 'research', 'reply'
+    type: str  # 'no_response', 'research', 'reply', 'feedback_note'
     content: Optional[str] = None
     research: Optional["ResearchRequest"] = None
+    feedback_note: Optional["FeedbackNoteRequest"] = None
 
 
 class ResearchRequest(BaseModel):
     # Sub-agent research query with multiple queries and agent type
     queries: List[str]
     agent_type: str  # e.g., 'leave_foo'
+
+
+class FeedbackNoteRequest(BaseModel):
+    # Request for pacenote sub-agent with rank and event context
+    rank: str  # e.g., 'mcpl', 'cpl', 'sgt', 'wo'
+    context: str  # Description of events extracted by prime_foo

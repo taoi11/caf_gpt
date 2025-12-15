@@ -20,7 +20,7 @@ from src.agents.types import XMLParseError
 @dataclass
 class ParsedXMLResponse:
     # Base structure for parsed XML responses with common fields
-    type: str  # Response type from XML root tag (reply, no_response, research, rank)
+    type: str  # Response type from XML root tag (reply, no_response, research, rank, feedback_note)
     content: Optional[str] = None  # Text content from response
     extra: Optional[Dict[str, Any]] = None  # Additional type-specific data
 
@@ -29,13 +29,13 @@ def parse_xml_response(
     response: str,
     type_handlers: Optional[Dict[str, Callable[[ET.Element], Dict[str, Any]]]] = None,
 ) -> ParsedXMLResponse:
-    # Parse XML response by extracting known tags (reply, no_response, research, rank)
+    # Parse XML response by extracting known tags (reply, no_response, research, rank, feedback_note)
     # Ignores everything outside the tags (markdown fences, explanations, etc)
     # Custom handlers can extract additional data into 'extra' field
     # Raises XMLParseError if no valid tags found or parsing fails
     try:
         # Known tags we're looking for
-        known_tags = ["reply", "no_response", "research", "rank"]
+        known_tags = ["reply", "no_response", "research", "rank", "feedback_note"]
         
         # Try to find any of our known tags (handle both <tag>...</tag> and <tag/>)
         for tag in known_tags:
@@ -76,7 +76,7 @@ def parse_xml_response(
                 return ParsedXMLResponse(type=type_, content=content, extra=extra if extra else None)
         
         # No known tags found
-        raise XMLParseError(response, "No valid XML tags found (reply, no_response, research, rank)")
+        raise XMLParseError(response, "No valid XML tags found (reply, no_response, research, rank, feedback_note)")
 
     except ET.ParseError as e:
         raise XMLParseError(response, str(e))

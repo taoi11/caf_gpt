@@ -13,9 +13,9 @@ import xml.etree.ElementTree as ET
 
 
 from .prompt_manager import PromptManager
-from .types import AgentResponse, PrimeFooResponse, ResearchRequest, XMLParseError
+from .types import AgentResponse, PrimeFooResponse, ResearchRequest, FeedbackNoteRequest, XMLParseError
 from .sub_agents.leave_foo_agent import LeaveFooAgent
-from .feedback_note_agent import FeedbackNoteAgent, FeedbackNoteResponse
+from .sub_agents.pacenote_agent import PacenoteAgent
 from .llm_utils import call_llm_with_retry, circuit_breaker, increment_circuit_breaker
 from .utils.xml_parser import parse_xml_response
 from src.config import config
@@ -41,12 +41,11 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
         self.prompt_manager = prompt_manager
         self.sub_agents: Dict[str, Any] = {}
         self._load_sub_agents()
-        # Initialize feedback note agent
-        self.feedback_note_agent = FeedbackNoteAgent(self.prompt_manager)
 
     def _load_sub_agents(self) -> None:
-        # Dynamically load sub-agents like LeaveFooAgent with prompt manager access
+        # Dynamically load sub-agents like LeaveFooAgent and PacenoteAgent
         self.sub_agents["leave_foo"] = LeaveFooAgent(self.prompt_manager)
+        self.sub_agents["pacenote"] = PacenoteAgent(self.prompt_manager)
 
     def _add_signature(self, content: str) -> str:
         # Append signature to reply content, marking HTML as safe for email composer
@@ -64,7 +63,7 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
 
     @circuit_breaker(max_calls=6)
     def process_email_with_prime_foo(self, email_context: str) -> AgentResponse:
-        # Main coordination loop: send to prime_foo, parse response, handle research/reply/no_response iteratively
+        # Main coordination loop: send to prime_foo, parse response, handle research/feedback_note/reply/no_response
         try:
             prime_prompt = self.prompt_manager.get_prompt("prime_foo")
             messages = [
@@ -93,14 +92,34 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                         return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
                     research_result = self.handle_research_request(parsed.research)
                     # Send research results back to prime_foo
-                    follow_up_messages = messages + [
+                    messages = messages + [
                         {"role": "assistant", "content": response},
                         {"role": "user", "content": f"Research results: {research_result}"},
                     ]
 
                     increment_circuit_breaker()
                     response, parsed = call_llm_with_retry(
-                        follow_up_messages,
+                        messages,
+                        config.llm.prime_foo_model,
+                        self.parse_prime_foo_response,
+                    )
+                elif parsed.type == "feedback_note":
+                    if not parsed.feedback_note:
+                        logger.error("Feedback note type received but feedback_note is None")
+                        return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
+                    note_result = self.handle_feedback_note_request(parsed.feedback_note)
+                    # Send feedback note back to prime_foo to wrap in reply
+                    messages = messages + [
+                        {"role": "assistant", "content": response},
+                        {
+                            "role": "user",
+                            "content": f"Here is the feedback note from the pacenote agent. Send this to the user exactly as-is, do not modify it:\n\n{note_result}",
+                        },
+                    ]
+
+                    increment_circuit_breaker()
+                    response, parsed = call_llm_with_retry(
+                        messages,
                         config.llm.prime_foo_model,
                         self.parse_prime_foo_response,
                     )
@@ -110,7 +129,7 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
             return self._handle_agent_errors("prime_foo coordination", e)
 
     def parse_prime_foo_response(self, response: str) -> PrimeFooResponse:
-        # Parse XML for prime_foo responses using shared parser with research handler
+        # Parse XML for prime_foo responses using shared parser with research and feedback_note handlers
         # Raises XMLParseError on failure
         def handle_research(root: ET.Element) -> Dict[str, Any]:
             # Extract research request with sub-agent and queries
@@ -125,11 +144,25 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                     return {"research": ResearchRequest(queries=queries, agent_type=agent_type)}
             return {}
 
-        parsed = parse_xml_response(response, type_handlers={"research": handle_research})
+        def handle_feedback_note(root: ET.Element) -> Dict[str, Any]:
+            # Extract feedback note request with rank and context
+            rank = root.get("rank", "")
+            context = root.text.strip() if root.text else ""
+            if rank and context:
+                return {"feedback_note": FeedbackNoteRequest(rank=rank, context=context)}
+            return {}
+
+        parsed = parse_xml_response(
+            response,
+            type_handlers={"research": handle_research, "feedback_note": handle_feedback_note},
+        )
 
         # Convert ParsedXMLResponse to PrimeFooResponse
         research = parsed.extra.get("research") if parsed.extra else None
-        return PrimeFooResponse(type=parsed.type, content=parsed.content, research=research)
+        feedback_note = parsed.extra.get("feedback_note") if parsed.extra else None
+        return PrimeFooResponse(
+            type=parsed.type, content=parsed.content, research=research, feedback_note=feedback_note
+        )
 
     def handle_research_request(self, research: ResearchRequest) -> str:
         # Delegate queries to sub-agent and aggregate responses
@@ -149,22 +182,12 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
         )
         return aggregated
 
-    def process_email_with_feedback_note(self, email_context: str) -> AgentResponse:
-        # Process email through feedback note agent for pacenote workflow
-        try:
-            parsed = self.feedback_note_agent.process_email(email_context)
+    def handle_feedback_note_request(self, request: FeedbackNoteRequest) -> str:
+        # Delegate feedback note generation to pacenote sub-agent
+        agent = self.sub_agents.get("pacenote")
+        if not agent:
+            raise ValueError("Pacenote sub-agent not found")
 
-            if parsed.type == "no_response":
-                return AgentResponse.no_response_result()
-            elif parsed.type == "reply":
-                # Append signature to feedback note replies
-                if not parsed.content:
-                    logger.error("Reply type received but content is None")
-                    return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
-                reply_with_signature = self._add_signature(parsed.content)
-                return AgentResponse.success(reply_with_signature)
-            else:
-                return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
-
-        except (XMLParseError, Exception) as e:
-            return self._handle_agent_errors("feedback note coordination", e)
+        result: str = agent.generate_note(request.rank, request.context)
+        logger.info(f"Generated feedback note for rank {request.rank}")
+        return result

@@ -22,14 +22,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Only emails sent to this address should trigger the prime_foo agent workflow
 POLICY_AGENT_EMAIL = "agent@caf-gpt.com"
 
-# Email address for feedback note agent (pacenote)
-# Only emails sent to this address should trigger the feedback note agent workflow
+# Email address for feedback note requests (pacenote sub-agent)
+# Emails to this address are routed through prime_foo with pacenote context
 PACENOTE_AGENT_EMAIL = "pacenote@caf-gpt.com"
 
 
 def should_trigger_agent(to_addresses: List[str]) -> Optional[str]:
     # Determine which agent should process the email based on recipient address
-    # Returns: "policy" for policy agent, "pacenote" for feedback note agent, None if no agent needed
+    # Returns: "policy" for policy agent, "pacenote" for pacenote workflow (both handled by prime_foo)
     if PACENOTE_AGENT_EMAIL in to_addresses:
         return "pacenote"
     if POLICY_AGENT_EMAIL in to_addresses:
