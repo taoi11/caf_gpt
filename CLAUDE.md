@@ -147,5 +147,5 @@ Minimize inline comments within functions. **Only add them when:**
 - Redundant comments that explain self-documenting code
 - Excessive comments that clutter the code
 
-## Miscellaneous
+## Memories
 - Always prepend your commit message with `Claude:` to let everyone know this is your work
