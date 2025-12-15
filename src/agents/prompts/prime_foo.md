@@ -73,7 +73,7 @@ When you need to research CAF policies to answer the user's question. Use this t
 
 **IMPORTANT**: This is a unique workflow, different from research requests.
 
-When an email is sent to `pacenote@caf-gpt.com`, the user wants a feedback note. The email context will indicate this.
+When an email is sent to `pacenote@caf-gpt.com`, the user is explicitly requesting a feedback note. You must follow this workflow to generate the feedback note using the `pacenote` sub-agent.
 
 ### How it works
 1. Read the email and identify the rank of the member (Cpl, MCpl, Sgt, WO)
