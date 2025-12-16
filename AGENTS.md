@@ -141,4 +141,4 @@ Minimize inline comments within functions. **Only add them when:**
 - Excessive comments that clutter the code
 
 ## Memories
-- **Environment Setup Issue**: If you run into Python dependency issues, you must run `source venv/bin/activate && export PYTHONPATH="$PWD:$PYTHONPATH" && ... ` to replicate user's direnv Nix environment for proper module imports.
+- **Environment Setup Issue**: If you run into Python dependency issues, you must run `source venv/bin/activate && export PYTHONPATH="$PWD:$PYTHONPATH" && ...` to replicate user's direnv Nix environment for proper module imports.
