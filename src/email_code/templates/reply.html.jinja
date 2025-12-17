@@ -6,7 +6,7 @@
 </head>
 <body style="font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #000000;">
     <div>
-        {{ reply_body }}
+        {{ reply_body | safe }}
     </div>
 
     {% if original %}
