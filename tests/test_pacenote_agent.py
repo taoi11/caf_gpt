@@ -28,41 +28,50 @@ def pacenote_agent(mock_prompt_manager):
         return PacenoteAgent(mock_prompt_manager)
 
 
-@patch("src.agents.sub_agents.pacenote_agent.llm_client")
+@patch("src.agents.sub_agents.base_agent.llm_client")
 def test_generate_note_success(mock_llm_client, pacenote_agent):
     # Test that generate_note returns LLM response for valid rank and context
     mock_llm_client.generate_response.return_value = (
         "The member organized a successful event. This demonstrates strong leadership competencies."
     )
 
-    with patch.object(pacenote_agent, "_load_competencies", return_value="Mock competencies"):
-        with patch.object(pacenote_agent, "_load_examples", return_value="Mock examples"):
-            result = pacenote_agent.generate_note("mcpl", "MCpl Smith organized a BBQ event")
+    with patch.object(pacenote_agent, "_load_document") as mock_load_doc:
+        mock_load_doc.side_effect = ["Mock competencies", "Mock examples"]
+        result = pacenote_agent.generate_note("mcpl", "MCpl Smith organized a BBQ event")
 
     assert (
         result
         == "The member organized a successful event. This demonstrates strong leadership competencies."
     )
     assert mock_llm_client.generate_response.call_count == 1
+    # Verify _load_document was called with correct parameters
+    assert mock_load_doc.call_count == 2
+    mock_load_doc.assert_any_call(
+        "paceNote", "mcpl.md", "competencies for rank mcpl", "Competencies not available."
+    )
+    mock_load_doc.assert_any_call("paceNote", "examples.md", "examples", "Examples not available.")
 
 
-@patch("src.agents.sub_agents.pacenote_agent.llm_client")
+@patch("src.agents.sub_agents.base_agent.llm_client")
 def test_generate_note_with_different_ranks(mock_llm_client, pacenote_agent):
     # Test that generate_note works with different ranks
     mock_llm_client.generate_response.return_value = "Feedback note content"
 
     for rank in ["cpl", "mcpl", "sgt", "wo"]:
         mock_llm_client.reset_mock()
-        with patch.object(
-            pacenote_agent, "_load_competencies", return_value=f"Competencies for {rank}"
-        ):
-            with patch.object(pacenote_agent, "_load_examples", return_value="Mock examples"):
-                result = pacenote_agent.generate_note(rank, "Test context")
+        with patch.object(pacenote_agent, "_load_document") as mock_load_doc:
+            mock_load_doc.side_effect = [f"Competencies for {rank}", "Mock examples"]
+            result = pacenote_agent.generate_note(rank, "Test context")
 
         assert result == "Feedback note content"
+        # Verify correct rank file was requested
+        assert mock_load_doc.call_count == 2
+        mock_load_doc.assert_any_call(
+            "paceNote", f"{rank}.md", f"competencies for rank {rank}", "Competencies not available."
+        )
 
 
-@patch("src.agents.sub_agents.pacenote_agent.llm_client")
+@patch("src.agents.sub_agents.base_agent.llm_client")
 def test_generate_note_unknown_rank_defaults_to_cpl(mock_llm_client, pacenote_agent):
     # Test that unknown rank defaults to cpl competencies
     mock_llm_client.generate_response.return_value = "Feedback note content"
@@ -72,20 +81,25 @@ def test_generate_note_unknown_rank_defaults_to_cpl(mock_llm_client, pacenote_ag
         result = pacenote_agent.generate_note("unknown_rank", "Test context")
 
     # Should have tried to load cpl.md as fallback
-    calls = mock_load_doc.call_args_list
-    assert any("cpl.md" in str(call) for call in calls)
+    assert mock_load_doc.call_count == 2
+    mock_load_doc.assert_any_call(
+        "paceNote", "cpl.md", "competencies for rank unknown_rank", "Competencies not available."
+    )
+    mock_load_doc.assert_any_call("paceNote", "examples.md", "examples", "Examples not available.")
 
 
-@patch("src.agents.sub_agents.pacenote_agent.llm_client")
+@patch("src.agents.sub_agents.base_agent.llm_client")
 def test_generate_note_handles_llm_error(mock_llm_client, pacenote_agent):
     # Test that generate_note handles LLM errors gracefully
     mock_llm_client.generate_response.side_effect = Exception("LLM API error")
 
-    with patch.object(pacenote_agent, "_load_competencies", return_value="Mock competencies"):
-        with patch.object(pacenote_agent, "_load_examples", return_value="Mock examples"):
-            result = pacenote_agent.generate_note("cpl", "Test context")
+    with patch.object(pacenote_agent, "_load_document") as mock_load_doc:
+        mock_load_doc.side_effect = ["Mock competencies", "Mock examples"]
+        result = pacenote_agent.generate_note("cpl", "Test context")
 
     assert "couldn't generate the feedback note" in result
+    # Verify documents were loaded before LLM error occurred
+    assert mock_load_doc.call_count == 2
 
 
 def test_rank_files_mapping():
@@ -96,14 +110,21 @@ def test_rank_files_mapping():
     assert RANK_FILES["wo"] == "wo.md"
 
 
-@patch("src.agents.sub_agents.pacenote_agent.llm_client")
+@patch("src.agents.sub_agents.base_agent.llm_client")
 def test_prompt_includes_rank_and_context(mock_llm_client, pacenote_agent):
     # Test that the prompt is built with rank, competencies, and examples
     mock_llm_client.generate_response.return_value = "Feedback note"
 
-    with patch.object(pacenote_agent, "_load_competencies", return_value="Cpl competencies"):
-        with patch.object(pacenote_agent, "_load_examples", return_value="Example notes"):
-            pacenote_agent.generate_note("cpl", "Test context for Cpl Smith")
+    with patch.object(pacenote_agent, "_load_document") as mock_load_doc:
+        mock_load_doc.side_effect = ["Cpl competencies", "Example notes"]
+        pacenote_agent.generate_note("cpl", "Test context for Cpl Smith")
+
+    # Verify correct documents were loaded
+    assert mock_load_doc.call_count == 2
+    mock_load_doc.assert_any_call(
+        "paceNote", "cpl.md", "competencies for rank cpl", "Competencies not available."
+    )
+    mock_load_doc.assert_any_call("paceNote", "examples.md", "examples", "Examples not available.")
 
     # Check that LLM was called with messages containing the context
     call_args = mock_llm_client.generate_response.call_args

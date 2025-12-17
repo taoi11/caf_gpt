@@ -11,10 +11,9 @@ Top-level declarations:
 import logging
 from typing import Dict, List, Optional
 
-from src.utils.document_retriever import document_retriever
-from src.agents.llm_utils import llm_client
 from src.config import config
 from src.agents.prompt_manager import PromptManager
+from .base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
 
@@ -27,80 +26,40 @@ RANK_FILES = {
 }
 
 
-class PacenoteAgent:
+class PacenoteAgent(BaseAgent):
     # Agent handling feedback note generation with rank-specific competencies
 
     def __init__(self, prompt_manager: Optional[PromptManager] = None):
         # Initialize with prompt manager (uses shared document_retriever)
-        self.prompt_manager = prompt_manager
+        super().__init__(prompt_manager)
         self.s3_category = "paceNote"
 
     def generate_note(self, rank: str, context: str) -> str:
         # Main entry for feedback note generation: load competencies, build prompt, call LLM
         # Returns the generated feedback note text
         try:
-            competencies = self._load_competencies(rank)
-            examples = self._load_examples()
+            rank_file = RANK_FILES.get(rank.lower(), RANK_FILES["cpl"])
+            competencies = self._load_document(
+                "paceNote",
+                rank_file,
+                f"competencies for rank {rank}",
+                "Competencies not available.",
+            )
+            examples = self._load_document(
+                "paceNote", "examples.md", "examples", "Examples not available."
+            )
 
-            messages = self._build_prompt(rank, context, competencies, examples)
+            # Build prompt with policy and question
+            replacements = {
+                "{{competencies}}": competencies,
+                "{{examples}}": examples,
+                "{{rank}}": rank.upper(),
+            }
+            messages = self._build_prompt_with_replacements("pacenote", replacements, context)
 
-            response = self._call_with_context(messages)
+            # Call OpenRouter with context
+            response = self._call_with_context(messages, config.llm.pacenote_model)
             return response
         except Exception as e:
             logger.error(f"Error in pacenote generation: {e}")
             return "I'm sorry, but I couldn't generate the feedback note at this time."
-
-    def _load_competencies(self, rank: str) -> str:
-        # Load rank-specific competencies from S3
-        rank_lower = rank.lower()
-        rank_file = RANK_FILES.get(rank_lower)
-
-        if rank_file is None:
-            logger.warning(f"Unknown rank: {rank}, defaulting to cpl")
-            rank_file = RANK_FILES["cpl"]
-
-        return self._load_document(
-            rank_file,
-            f"competencies for rank {rank}",
-            "Competencies not available at this time.",
-        )
-
-    def _load_examples(self) -> str:
-        # Load feedback note examples from S3
-        return self._load_document(
-            "examples.md", "examples", "Examples not available at this time."
-        )
-
-    def _load_document(self, filename: str, doc_type: str, fallback_message: str) -> str:
-        # Load a document from S3 with consistent error handling and logging
-        document = document_retriever.get_document(self.s3_category, filename)
-
-        if document is None:
-            logger.error(f"Failed to load {doc_type}")
-            return fallback_message
-
-        logger.info(f"Successfully loaded {doc_type}")
-        return document
-
-    def _build_prompt(
-        self, rank: str, context: str, competencies: str, examples: str
-    ) -> List[Dict[str, str]]:
-        # Build LLM messages with pacenote prompt, competencies, and event context
-        if self.prompt_manager is None:
-            raise ValueError("PromptManager is required for PacenoteAgent")
-
-        base_prompt = self.prompt_manager.get_prompt("pacenote")
-
-        # Inject competencies and examples into prompt
-        system_prompt = base_prompt.replace("{{competencies}}", competencies)
-        system_prompt = system_prompt.replace("{{examples}}", examples)
-        system_prompt = system_prompt.replace("{{rank}}", rank.upper())
-
-        return [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": context},
-        ]
-
-    def _call_with_context(self, messages: List[Dict[str, str]]) -> str:
-        # Call llm_client with messages using pacenote model
-        return llm_client.generate_response(messages, openrouter_model=config.llm.pacenote_model)

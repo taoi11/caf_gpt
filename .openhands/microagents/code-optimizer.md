@@ -1,16 +1,11 @@
 ---
 triggers:
 - optimize
-- simplify
-- refactor
-- clean up
-- improve code
-- fine-tune
-- fine-tuning
+- optimise
 agent: CodeActAgent
 ---
 
-# Code Optimization Process
+# Code Optimization Philosophy
 
 _Perfection is not when there is nothing more to add, but rather when there is nothing left to take away._
 
@@ -66,7 +61,7 @@ Choose **ONE** thing to optimize. Consider these categories:
 ## Step 4: Present Your Recommendation
 Format your suggestion as:
 
-```
+```text
 I found an opportunity:
 
 **File[s]**: `path/to/file.py`, `path/to/another_file.py`
@@ -99,7 +94,6 @@ Once approved:
 4. Verify no errors introduced
 
 After changes, verify with tests, run relevant test commands for the project
-
 
 ## Core Principles
 1. **One thing at a time**: Focus on the next simplest improvement
