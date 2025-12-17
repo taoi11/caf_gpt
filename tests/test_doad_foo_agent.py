@@ -36,7 +36,7 @@ def doad_agent(mock_prompt_manager):
         return DoadFooAgent(mock_prompt_manager)
 
 
-class TestParseDoabNumbers:
+class TestParseDoadNumbers:
     # Tests for XML parsing of <doad_numbers> tag
 
     def test_parse_single_number(self, doad_agent):
