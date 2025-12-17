@@ -35,11 +35,7 @@ class AgentCoordinator:
     # Main class coordinating LLM calls, parsing, and sub-agent delegation
 
     # Signature appended to all agent replies (HTML format with proper links)
-    SIGNATURE = """
-
-CAF-GPT
-<a href="https://github.com/taoi11/caf_gpt">Source Code</a>
-How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/quick_start.md">Documentation</a>"""
+    SIGNATURE = """<br><br>CAF-GPT<br><a href="https://github.com/taoi11/caf_gpt">Source Code</a><br>How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/quick_start.md">Documentation</a>"""
 
     # Generic error message returned to users when processing fails
     GENERIC_ERROR_MSG = "An unexpected error occurred while processing your email."
@@ -60,7 +56,7 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
         # Append signature to reply content, marking HTML as safe for email composer
         from markupsafe import Markup
 
-        return content + Markup(self.SIGNATURE)
+        return Markup(content) + Markup(self.SIGNATURE)
 
     def _handle_agent_errors(self, agent_name: str, error: Exception) -> AgentResponse:
         # Centralized error handling for agent processing failures
