@@ -83,7 +83,7 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
 
             increment_circuit_breaker()
             response, parsed = call_llm_with_retry(
-                messages, config.llm.prime_foo_model, self.parse_prime_foo_response
+                messages, config.llm.prime_foo_model, self.parse_prime_foo_response, log_response=True
             )
 
             while True:
@@ -114,6 +114,7 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                         messages,
                         config.llm.prime_foo_model,
                         self.parse_prime_foo_response,
+                        log_response=True,
                     )
                 elif parsed.type == ResponseType.FEEDBACK_NOTE:
                     if not parsed.feedback_note:
@@ -136,6 +137,7 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                         messages,
                         config.llm.prime_foo_model,
                         self.parse_prime_foo_response,
+                        log_response=True,
                     )
                 else:
                     return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
