@@ -4,6 +4,7 @@ src/config.py
 Centralized configuration management using Pydantic for the application, including email, LLM, and storage settings.
 
 Top-level declarations:
+- AgentType: Enum for agent routing types (policy, pacenote)
 - EmailConfig: Configuration for IMAP email access and processing
 - LLMConfig: Settings for the LLM model and API
 - StorageConfig: S3 storage configuration
@@ -13,10 +14,19 @@ Top-level declarations:
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class AgentType(str, Enum):
+    # Enum for agent routing based on recipient email address
+    # Used for routing decisions in email processing
+    POLICY = "policy"
+    PACENOTE = "pacenote"
+
 
 # Email address for policy-related agents (prime_foo)
 # Only emails sent to this address should trigger the prime_foo agent workflow
@@ -27,13 +37,13 @@ POLICY_AGENT_EMAIL = "agent@caf-gpt.com"
 PACENOTE_AGENT_EMAIL = "pacenote@caf-gpt.com"
 
 
-def should_trigger_agent(to_addresses: List[str]) -> Optional[str]:
+def should_trigger_agent(to_addresses: List[str]) -> Optional[AgentType]:
     # Determine which agent should process the email based on recipient address
-    # Returns: "policy" for policy agent, "pacenote" for pacenote workflow (both handled by prime_foo)
+    # Returns: AgentType.POLICY or AgentType.PACENOTE, or None if no match
     if PACENOTE_AGENT_EMAIL in to_addresses:
-        return "pacenote"
+        return AgentType.PACENOTE
     if POLICY_AGENT_EMAIL in to_addresses:
-        return "policy"
+        return AgentType.POLICY
     return None
 
 

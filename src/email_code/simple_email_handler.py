@@ -19,7 +19,7 @@ import threading
 from dataclasses import dataclass
 from imap_tools import MailMessage, BaseMailBox  # type: ignore[attr-defined]
 
-from src.config import EmailConfig, should_trigger_agent, POLICY_AGENT_EMAIL, PACENOTE_AGENT_EMAIL
+from src.config import EmailConfig, should_trigger_agent, AgentType, POLICY_AGENT_EMAIL, PACENOTE_AGENT_EMAIL
 from src.email_code.imap_connector import IMAPConnector, IMAPConnectorError
 from src.email_code.types import ParsedEmailData, ReplyData
 from src.email_code.components.email_adapter import EmailAdapter
@@ -136,14 +136,14 @@ class SimpleEmailProcessor:
     def _process_with_agent(
         self,
         parsed_data: ParsedEmailData,
-        agent_type: str,
+        agent_type: AgentType,
         uid_str: str,
         email_logger: logging.LoggerAdapter[logging.Logger],
         mb: BaseMailBox,
     ) -> None:
         # Route email to appropriate agent and handle response
         # Uses shared mailbox connection for mark_seen operations
-        is_pacenote = agent_type == "pacenote"
+        is_pacenote = agent_type == AgentType.PACENOTE
         email_context = self._build_email_context(parsed_data, is_pacenote=is_pacenote)
 
         # Process with appropriate agent coordinator
@@ -185,28 +185,28 @@ class SimpleEmailProcessor:
 
     def _get_agent_response(
         self,
-        agent_type: str,
+        agent_type: AgentType,
         email_context: str,
         email_logger: logging.LoggerAdapter[logging.Logger],
         uid_str: str,
         mb: BaseMailBox,
     ) -> tuple[AgentResponse, str] | tuple[None, None]:
         # Get response from prime_foo agent (handles both policy and pacenote)
-        # agent_type determines which email address to use for replies
-        if agent_type == "policy":
-            return (
-                self.coordinator.process_email_with_prime_foo(email_context),
-                POLICY_AGENT_EMAIL,
-            )
-        elif agent_type == "pacenote":
-            return (
-                self.coordinator.process_email_with_prime_foo(email_context),
-                PACENOTE_AGENT_EMAIL,
-            )
-        else:
+        # Maps agent_type to appropriate reply email address
+        agent_email_map = {
+            AgentType.POLICY: POLICY_AGENT_EMAIL,
+            AgentType.PACENOTE: PACENOTE_AGENT_EMAIL,
+        }
+        agent_email = agent_email_map.get(agent_type)
+        if agent_email is None:
             email_logger.warning(f"Unknown agent type: {agent_type}")
             self._connector.mark_seen(uid_str, mb)
             return None, None
+
+        return (
+            self.coordinator.process_email_with_prime_foo(email_context),
+            agent_email,
+        )
 
     def _send_agent_reply(
         self,

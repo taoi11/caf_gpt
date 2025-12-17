@@ -12,6 +12,7 @@ from typing import Dict, Any
 import xml.etree.ElementTree as ET
 
 
+from .constants import ResponseType
 from .prompt_manager import PromptManager
 from .types import (
     AgentResponse,
@@ -84,16 +85,16 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
             )
 
             while True:
-                if parsed.type == "no_response":
+                if parsed.type == ResponseType.NO_RESPONSE:
                     return AgentResponse.no_response_result()
-                elif parsed.type == "reply":
+                elif parsed.type == ResponseType.REPLY:
                     # Append signature to policy agent replies
                     if not parsed.content:
                         logger.error("Reply type received but content is None")
                         return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
                     reply_with_signature = self._add_signature(parsed.content)
                     return AgentResponse.success(reply_with_signature)
-                elif parsed.type == "research":
+                elif parsed.type == ResponseType.RESEARCH:
                     if not parsed.research:
                         logger.error("Research type received but research is None")
                         return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
@@ -112,7 +113,7 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                         config.llm.prime_foo_model,
                         self.parse_prime_foo_response,
                     )
-                elif parsed.type == "feedback_note":
+                elif parsed.type == ResponseType.FEEDBACK_NOTE:
                     if not parsed.feedback_note:
                         logger.error("Feedback note type received but feedback_note is None")
                         return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
