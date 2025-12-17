@@ -9,8 +9,9 @@ Top-level declarations:
 - ReplyData: Model for email reply data structure
 """
 
-from typing import List, Optional
-from pydantic import BaseModel, EmailStr, field_validator, Field
+from typing import List, Optional, Union, Any
+from pydantic import BaseModel, EmailStr, field_validator, Field, field_serializer, ConfigDict
+from markupsafe import Markup
 
 
 class EmailRecipients(BaseModel):
@@ -41,9 +42,23 @@ class ParsedEmailData(BaseModel):
 class ReplyData(BaseModel):
     # Model for email reply data structure with threading support
     # Used for constructing email replies with proper threading headers
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
     to: List[EmailStr]
     cc: List[EmailStr] = Field(default_factory=list)
     subject: str
-    body: str
+    body: Union[str, Markup]
     in_reply_to: Optional[str] = None
     references: Optional[str] = None
+
+    @field_validator("body", mode="before")
+    @classmethod
+    def preserve_markup(cls, v: Union[str, Markup]) -> Union[str, Markup]:
+        # Preserve Markup objects to maintain safe HTML formatting
+        # Don't convert Markup to str like Pydantic does by default
+        return v
+    
+    @field_serializer("body")
+    def serialize_body(self, value: Union[str, Markup]) -> str:
+        # When serializing, convert to string but preserve the value
+        return str(value)
