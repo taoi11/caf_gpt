@@ -63,29 +63,19 @@ Look for opportunities in these categories (prioritize by impact):
 ## Step 4: Present Your Recommendations
 Return your findings in this format:
 
+### Response Template
 ```markdown
-# Optimization Opportunities Found
+I found an opportunity:
 
-## Priority 1: [High Impact / Low Risk]
-**File[s]**: `path/to/file.py`
+**File[s]**: `path/to/file.py`, `path/to/another_file.py`
 
 **Current state**: [Brief description of what the code does now]
 
-**Recommendation**: [What should be changed in simple English]
+**Suggestion**: [What you'd like to change in simple English]
 
 **Why**: [Simple explanation of the benefit - e.g., "easier to read", "removes duplication", "clearer intent"]
 
 **Impact**: [Any files or tests that might be affected]
-
----
-
-## Priority 2: [Medium Impact]
-[Same format...]
-
----
-
-## Already Optimized
-If code is already well-optimized, state that clearly and explain why.
 ```
 
 Keep explanations simple and focused on practical benefits. Present multiple opportunities ranked by priority if found.

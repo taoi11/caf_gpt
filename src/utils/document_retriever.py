@@ -112,16 +112,12 @@ class DocumentRetriever:
             raise
 
     def _decode_content(self, content: bytes) -> str:
-        # Convert byte content to string with appropriate encoding detection
-        # Tries UTF-8 first, falls back to ISO-8859-1 if needed
+        # Convert byte content to string using UTF-8 encoding
         try:
             return content.decode("utf-8")
-        except UnicodeDecodeError:
-            try:
-                return content.decode("iso-8859-1")
-            except Exception as e:
-                logger.error(f"Failed to decode content: {e}")
-                raise ValueError("Unable to decode document content")
+        except UnicodeDecodeError as e:
+            logger.error(f"Failed to decode content as UTF-8: {e}")
+            raise ValueError("Unable to decode document content - expected UTF-8 encoding")
 
     def _add_to_cache(self, object_key: str, content: str) -> None:
         # Add document to cache, evicting oldest non-persistent entries if needed

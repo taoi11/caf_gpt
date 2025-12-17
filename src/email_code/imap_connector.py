@@ -3,6 +3,7 @@ src/email_code/imap_connector.py
 
 IMAP client wrapper using imap_tools for simplified email operations.
 Optimized to exclude attachments from download to reduce bandwidth usage.
+Supports session reuse to avoid multiple connection overhead.
 
 Top-level declarations:
 - IMAPConnectorError: Custom exception for IMAP operation failures
@@ -13,16 +14,21 @@ from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
-from typing import Generator, List
-from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags  # type: ignore[attr-defined]
 from datetime import datetime
+from typing import Callable, Generator, List, Optional, TypeVar
+
+from imap_tools import MailBox, BaseMailBox, MailMessage, MailMessageFlags  # type: ignore[attr-defined]
+
 from src.config import EmailConfig
 
 logger = logging.getLogger(__name__)
 
+T = TypeVar("T")
+
 
 class IMAPConnectorError(Exception):
     """Custom exception raised when IMAP operations fail"""
+
     # Used for error handling in IMAP operations
 
     pass
@@ -44,65 +50,63 @@ class IMAPConnector:
         ) as mb:
             yield mb
 
-    def mark_seen(self, uid: str) -> None:
+    def _with_mailbox(
+        self,
+        operation: Callable[[BaseMailBox], T],
+        mb: Optional[BaseMailBox],
+        error_msg: str,
+    ) -> T:
+        # Execute operation with provided mailbox or create new connection
+        # Centralizes the if mb/else with self.mailbox() pattern
+        if mb is not None:
+            return operation(mb)
+        try:
+            with self.mailbox() as new_mb:
+                return operation(new_mb)
+        except Exception as error:
+            logger.error(f"{error_msg}: {error}")
+            raise IMAPConnectorError(f"{error_msg}: {error}") from error
+
+    def mark_seen(self, uid: str, mb: Optional[BaseMailBox] = None) -> None:
         # Mark email as seen using direct UID flag (no fetch needed)
-        try:
-            with self.mailbox() as mb:
-                logger.info(f"Marking uid={uid} as SEEN")
-                # Use flag() to set the SEEN flag
-                mb.flag([uid], [MailMessageFlags.SEEN], True)
-                # Force IMAP to persist the flag change
-                mb.client.noop()
-                logger.info(f"Successfully marked uid={uid} as SEEN")
-        except Exception as error:
-            logger.error(f"Failed to mark uid={uid} as seen: {error}")
-            raise IMAPConnectorError(f"failed to mark {uid} as seen: {error}") from error
+        # Accepts optional mailbox to reuse existing connection
+        def do_mark(mailbox: BaseMailBox) -> None:
+            logger.info(f"Marking uid={uid} as SEEN")
+            mailbox.flag([uid], [MailMessageFlags.SEEN], True)
+            mailbox.client.noop()
+            logger.info(f"Successfully marked uid={uid} as SEEN")
 
-    def fetch_unseen_sorted(self) -> List[MailMessage]:
+        self._with_mailbox(do_mark, mb, f"failed to mark {uid} as seen")
+
+    def fetch_unseen_sorted(self, mb: Optional[BaseMailBox] = None) -> List[MailMessage]:
         # Batch fetch unseen emails without attachments to reduce bandwidth, sort by date (oldest first)
-        try:
-            with self.mailbox() as mb:
-                # Get UIDs of unseen messages
-                uids = list(mb.uids("UNSEEN"))
-                if not uids:
-                    return []
+        # Accepts optional mailbox to reuse existing connection
+        def do_fetch(mailbox: BaseMailBox) -> List[MailMessage]:
+            uids = list(mailbox.uids("UNSEEN"))
+            if not uids:
+                return []
 
-                logger.info(f"Fetching {len(uids)} unseen messages without attachments")
+            logger.info(f"Fetching {len(uids)} unseen messages without attachments")
 
-                # Fetch messages using custom command that excludes attachment bodies
-                # Use BODY.PEEK to not mark as seen, fetch only headers and text parts
-                msgs = []
-                for uid in uids:
-                    try:
-                        # Fetch message with text content but minimal attachment data
-                        # This fetches headers, text/plain, text/html but not attachment bodies
-                        msg_list = list(mb.fetch(f"UID {uid}", mark_seen=False))
-                        if msg_list:
-                            msgs.append(msg_list[0])
-                    except Exception as e:
-                        logger.warning(f"Failed to fetch UID {uid}: {e}")
-                        continue
+            # Batch fetch all messages in a single call to avoid N+1 query pattern
+            uid_str = ",".join(uids)
+            msgs = list(mailbox.fetch(f"UID {uid_str}", mark_seen=False))
 
-                # Sort by date (oldest first)
-                if msgs:
-                    msgs.sort(key=lambda msg: msg.date or datetime.min)
-                    logger.info(f"Successfully fetched and sorted {len(msgs)} messages")
+            # Sort by date (oldest first)
+            if msgs:
+                msgs.sort(key=lambda msg: msg.date or datetime.min)
+                logger.info(f"Successfully fetched and sorted {len(msgs)} messages")
 
-                return msgs
-        except Exception as error:
-            raise IMAPConnectorError(f"failed to fetch unseen emails: {error}") from error
+            return msgs
 
-    def move_to_junk(self, uid: str) -> None:
+        return self._with_mailbox(do_fetch, mb, "failed to fetch unseen emails")
+
+    def move_to_junk(self, uid: str, mb: Optional[BaseMailBox] = None) -> None:
         # Move email to Junk folder and mark as seen
-        try:
-            with self.mailbox() as mb:
-                logger.info(f"Moving uid={uid} to Junk folder")
-                mb.move([uid], "Junk")
-                logger.info(f"Successfully moved uid={uid} to Junk")
-        except Exception as error:
-            logger.error(f"Failed to move uid={uid} to Junk: {error}")
-            raise IMAPConnectorError(f"failed to move {uid} to Junk: {error}") from error
+        # Accepts optional mailbox to reuse existing connection
+        def do_move(mailbox: BaseMailBox) -> None:
+            logger.info(f"Moving uid={uid} to Junk folder")
+            mailbox.move([uid], "Junk")
+            logger.info(f"Successfully moved uid={uid} to Junk")
 
-    def disconnect(self) -> None:
-        # No-op: All connections are handled by context managers that automatically cleanup
-        pass
+        self._with_mailbox(do_move, mb, f"failed to move {uid} to Junk")

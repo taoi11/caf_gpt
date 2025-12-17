@@ -1,5 +1,5 @@
 ---
-agent: Plan
+agent: agent
 ---
 
 # Code Optimization Process

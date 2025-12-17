@@ -127,15 +127,15 @@ class EmailComposer:
         try:
             # Choose which subject to use
             chosen_subject = reply_subject if reply_subject else original_subject
-            
+
             if not chosen_subject:
                 return "Re:"
-            
+
             # Add 'Re:' prefix if not already present
             if not chosen_subject.startswith("Re:"):
                 return f"Re: {chosen_subject}"
             return chosen_subject
-            
+
         except Exception as e:
             logger.error(f"Failed to format subject: {e} original_subject={original_subject}")
             return "Re:"

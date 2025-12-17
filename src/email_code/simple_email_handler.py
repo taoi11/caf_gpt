@@ -3,6 +3,7 @@ src/email_code/simple_email_handler.py
 
 Simple email processing handler that polls IMAP for new emails using imap_tools, parses them, and logs them.
 Uses imap_tools for automatic email parsing, eliminating manual parsing boilerplate.
+Optimized to use single IMAP session per polling cycle.
 
 Top-level declarations:
 - LoggedEmail: Dataclass for logging email metadata
@@ -16,9 +17,9 @@ import textwrap
 import threading
 
 from dataclasses import dataclass
-from imap_tools import MailMessage  # type: ignore[attr-defined]
+from imap_tools import MailMessage, BaseMailBox  # type: ignore[attr-defined]
 
-from src.config import EmailConfig, should_trigger_agent, POLICY_AGENT_EMAIL, PACENOTE_AGENT_EMAIL
+from src.config import EmailConfig, should_trigger_agent, AgentType, POLICY_AGENT_EMAIL, PACENOTE_AGENT_EMAIL
 from src.email_code.imap_connector import IMAPConnector, IMAPConnectorError
 from src.email_code.types import ParsedEmailData, ReplyData
 from src.email_code.components.email_adapter import EmailAdapter
@@ -67,29 +68,31 @@ class SimpleEmailProcessor:
                 self._stop_event.wait(self._config.email_process_interval)
         finally:
             logger.info("IMAP poll loop stopped")
-            self._connector.disconnect()
 
     def stop(self) -> None:
         # Signal the processing loop to stop
         self._stop_event.set()
 
     def process_unseen_emails(self) -> None:
-        # Fetch all unseen emails using connector, sort by date (oldest first), process sequentially
+        # Fetch all unseen emails and process within single IMAP session
+        # Reuses connection for all operations (fetch, mark_seen, move_to_junk)
         try:
-            unseen_msgs = self._connector.fetch_unseen_sorted()
-            if not unseen_msgs:
-                logger.debug("No unseen emails to process")
-                return
+            with self._connector.mailbox() as mb:
+                unseen_msgs = self._connector.fetch_unseen_sorted(mb)
+                if not unseen_msgs:
+                    logger.debug("No unseen emails to process")
+                    return
 
-            logger.info(f"Found {len(unseen_msgs)} unseen emails")
+                logger.info(f"Found {len(unseen_msgs)} unseen emails")
 
-            for msg in unseen_msgs:
-                self._process_single_email(msg)
+                for msg in unseen_msgs:
+                    self._process_single_email(msg, mb)
         except IMAPConnectorError as error:
             logger.error(f"Failed to process unseen emails: {error}")
 
-    def _process_single_email(self, msg: MailMessage) -> None:
+    def _process_single_email(self, msg: MailMessage, mb: BaseMailBox) -> None:
         # Process a single email: parse, validate, route to agent, send reply
+        # Uses shared mailbox connection for IMAP operations
         uid = msg.uid
         if uid is None:
             logger.warning("Skipping email with None UID")
@@ -110,18 +113,20 @@ class SimpleEmailProcessor:
             # Check if sender is allowed
             if not is_sender_allowed(parsed_data.from_addr):
                 email_logger.info(f"Blocked sender: {parsed_data.from_addr}")
-                self._connector.move_to_junk(uid_str)
+                self._connector.move_to_junk(uid_str, mb)
                 return
 
             # Check which agent should process this email
-            email_logger.debug(f"Email recipients TO: {parsed_data.recipients.to}, CC: {parsed_data.recipients.cc}")
+            email_logger.debug(
+                f"Email recipients TO: {parsed_data.recipients.to}, CC: {parsed_data.recipients.cc}"
+            )
             agent_type = should_trigger_agent(parsed_data.recipients.to)
 
             if agent_type:
-                self._process_with_agent(parsed_data, agent_type, uid_str, email_logger)
+                self._process_with_agent(parsed_data, agent_type, uid_str, email_logger, mb)
             else:
                 email_logger.debug("Email does not trigger agent workflow - marking as read")
-                self._connector.mark_seen(uid_str)
+                self._connector.mark_seen(uid_str, mb)
 
         except Exception as error:
             email_logger.exception(f"Error processing email: {error}")
@@ -131,17 +136,20 @@ class SimpleEmailProcessor:
     def _process_with_agent(
         self,
         parsed_data: ParsedEmailData,
-        agent_type: str,
+        agent_type: AgentType,
         uid_str: str,
         email_logger: logging.LoggerAdapter[logging.Logger],
+        mb: BaseMailBox,
     ) -> None:
         # Route email to appropriate agent and handle response
-        email_context = self._build_email_context(parsed_data)
+        # Uses shared mailbox connection for mark_seen operations
+        is_pacenote = agent_type == AgentType.PACENOTE
+        email_context = self._build_email_context(parsed_data, is_pacenote=is_pacenote)
 
         # Process with appropriate agent coordinator
         email_logger.info(f"Processing email through {agent_type} agent pipeline")
 
-        result = self._get_agent_response(agent_type, email_context, email_logger, uid_str)
+        result = self._get_agent_response(agent_type, email_context, email_logger, uid_str, mb)
         agent_response, agent_email = result
 
         # Type guard: if agent_email is None, both are None (from union type)
@@ -150,46 +158,55 @@ class SimpleEmailProcessor:
 
         if agent_response.reply:
             self._send_agent_reply(
-                parsed_data, agent_response.reply, agent_email, uid_str, email_logger
+                parsed_data, agent_response.reply, agent_email, uid_str, email_logger, mb
             )
         else:
             email_logger.info("No reply generated by agent - marking as read")
-            self._connector.mark_seen(uid_str)
+            self._connector.mark_seen(uid_str, mb)
 
-    def _build_email_context(self, parsed_data: ParsedEmailData) -> str:
+    def _build_email_context(self, parsed_data: ParsedEmailData, is_pacenote: bool = False) -> str:
         # Build email context string for LLM processing
-        return textwrap.dedent(f"""
+        # Includes indicator when email was sent to pacenote address
+        pacenote_indicator = ""
+        if is_pacenote:
+            pacenote_indicator = "\n[NOTE: This email was sent to pacenote@caf-gpt.com - the user wants a feedback note]"
+
+        return textwrap.dedent(
+            f"""
             Subject: {parsed_data.subject or '<no subject>'}
             From: {parsed_data.from_addr}
             To: {', '.join(parsed_data.recipients.to)}
-            Date: {parsed_data.date or 'Unknown'}
+            Date: {parsed_data.date or 'Unknown'}{pacenote_indicator}
 
             Body:
             {parsed_data.body}
-        """).strip()
+        """
+        ).strip()
 
     def _get_agent_response(
         self,
-        agent_type: str,
+        agent_type: AgentType,
         email_context: str,
         email_logger: logging.LoggerAdapter[logging.Logger],
         uid_str: str,
+        mb: BaseMailBox,
     ) -> tuple[AgentResponse, str] | tuple[None, None]:
-        # Get response from appropriate agent based on type
-        if agent_type == "policy":
-            return (
-                self.coordinator.process_email_with_prime_foo(email_context),
-                POLICY_AGENT_EMAIL,
-            )
-        elif agent_type == "pacenote":
-            return (
-                self.coordinator.process_email_with_feedback_note(email_context),
-                PACENOTE_AGENT_EMAIL,
-            )
-        else:
+        # Get response from prime_foo agent (handles both policy and pacenote)
+        # Maps agent_type to appropriate reply email address
+        agent_email_map = {
+            AgentType.POLICY: POLICY_AGENT_EMAIL,
+            AgentType.PACENOTE: PACENOTE_AGENT_EMAIL,
+        }
+        agent_email = agent_email_map.get(agent_type)
+        if agent_email is None:
             email_logger.warning(f"Unknown agent type: {agent_type}")
-            self._connector.mark_seen(uid_str)
+            self._connector.mark_seen(uid_str, mb)
             return None, None
+
+        return (
+            self.coordinator.process_email_with_prime_foo(email_context),
+            agent_email,
+        )
 
     def _send_agent_reply(
         self,
@@ -198,8 +215,10 @@ class SimpleEmailProcessor:
         agent_email: str,
         uid_str: str,
         email_logger: logging.LoggerAdapter[logging.Logger],
+        mb: BaseMailBox,
     ) -> None:
         # Build and send agent reply with proper threading headers
+        # Uses shared mailbox connection for mark_seen
         threading_headers = EmailThreadManager.build_threading_headers(parsed_data)
 
         # Calculate reply recipients (excluding self)
@@ -220,12 +239,11 @@ class SimpleEmailProcessor:
         )
 
         # Send reply
-        email_logger.info("Sending agent reply")
+        email_logger.debug("Sending agent reply")
         sent = self.sender.send_reply(reply_data, parsed_data, agent_email)
         if sent:
-            email_logger.info("Agent reply sent successfully")
-            self._connector.mark_seen(uid_str)
-            email_logger.info("Email marked as read")
+            email_logger.info("Agent reply sent and email marked as read")
+            self._connector.mark_seen(uid_str, mb)
         else:
             email_logger.error("Failed to send agent reply - email left unread for retry")
 
@@ -234,16 +252,16 @@ class SimpleEmailProcessor:
         return EmailAdapter.adapt_mail_message(msg)
 
     def _build_log_entry(self, uid: str, data: ParsedEmailData) -> LoggedEmail:
-        # Construct LoggedEmail instance from parsed data
+        # Construct LoggedEmail instance from parsed data with truncated preview
         sender = data.from_addr
         subject = data.subject or "<no subject>"
-        preview = data.body.strip()[:200] if data.body else ""
+        body_preview = data.body.strip() if data.body else ""
+        # Truncate preview to 50 chars for logging readability
+        preview = body_preview[:50] + "..." if len(body_preview) > 50 else body_preview
         return LoggedEmail(uid=uid, sender=sender, subject=subject, preview=preview)
 
-    @staticmethod
-    def _log_email(entry: LoggedEmail) -> None:
-        # Log email entry with truncated preview for readability
-        preview = entry.preview[:50] + "..." if len(entry.preview) > 50 else entry.preview
+    def _log_email(self, entry: LoggedEmail) -> None:
+        # Log email entry with already-truncated preview
         logger.info(
-            f"Received email uid={entry.uid} from={entry.sender} subject={entry.subject} preview={preview}"
+            f"Received email uid={entry.uid} from={entry.sender} subject={entry.subject} preview={entry.preview}"
         )

@@ -7,55 +7,47 @@ FastAPI for healthy API endpoints.
 ## Essential Workflows
 ### Running & Testing
 ```bash
-# Run locally (uses .env for config)
-uvicorn src.main:app --reload
-
-# Docker (preferred for production)
-docker-compose up --build
-
 # Tests (always run before pushing - we debug on main)
-pytest                    # Run all tests
+pytest -q                 # Run all tests
 pytest -v                 # Verbose output
-pytest tests/test_email.py  # Specific file
 ```
 
 ### Development Philosophy
-- **"Leroy Jenkins - We push to main"**: This is a hobby app, direct commits to main are expected
+- **"Leroy Jenkins - We push to main"**: This is a hobby app, debugging directly on main is expected
 - Always run tests before pushing to validate changes
-- No staging/dev branch complexity - debug in production if needed
+- No staging branch complexity - build on dev and fix on main
 
 ## Agent Architecture Patterns
 ### Email Routing
 Emails route to agents based on **recipient address** (`src/config.py:should_trigger_agent()`):
 - `agent@caf-gpt.com` → Prime Foo Agent (policy questions, can delegate to sub-agents)
-- `pacenote@caf-gpt.com` → Feedback Note Agent (performance feedback with rank-based competencies)
+- `pacenote@caf-gpt.com` → Prime Foo Agent with pacenote context (performance feedback with rank-based competencies)
+  - Email context includes indicator: `[NOTE: This email was sent to pacenote@caf-gpt.com - the user wants a feedback note]`
+  - Prime Foo delegates to PacenoteAgent sub-agent via `<feedback_note>` response
 - Other addresses → marked as read, no processing
 
 ### Iterative Agent Workflow
-Both main agents use **iterative XML response loops**:
-1. **Prime Foo Agent** (`process_email_with_prime_foo`):
-   - LLM returns `<reply>`, `<research>`, or `<no_response>`
-   - If `<research>`: delegate to sub-agent → send results back → LLM replies again
-   - Sub-agents registered in `AgentCoordinator._load_sub_agents()`
-   - Example: `<research><sub_agent name="leave_foo"><query>...</query></sub_agent></research>`
-
-2. **Feedback Note Agent** (`process_email`):
-   - LLM returns `<reply>`, `<rank>`, or `<no_response>`
-   - If `<rank>`: load competencies from S3 (`paceNote/{rank}.md`) → send to LLM → LLM generates feedback
-   - **Circuit breaker**: max 3 LLM calls per email to prevent infinite loops
-   - Rank files: `cpl.md`, `mcpl.md`, `sgt.md`, `wo.md`
+**Prime Foo Agent** (`process_email_with_prime_foo`) uses **iterative XML response loops**:
+- LLM returns `<reply>`, `<research>`, `<feedback_note>`, or `<no_response>`
+- If `<research>`: delegate to sub-agent → send results back → LLM replies again
+  - Sub-agents registered in `AgentCoordinator._load_sub_agents()`
+  - Example: `<research><sub_agent name="leave_foo"><query>...</query></sub_agent></research>`
+- If `<feedback_note>`: delegate to PacenoteAgent → send generated note back → LLM wraps in reply
+  - Format: `<feedback_note rank="cpl">event context</feedback_note>`
+  - PacenoteAgent loads competencies from S3 (`paceNote/{rank}.md`) and generates feedback
+  - Rank files: `cpl.md`, `mcpl.md`, `sgt.md`, `wo.md`
+- **Circuit breaker**: max 6 LLM calls per email to prevent infinite loops
 
 ### XML Parsing with Retry
-All agents use `_call_llm_with_retry()` pattern:
+All agents use `call_llm_with_retry()` pattern:
 - Parse LLM response as XML
-- On `XMLParseError`: send parse error back to LLM, retry once
-- No more retries after first failure - raises exception for error handling
+- On `XMLParseError`: send parse error back to LLM, retry ONCE only
 
 ## Storage & Document Retrieval
 S3 organization: `s3://bucket/category/filename`
 - Categories: `leave/` (policy docs), `paceNote/` (rank competencies)
 - Access via: `document_retriever.get_document("paceNote", "mcpl.md")`
-- DocumentRetriever handles encoding detection (UTF-8 → ISO-8859-1 fallback)
+- All documents are UTF-8 encoded markdown files
 
 ## Adding New Agents/Sub-agents
 1. Create agent class in `src/agents/sub_agents/your_agent.py`

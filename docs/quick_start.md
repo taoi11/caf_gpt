@@ -1,7 +1,7 @@
 # How to Use CAF-GPT
 
 ## Here Be Dragons
-CAF-GPT is an AI-powered email agent that is vibe coded, use at your own risk.
+CAF-GPT is an AI-powered email agent that is entirely vibe coded, use at your own risk.
 
 ## Getting Started
 
@@ -9,6 +9,7 @@ CAF-GPT is an AI-powered email agent that is vibe coded, use at your own risk.
 Simply send an email to one of the following addresses:
 
 #### 1. <pacenote@caf-gpt.com> - Feedback Notes Agent
+_deprecated - use `agent@caf-gpt.com` for pacenotes as well_
 Use this address to generate performance PACE feedback notes
 
 ##### Best practices
