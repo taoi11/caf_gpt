@@ -158,6 +158,9 @@ def test_simple_email_processor_process_unseen(
     """Test SimpleEmailProcessor processes unseen emails using mocked IMAP connector."""
     # Mock connector and its methods
     mock_connector = MagicMock()
+    mock_mailbox = MagicMock()
+    mock_connector.mailbox.return_value.__enter__.return_value = mock_mailbox
+
     mock_msg = MagicMock()
     mock_msg.uid = "1"
     mock_msg.from_ = "test@forces.gc.ca"
@@ -172,9 +175,9 @@ def test_simple_email_processor_process_unseen(
     processor = SimpleEmailProcessor(mock_config)
     processor.process_unseen_emails()
 
-    # Verify the connector was called correctly
-    mock_connector.fetch_unseen_sorted.assert_called_once()
-    mock_connector.mark_seen.assert_called_once_with("1")
+    # Verify the connector was called with shared mailbox session
+    mock_connector.fetch_unseen_sorted.assert_called_once_with(mock_mailbox)
+    mock_connector.mark_seen.assert_called_once_with("1", mock_mailbox)
 
 
 def test_email_adapter_adapts_mail_message(sample_mail_message):

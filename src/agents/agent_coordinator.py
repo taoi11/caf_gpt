@@ -99,10 +99,12 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                         return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
                     research_result = self.handle_research_request(parsed.research)
                     # Send research results back to prime_foo
-                    messages = messages + [
-                        {"role": "assistant", "content": response},
-                        {"role": "user", "content": f"Research results: {research_result}"},
-                    ]
+                    messages.extend(
+                        [
+                            {"role": "assistant", "content": response},
+                            {"role": "user", "content": f"Research results: {research_result}"},
+                        ]
+                    )
 
                     increment_circuit_breaker()
                     response, parsed = call_llm_with_retry(
@@ -116,13 +118,15 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
                         return AgentResponse.error_result(self.GENERIC_ERROR_MSG)
                     note_result = self.handle_feedback_note_request(parsed.feedback_note)
                     # Send feedback note back to prime_foo to wrap in reply
-                    messages = messages + [
-                        {"role": "assistant", "content": response},
-                        {
-                            "role": "user",
-                            "content": f"Here is the feedback note from the pacenote agent. Send this to the user exactly as-is, do not modify it:\n\n{note_result}",
-                        },
-                    ]
+                    messages.extend(
+                        [
+                            {"role": "assistant", "content": response},
+                            {
+                                "role": "user",
+                                "content": f"Here is the feedback note from the pacenote agent. Send this to the user exactly as-is, do not modify it:\n\n{note_result}",
+                            },
+                        ]
+                    )
 
                     increment_circuit_breaker()
                     response, parsed = call_llm_with_retry(
