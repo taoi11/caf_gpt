@@ -17,9 +17,9 @@ from dataclasses import dataclass
 from src.agents.types import XMLParseError
 
 # Pre-compiled regex for finding any known tag in a single pass
-# Matches both self-closing tags and tags with content
+# Matches both self-closing tags and tags with content, including attributes
 _KNOWN_TAGS_PATTERN = re.compile(
-    r"<(reply|no_response|research|rank|feedback_note)(?:\s*/>|>(.*?)</\1>)",
+    r"<(reply|no_response|research|rank|feedback_note)(?:\s+[^>]*)?(?:\s*/>|>(.*?)</\1>)",
     re.DOTALL,
 )
 
