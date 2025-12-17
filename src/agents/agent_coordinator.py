@@ -22,6 +22,7 @@ from .types import (
     XMLParseError,
 )
 from .sub_agents.leave_foo_agent import LeaveFooAgent
+from .sub_agents.doad_foo_agent import DoadFooAgent
 from .sub_agents.pacenote_agent import PacenoteAgent
 from .llm_utils import call_llm_with_retry, circuit_breaker, increment_circuit_breaker
 from .utils.xml_parser import parse_xml_response
@@ -50,8 +51,9 @@ How to use CAF-GPT: <a href="https://github.com/taoi11/caf_gpt/blob/main/docs/qu
         self._load_sub_agents()
 
     def _load_sub_agents(self) -> None:
-        # Dynamically load sub-agents like LeaveFooAgent and PacenoteAgent
+        # Dynamically load sub-agents like LeaveFooAgent, DoadFooAgent, and PacenoteAgent
         self.sub_agents["leave_foo"] = LeaveFooAgent(self.prompt_manager)
+        self.sub_agents["doad_foo"] = DoadFooAgent(self.prompt_manager)
         self.sub_agents["pacenote"] = PacenoteAgent(self.prompt_manager)
 
     def _add_signature(self, content: str) -> str:

@@ -78,6 +78,7 @@ class LLMConfig(BaseSettings):
     pacenote_model: str = "anthropic/claude-haiku-4.5"
     prime_foo_model: str = "anthropic/claude-sonnet-4.5"
     leave_foo_model: str = "anthropic/claude-haiku-4.5"
+    doad_foo_model: str = "anthropic/claude-haiku-4.5"
 
     # Common
     temperature: float = 0.7
