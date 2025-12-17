@@ -28,7 +28,9 @@ class LeaveFooAgent(BaseAgent):
         # Main entry for leave policy research: retrieve policy, build prompt, call LLM
         try:
             # Retrieve leave policy document
-            policy = self._load_document("leave", "leave_policy_2025.md")
+            policy = self._load_document(
+                "leave", "leave_policy_2025.md", "leave policy", "Leave policy document unavailable"
+            )
 
             # Build prompt with policy and question
             replacements = {"{{leave_policy}}": policy}

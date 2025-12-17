@@ -1,17 +1,17 @@
 """
 src/email_code/components/email_adapter.py
 
-Email adapter that converts imap_tools MailMessage objects to our internal ParsedEmailData format.
-Handles the translation between external library objects and our domain models.
+Adapter for converting imap_tools MailMessage to our ParsedEmailData format.
 
 Top-level declarations:
-- EmailAdapter: Static class for converting between MailMessage and ParsedEmailData formats
+- EmailAdapter: Adapter class for converting imap_tools MailMessage to ParsedEmailData
 """
+
+from __future__ import annotations
 
 import re
 from html import unescape
-
-from imap_tools import MailMessage
+from imap_tools import MailMessage  # type: ignore[attr-defined]
 
 from src.email_code.types import ParsedEmailData, EmailRecipients
 

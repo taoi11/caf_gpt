@@ -17,7 +17,7 @@ import textwrap
 import threading
 
 from dataclasses import dataclass
-from imap_tools import MailMessage, BaseMailBox
+from imap_tools import MailMessage, BaseMailBox  # type: ignore[attr-defined]
 
 from src.config import EmailConfig, should_trigger_agent, POLICY_AGENT_EMAIL, PACENOTE_AGENT_EMAIL
 from src.email_code.imap_connector import IMAPConnector, IMAPConnectorError
